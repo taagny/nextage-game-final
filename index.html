@@ -47,7 +47,7 @@
             <h2 id="modal-title"></h2>
             <p id="modal-word-reveal" class="word-reveal"></p>
 
-            <!-- --- O CÓDIGO QUE ESTAVA FALTANDO (FOGUINHO) --- -->
+
             <div id="streak-display" style="display: none; margin: 10px auto; align-items: center; justify-content: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; width: fit-content;">
                 <span style="font-size: 2rem;">🔥</span>
                 <div style="display: flex; flex-direction: column; line-height: 1; text-align: left;">
@@ -139,12 +139,12 @@
     <div class="modal-content ranking-card">
         <button id="close-ranking" class="close-button">&times;</button>
         
-        <!-- Título com a fonte de Terror -->
+        
         <h1 class="ranking-title">
             RANKING<br>NEXTAGE
         </h1>
 
-        <!-- Cabeçalho da Tabela -->
+        
         <div class="ranking-header-row">
             <span class="col-top">TOP</span>
             <span class="col-name" style="text-align: left;">JOGADOR</span>
@@ -229,14 +229,12 @@
         <button id="close-admin" class="close-button">&times;</button>
         <h1 class="logo-modal" style="color: #00ff00; text-shadow: 0 0 10px #00ff00; margin-top: 0;">DEV MODE</h1>
         
-        <!-- 1. ADICIONAR PALAVRA -->
         <div class="admin-section">
             <h3>➕ Adicionar Palavra</h3>
             <input type="text" id="new-word-input" placeholder="Ex: TESTE" maxlength="5" style="text-transform: uppercase;">
             <button onclick="adicionarPalavraAoBanco()" class="admin-btn">SALVAR</button>
         </div>
 
-        <!-- 3. BANIR JOGADOR -->
         <div class="admin-section">
             <h3>🚫 Banir Jogadores</h3>
             <div style="display: flex; gap: 5px; margin-bottom: 10px;">
@@ -248,7 +246,6 @@
             </div>
         </div>
 
-        <!-- 4. ADICIONAR DOADOR -->
         <div class="admin-section">
             <h3>💸 Adicionar Doador</h3>
             <div style="display: flex; gap: 5px;">
@@ -258,7 +255,6 @@
             <button onclick="adicionarDoadorManual()" class="admin-btn" style="background: #ff3b3b; color: white; margin-top: 5px; width: 100%;">ADD AO MURAL</button>
         </div>
 
-        <!-- 5. GERENCIAR DOAÇÕES -->
         <div class="admin-section">
             <h3>🗑️ Excluir Doações</h3>
             <button onclick="carregarDoacoesAdmin()" class="admin-btn" style="background: #333; font-size: 0.8rem; width: 100%; margin-bottom: 10px;">🔄 CARREGAR LISTA</button>
@@ -267,7 +263,6 @@
             </div>
         </div>
 
-        <!-- 6. ZONA DE PERIGO (NOVO) -->
         <div class="admin-section" style="border-color: #ff0000; border-bottom: none;">
             <h3 style="color: #ff0000;">⚠️ Zona de Perigo</h3>
             <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 10px;">Isso vai zerar a sequência (foguinho) de TODOS os jogadores.</p>
@@ -277,7 +272,6 @@
             </button>
         </div>
 
-        <!-- ESTATÍSTICAS -->
         <div class="admin-section" style="border: none; border-top: 1px solid #333; padding-top: 15px;">
             <h3>📊 Estatísticas</h3>
             <p>Jogadores Totais: <span id="total-users-count" style="color: #00ff00;">...</span></p>
@@ -286,7 +280,7 @@
 </div>
 
 
-<!-- MODAL DE DOAÇÃO (VERSÃO FINAL RED) -->
+<!-- MODAL DE DOAÇÃO -->
 <div id="donate-overlay" class="modal-overlay">
     <div class="modal-content donate-card">
         <button id="close-donate" class="close-button">&times;</button>
@@ -314,15 +308,11 @@
     </div>
 </div>
 
-<!-- BOTÃO FLUTUANTE DE ENGRENAGEM (SÓ APARECE PRO DONO) -->
 <div id="admin-btn-float" style="display: none; position: fixed; bottom: 20px; right: 20px; font-size: 2rem; cursor: pointer; z-index: 4000;">
     ⚙️
 </div>
 
-<!-- Importando o Firebase (Versão 9) -->
-<!-- CONFIGURAÇÃO DO FIREBASE (CORRIGIDA) -->
 <script type="module">
-  // 1. Importar as funções necessárias do Google
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import { 
     getAuth, 
@@ -351,7 +341,6 @@
     where
   } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-  // 2. Cole AQUI o código que você copiou do site do Firebase (substitua este bloco abaixo)
   const firebaseConfig = {
     apiKey: "AIzaSyDShR2cu3Bze7qbJ6XC68vCxuFs57o07rs",
     authDomain: "nextage-d6d48.firebaseapp.com",
@@ -361,14 +350,12 @@
     appId: "1:802996452996:web:77c35300bda7397b33ccd1"
   };
 
-  // 3. Inicializar o Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
   console.log("🔥 Firebase carregado com sucesso!");
 
-  // 4. EXPORTAÇÃO PARA O JAVASCRIPT (AQUI ESTAVA O ERRO)
   window.auth = auth;
   window.db = db;
   
@@ -378,12 +365,10 @@
   window.signOut = signOut;
   window.onAuthStateChanged = onAuthStateChanged;
   
-  // Auth Social (CORREÇÃO DO SEU ERRO)
-  window.GoogleAuthProvider = GoogleAuthProvider;     // <--- O ERRO ERA A FALTA DISSO
-  window.FacebookAuthProvider = FacebookAuthProvider; // <--- E DISSO
-  window.signInWithPopup = signInWithPopup;           // <--- E DISSO
+  window.GoogleAuthProvider = GoogleAuthProvider;    
+  window.FacebookAuthProvider = FacebookAuthProvider; 
+  window.signInWithPopup = signInWithPopup;           
 
-  // Banco de Dados
   window.collection = collection;
   window.addDoc = addDoc;
   window.getDocs = getDocs;
