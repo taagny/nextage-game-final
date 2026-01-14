@@ -504,8 +504,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('close-modal').onclick = () => document.getElementById('modal-overlay').style.display = 'none';
     document.getElementById('reset-game').onclick = resetGame;
 
-    // Teclado Físico
- document.addEventListener('keydown', (e) => {
+    // --- TECLADO FÍSICO (LÓGICA INTELIGENTE) ---
+    document.addEventListener('keydown', (e) => {
         if (!e.key) return;
         const key = e.key.toUpperCase();
         
@@ -1251,6 +1251,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
