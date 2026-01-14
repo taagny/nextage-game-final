@@ -296,7 +296,7 @@ async function carregarSequenciaDoBanco(uid) {
     } catch(e) { console.log("Erro carregar sequencia", e); }
 }
 
-// --- FUNÇÃO DE CARREGAR RANKING (ATUALIZADA COM PONTINHOS) ---
+// --- FUNÇÃO DE RANKING (COM PONTINHOS FORÇADOS) ---
 async function carregarRanking() {
     const listaContainer = document.querySelector('.ranking-list-container');
     listaContainer.innerHTML = '<p style="text-align:center; color:white; padding:20px;">Carregando...</p>';
@@ -311,21 +311,21 @@ async function carregarRanking() {
             const data = doc.data();
             let medalha = posicao;
             
-            // Define os troféus
             if (posicao === 1) medalha = '🏆 1';
             if (posicao === 2) medalha = '🥈 2';
             if (posicao === 3) medalha = '🥉 3';
 
-            // Formata os números (1000 vira 1.000)
-            const tentativasFormatado = Number(data.tentativas || 0).toLocaleString('pt-BR');
-            const sequenciaFormatada = Number(data.sequenciaAtual || 0).toLocaleString('pt-BR');
+            // --- AQUI ESTÁ A MUDANÇA (FÓRMULA MATEMÁTICA) ---
+            // Transforma em texto e insere ponto a cada 3 números
+            const tentativas = (data.tentativas || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            const sequencia = (data.sequenciaAtual || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
             const linhaHTML = `
                 <div class="ranking-row">
                     <span class="col-top">${medalha}</span>
                     <span class="col-name">${data.nome}</span>
-                    <span class="col-stat highlight-blue">${tentativasFormatado}</span>
-                    <span class="col-stat highlight-blue">${sequenciaFormatada}</span>
+                    <span class="col-stat highlight-blue">${tentativas}</span>
+                    <span class="col-stat highlight-blue">${sequencia}</span>
                 </div>
             `;
             listaContainer.innerHTML += linhaHTML;
@@ -1139,4 +1139,5 @@ async function copiarResultado() {
     }
 
 }
+
 
