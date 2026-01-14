@@ -97,6 +97,7 @@ function addLetter(letter) {
         tile.textContent = letter;
         guessRows[currentRow][currentTile] = letter;
         currentTile++;
+        salvarJogoLocal();
     }
 }
 
@@ -106,6 +107,7 @@ function deleteLetter() {
         const tile = document.getElementById(`row-${currentRow}-tile-${currentTile}`);
         tile.textContent = '';
         guessRows[currentRow][currentTile] = '';
+        salvarJogoLocal();
     }
 }
 
@@ -143,6 +145,7 @@ function checkRow() {
         } else {
             currentRow++;
             currentTile = 0;
+            salvarJogoLocal();
         }
     }
 }
@@ -208,6 +211,7 @@ function generateMiniGrid() {
 }
 
 function resetGame() {
+    localStorage.removeItem('nextage_save');
     getRandomWord();
     currentRow = 0;
     currentTile = 0;
@@ -442,10 +446,21 @@ function showRegister() {
 // --- INICIALIZAÇÃO E EVENTOS ---
 // ==========================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    getRandomWord();
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Cria a estrutura visual (Quadrados e Teclado)
     createGrid();
     createKeyboard();
+
+    // 2. AQUI ESTÁ A MUDANÇA: Decisão de Carregar ou Novo Jogo
+    const carregou = carregarJogoLocal(); // Tenta ler do LocalStorage
+
+    if (carregou) {
+        console.log("Jogo restaurado! Palavra:", wordle);
+        reconstruirTabuleiro(); // Pinta as cores e letras antigas
+    } else {
+        console.log("Nenhum save encontrado. Iniciando novo jogo.");
+        await getRandomWord(); // Sorteia uma palavra nova
+    }
 
     // Botão de Doação 💚
     const donateBtn = document.getElementById('donate-btn');
@@ -1221,6 +1236,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
