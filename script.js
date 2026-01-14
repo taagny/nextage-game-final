@@ -181,7 +181,7 @@ async function showResult(won) {
                 await salvarDerrota();
             }
             // Atualiza o número na tela
-            streakNumber.textContent = sequenciaAtualLocal;
+            streakNumber.textContent = Number(sequenciaAtualLocal).toLocaleString('pt-BR');
         } else {
             streakDiv.style.display = 'none';
         }
@@ -1138,4 +1138,5 @@ async function copiarResultado() {
         // Fallback simples
         alert("Erro ao copiar automaticamente. Tire um print!");
     }
+
 }
