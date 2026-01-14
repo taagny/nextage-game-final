@@ -524,3 +524,51 @@ header {
     .icons-left, .icons-right { gap: 5px; transform: scale(0.9); }
     #user-menu { right: 5px; top: 60px; width: 180px; }
 }
+
+/* ========================================================= */
+/* --- CORREÇÃO DE EMERGÊNCIA: TECLADO MOBILE --- */
+/* ========================================================= */
+
+@media (max-width: 600px) {
+    /* 1. Remove qualquer margem lateral do corpo que possa atrapalhar */
+    body {
+        padding: 0;
+        overflow-x: hidden; /* Proíbe rolagem lateral */
+    }
+
+    /* 2. O Container do Teclado ocupa 100% da tela */
+    .keyboard-container {
+        width: 100vw; /* Largura total da janela */
+        padding: 5px 2px; /* Quase sem borda */
+        box-sizing: border-box;
+    }
+
+    /* 3. As Linhas de Teclas */
+    .key-row {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 2px !important; /* Espaço MÍNIMO entre teclas (Forçado) */
+        margin-bottom: 4px;
+        padding: 0 2px; /* Garante que não encoste na borda da tela */
+    }
+
+    /* 4. A Tecla Individual */
+    .keyboard-button {
+        flex: 1; /* Divide o espaço igualmente */
+        min-width: 0 !important; /* OBRIGATÓRIO: Permite a tecla encolher infinitamente */
+        width: auto;
+        
+        height: 52px; /* Altura confortável para o dedo */
+        font-size: 1rem; /* Letra visível */
+        padding: 0;
+        margin: 0;
+    }
+
+    /* 5. Teclas Enter/Apagar */
+    .keyboard-button.wide {
+        flex: 1.5; /* Um pouquinho maior que as letras */
+        font-size: 0.7rem; /* Texto menor para caber */
+    }
+}
+
