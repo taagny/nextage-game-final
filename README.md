@@ -1,8 +1,4 @@
-<div align="center">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="4" y="4" width="56" height="56" rx="12" fill="#ff3b3b" stroke="white" stroke-width="4"/>
-  <text x="32" y="48" font-family="Arial, sans-serif" font-weight="900" font-size="42" text-anchor="middle" fill="white">N</text>
-</svg>
+
   
   # 🧛 NEXTAGE GAME
   
