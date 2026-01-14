@@ -834,120 +834,103 @@ header {
 }
 
 /* ========================================= */
-/* --- RESPONSIVIDADE (CELULAR / MOBILE) --- */
+/* --- CORREÇÃO DO TECLADO MOBILE (FINAL) --- */
 /* ========================================= */
 
 @media (max-width: 768px) {
 
-    /* 1. Ajuste do Cabeçalho e Logo */
+    /* 1. Ajuste Geral do Layout */
+    body {
+        padding-bottom: 0; /* Remove espaço extra embaixo */
+    }
+
+    /* 2. Cabeçalho Compacto */
     header {
-        padding: 10px 15px;
-        min-height: 70px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 5px 10px;
+        min-height: 60px;
     }
-
     .logo {
-        position: relative; /* Remove o absolute para não ficar por cima dos botões */
-        left: auto;
-        top: auto;
+        position: static; /* Tira do absoluto */
         transform: none;
-        font-size: 2.2rem; /* Diminui muito a fonte */
-        letter-spacing: 1px;
-        margin: 0;
-        order: 2; /* Mantém no meio visualmente se possível */
+        font-size: 2rem; /* Logo menor */
+        margin: 0 auto; /* Centraliza */
+        order: 2; /* Fica no meio */
     }
-
-    /* Ícones laterais menores */
     .icons-left, .icons-right {
-        transform: scale(0.85); /* Diminui os ícones em 15% */
-        gap: 10px;
+        transform: scale(0.8); /* Ícones menores */
+        gap: 5px;
     }
 
-    /* Esconde o texto "FAZER LOGIN" e deixa só o ícone se precisar */
-    .login-btn-header {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-    }
-
-    /* 2. Ajuste do Tabuleiro (Grid) */
-    .tile-container {
-        gap: 4px;
-    }
-    .tile-row {
-        gap: 4px;
+    /* 3. Ajuste do Tabuleiro */
+    .game-container {
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
     .tile {
-        /* Usa % da largura da tela em vez de pixels fixos */
-        width: 13vw; 
-        height: 13vw;
-        max-width: 55px;
-        max-height: 55px;
-        font-size: 1.5rem; /* Letra menor dentro do quadrado */
-        border-width: 2px;
+        width: 14vw;  /* Quadrados responsivos */
+        height: 14vw;
+        max-width: 50px;
+        max-height: 50px;
+        font-size: 1.8rem;
     }
 
-    /* 3. Ajuste do Teclado */
+    /* 4. O TECLADO (AQUI ESTÁ A CORREÇÃO) */
     .keyboard-container {
         width: 100%;
-        padding: 5px;
-        padding-bottom: 20px;
+        padding: 5px 2px; /* Quase sem borda lateral */
+        box-sizing: border-box; /* Garante que padding não estoure a tela */
+        position: relative;
+        bottom: 5px;
     }
+
     .key-row {
         width: 100%;
-        gap: 3px; /* Menos espaço entre teclas */
+        display: flex;
         justify-content: center;
+        gap: 3px; /* Espaço MÍNIMO entre teclas (era 6px) */
+        margin-bottom: 5px;
     }
+
     .keyboard-button {
-        flex: 1; /* Estica para caber */
-        height: 50px;
-        font-size: 0.85rem;
+        flex: 1; /* Estica para ocupar o espaço disponível */
+        height: 55px; /* Teclas altas para facilitar o toque */
+        font-size: 1.1rem; /* Letra legível */
         padding: 0;
-        min-width: 8px; /* Evita que sumam */
+        border-radius: 4px;
+        min-width: 0; /* PERMITE ENCOLHER SE PRECISAR */
     }
+
+    /* Teclas ENTER e APAGAR */
     .keyboard-button.wide {
-        flex: 1.5; /* Enter e Backspace um pouco maiores */
-        font-size: 0.7rem; /* Texto menor para caber */
-    }
-
-    /* 4. Ajuste dos Modais (Login, Ranking, Admin) */
-    .modal-content, 
-    .login-card, 
-    .donate-card, 
-    .ranking-card, 
-    .admin-content {
-        width: 90% !important; /* Ocupa quase toda a largura */
-        padding: 20px;
-        max-height: 85vh; /* Evita cortar se a tela for baixa */
-        overflow-y: auto; /* Permite rolar se o conteúdo for grande */
-    }
-
-    /* Ajustes específicos do Ranking no celular */
-    .ranking-card {
-        height: 80vh;
-    }
-    .ranking-header-row, .ranking-row {
-        font-size: 0.7rem; /* Letra menor na tabela */
-        padding: 8px 5px;
-    }
-
-    /* Ajustes dos Botões Sociais (Ficam um embaixo do outro) */
-    .social-links-container {
-        flex-direction: column;
+        flex: 1.5; /* Um pouco maiores que as letras */
+        font-size: 0.75rem; /* Texto menor para caber "ENTER" */
+        font-weight: 900;
     }
     
-    /* Menu de Usuário Flutuante */
+    /* 5. Ajuste dos Modais para não vazarem */
+    .modal-content, .donate-card, .ranking-card, .admin-content {
+        width: 95% !important;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 15px;
+    }
+    
+    /* Menu de usuário */
     #user-menu {
-        right: 10px; /* Mais perto da borda */
-        top: 70px;
-        width: 180px;
+        right: 5px;
+        top: 60px;
+        width: 160px;
     }
 }
 
-/* Ajuste para telas MUITO pequenas (iPhone SE, Galaxy Fold fechado) */
-@media (max-width: 380px) {
-    .logo { font-size: 1.5rem; }
-    .tile { font-size: 1.2rem; }
-    .keyboard-button { height: 45px; font-size: 0.75rem; }
+/* Ajuste para telas minúsculas (iPhone 5/SE antigos) */
+@media (max-width: 360px) {
+    .keyboard-button {
+        height: 48px;
+        font-size: 0.9rem;
+    }
+    .tile {
+        width: 12vw;
+        height: 12vw;
+    }
 }
