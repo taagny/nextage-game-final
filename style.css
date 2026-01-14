@@ -830,4 +830,124 @@ header {
 }
 .btn-del-don:hover {
     background: #f00;
+
+}
+
+/* ========================================= */
+/* --- RESPONSIVIDADE (CELULAR / MOBILE) --- */
+/* ========================================= */
+
+@media (max-width: 768px) {
+
+    /* 1. Ajuste do Cabeçalho e Logo */
+    header {
+        padding: 10px 15px;
+        min-height: 70px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        position: relative; /* Remove o absolute para não ficar por cima dos botões */
+        left: auto;
+        top: auto;
+        transform: none;
+        font-size: 2.2rem; /* Diminui muito a fonte */
+        letter-spacing: 1px;
+        margin: 0;
+        order: 2; /* Mantém no meio visualmente se possível */
+    }
+
+    /* Ícones laterais menores */
+    .icons-left, .icons-right {
+        transform: scale(0.85); /* Diminui os ícones em 15% */
+        gap: 10px;
+    }
+
+    /* Esconde o texto "FAZER LOGIN" e deixa só o ícone se precisar */
+    .login-btn-header {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* 2. Ajuste do Tabuleiro (Grid) */
+    .tile-container {
+        gap: 4px;
+    }
+    .tile-row {
+        gap: 4px;
+    }
+    .tile {
+        /* Usa % da largura da tela em vez de pixels fixos */
+        width: 13vw; 
+        height: 13vw;
+        max-width: 55px;
+        max-height: 55px;
+        font-size: 1.5rem; /* Letra menor dentro do quadrado */
+        border-width: 2px;
+    }
+
+    /* 3. Ajuste do Teclado */
+    .keyboard-container {
+        width: 100%;
+        padding: 5px;
+        padding-bottom: 20px;
+    }
+    .key-row {
+        width: 100%;
+        gap: 3px; /* Menos espaço entre teclas */
+        justify-content: center;
+    }
+    .keyboard-button {
+        flex: 1; /* Estica para caber */
+        height: 50px;
+        font-size: 0.85rem;
+        padding: 0;
+        min-width: 8px; /* Evita que sumam */
+    }
+    .keyboard-button.wide {
+        flex: 1.5; /* Enter e Backspace um pouco maiores */
+        font-size: 0.7rem; /* Texto menor para caber */
+    }
+
+    /* 4. Ajuste dos Modais (Login, Ranking, Admin) */
+    .modal-content, 
+    .login-card, 
+    .donate-card, 
+    .ranking-card, 
+    .admin-content {
+        width: 90% !important; /* Ocupa quase toda a largura */
+        padding: 20px;
+        max-height: 85vh; /* Evita cortar se a tela for baixa */
+        overflow-y: auto; /* Permite rolar se o conteúdo for grande */
+    }
+
+    /* Ajustes específicos do Ranking no celular */
+    .ranking-card {
+        height: 80vh;
+    }
+    .ranking-header-row, .ranking-row {
+        font-size: 0.7rem; /* Letra menor na tabela */
+        padding: 8px 5px;
+    }
+
+    /* Ajustes dos Botões Sociais (Ficam um embaixo do outro) */
+    .social-links-container {
+        flex-direction: column;
+    }
+    
+    /* Menu de Usuário Flutuante */
+    #user-menu {
+        right: 10px; /* Mais perto da borda */
+        top: 70px;
+        width: 180px;
+    }
+}
+
+/* Ajuste para telas MUITO pequenas (iPhone SE, Galaxy Fold fechado) */
+@media (max-width: 380px) {
+    .logo { font-size: 1.5rem; }
+    .tile { font-size: 1.2rem; }
+    .keyboard-button { height: 45px; font-size: 0.75rem; }
 }
