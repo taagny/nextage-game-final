@@ -504,39 +504,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('close-modal').onclick = () => document.getElementById('modal-overlay').style.display = 'none';
     document.getElementById('reset-game').onclick = resetGame;
 
-    // --- TECLADO FÍSICO (LÓGICA INTELIGENTE) ---
+     // --- TECLADO FÍSICO INTELIGENTE ---
     document.addEventListener('keydown', (e) => {
         if (!e.key) return;
         const key = e.key.toUpperCase();
         
         const modalResultado = document.getElementById('modal-overlay');
         const isModalResultadoAberto = modalResultado.style.display === 'flex';
-        
-        // Verifica se qualquer OUTRO modal (Login, Admin, Ajuda) está aberto
-        // O :not(#modal-overlay) garante que ignoramos o modal de resultado nessa checagem
-        const outrosModaisAbertos = document.querySelector('.modal-overlay[style*="display: flex"]:not(#modal-overlay)');
+        const outrosModais = document.querySelector('.modal-overlay[style*="display: flex"]:not(#modal-overlay)');
 
-        // 1. Se Login, Admin ou Ajuda estiverem abertos, bloqueia tudo
-        if (outrosModaisAbertos) return;
+        if (outrosModais) return;
 
-        // 2. Se o jogo JÁ ACABOU (Vitória ou Derrota)
         if (isGameOver) {
             if (key === 'ENTER') {
-                if (isModalResultadoAberto) {
-                    // Se o modal JÁ está aberto e aperta Enter -> NOVO JOGO
-                    resetGame();
-                } else {
-                    // Se o modal está fechado e aperta Enter -> REABRE O MODAL
-                    // (Isso permite ver a sequência, compartilhar, etc)
-                    modalResultado.style.display = 'flex';
-                }
+                if (isModalResultadoAberto) resetGame();
+                else modalResultado.style.display = 'flex';
             }
-            return; // Impede digitar letras depois que o jogo acabou
+            return;
         }
-
-        // 3. Se o jogo está ROLANDO (e nenhum modal estranho aberto)
         handleInput(key);
     });
+});
 
 // ==========================================
 // --- MONITORAMENTO DE AUTH (PERFIL 👤) ---
@@ -1251,6 +1239,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
