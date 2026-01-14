@@ -1,7 +1,5 @@
 const tileDisplay = document.querySelector('#tile-container');
 const keyboard = document.querySelector('#keyboard-container');
-
-// Dicionário de Palavras (Adicione mais se quiser)
 const validWords = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
@@ -27,7 +25,7 @@ let currentRow = 0;
 let currentTile = 0;
 let isGameOver = false;
 let usuarioAtual = null;
-let sequenciaAtualLocal = 0; // Guarda a sequência (foguinho) na memória
+let sequenciaAtualLocal = 0; 
 
 const keys = [
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -125,8 +123,7 @@ function checkRow() {
     }
 
     const rowTiles = document.getElementById(`row-${currentRow}`).children;
-    
-    // Pinta as cores
+
     for (let i = 0; i < 5; i++) {
         const letter = guess[i];
         const tile = rowTiles[i];
@@ -168,22 +165,19 @@ async function showResult(won) {
     document.getElementById('modal-title').textContent = won ? "PARABÉNS!" : "FIM DE JOGO";
     document.getElementById('modal-word-reveal').textContent = `A palavra era: ${wordle}`;
     
-    // --- PROTEÇÃO CONTRA ERRO ---
     const streakDiv = document.getElementById('streak-display');
     const streakNumber = document.getElementById('streak-number');
 
-    // Só tenta mexer no estilo se o elemento existir no HTML
     if (streakDiv && streakNumber) {
         if (usuarioAtual) {
             streakDiv.style.display = 'flex';
-            
-            // Salva antes de mostrar para garantir o valor atualizado
+
             if (won) {
                 await salvarVitoria();
             } else {
                 await salvarDerrota();
             }
-            // Atualiza o número na tela
+
             streakNumber.textContent = Number(sequenciaAtualLocal).toLocaleString('pt-BR');
         } else {
             streakDiv.style.display = 'none';
@@ -246,21 +240,19 @@ function showMessage(text) {
 }
 
 // ==========================================
-// --- BACK-END FIREBASE ---
+// --- BACK-END  ---
 // ==========================================
 
-// 1. SALVAR VITÓRIA (+1 Sequência)
+// 1. SALVAR VITÓRIA 
 async function salvarVitoria() {
     if (!usuarioAtual) return;
     sequenciaAtualLocal++;
     
     const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
     try {
-        // --- ATUALIZADO: Só aumenta Vitória e Sequência ---
         await window.updateDoc(userRef, {
             vitorias: window.increment(1),
             sequenciaAtual: window.increment(1)
-            // NÃO mexe em tentativas aqui
         });
     } catch (error) {
         console.error("Erro ao salvar vitória:", error);
@@ -274,20 +266,17 @@ async function salvarDerrota() {
     
     const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
     try {
-        // --- ATUALIZADO: Zera sequência e AUMENTA tentativa ---
         await window.updateDoc(userRef, {
             sequenciaAtual: 0,
-            tentativas: window.increment(1) // +1 Erro
+            tentativas: window.increment(1) 
         });
     } catch (error) {
         console.error("Erro ao salvar derrota:", error);
     }
 }
 
-// 3. CARREGAR SEQUÊNCIA DO BANCO (Ao Logar)
 async function carregarSequenciaDoBanco(uid) {
     try {
-        // Busca todos e filtra (método seguro sem importar getDoc)
         const q = window.query(window.collection(window.db, "jogadores"));
         const querySnapshot = await window.getDocs(q);
         querySnapshot.forEach((doc) => {
@@ -300,7 +289,6 @@ async function carregarSequenciaDoBanco(uid) {
     } catch(e) { console.log("Erro carregar sequencia", e); }
 }
 
-// --- FUNÇÃO DE RANKING (COM PONTINHOS FORÇADOS) ---
 async function carregarRanking() {
     const listaContainer = document.querySelector('.ranking-list-container');
     listaContainer.innerHTML = '<p style="text-align:center; color:white; padding:20px;">Carregando...</p>';
@@ -319,8 +307,6 @@ async function carregarRanking() {
             if (posicao === 2) medalha = '🥈 2';
             if (posicao === 3) medalha = '🥉 3';
 
-            // --- AQUI ESTÁ A MUDANÇA (FÓRMULA MATEMÁTICA) ---
-            // Transforma em texto e insere ponto a cada 3 números
             const tentativas = (data.tentativas || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
             const sequencia = (data.sequenciaAtual || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -341,7 +327,6 @@ async function carregarRanking() {
     }
 }
 
-// 5. CRIAR CONTA
 async function criarContaFirebase() {
     const nome = document.getElementById('reg-name').value;
     const email = document.getElementById('reg-email').value;
@@ -352,21 +337,19 @@ async function criarContaFirebase() {
     try {
         const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
         const user = userCredential.user;
-        
-        // --- ATUALIZADO ---
+
         await window.setDoc(window.doc(window.db, "jogadores", user.uid), {
             nome: nome.toUpperCase(),
             email: email,
             vitorias: 0,
             sequenciaAtual: 0,
-            tentativas: 0 // Novo campo (começa com 0 erros)
+            tentativas: 0 
         });
         
         alert("Conta criada com sucesso!");
     } catch (error) { alert("Erro ao criar conta: " + error.message); }
 }
 
-// 6. FAZER LOGIN
 async function fazerLoginFirebase() {
     const email = document.getElementById('login-email').value;
     const senha = document.getElementById('login-pass').value;
@@ -379,15 +362,10 @@ async function fazerLoginFirebase() {
     btn.disabled = true;
 
     try {
-        // Tenta logar
         const userCredential = await window.signInWithEmailAndPassword(window.auth, email, senha);
         console.log("Login realizado!");
-        
-        // --- ATUALIZADO: APENAS FECHA O MODAL ---
-        // Não mexemos no botão do header aqui. O onAuthStateChanged vai fazer isso sozinho.
         document.getElementById('login-overlay').style.display = 'none';
 
-        // Carrega a sequencia
         usuarioAtual = userCredential.user;
         carregarSequenciaDoBanco(usuarioAtual.uid);
 
@@ -408,8 +386,6 @@ async function fazerLoginFirebase() {
 
 function showLogin() {
     const auth = document.getElementById('auth-container');
-    
-    // Ícone do Google
     const googleIcon = `<svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>`;
 
     auth.innerHTML = `
@@ -447,19 +423,16 @@ function showRegister() {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Cria a estrutura visual (Quadrados e Teclado)
     createGrid();
     createKeyboard();
-
-    // 2. AQUI ESTÁ A MUDANÇA: Decisão de Carregar ou Novo Jogo
-    const carregou = carregarJogoLocal(); // Tenta ler do LocalStorage
+    const carregou = carregarJogoLocal();
 
     if (carregou) {
         console.log("Jogo restaurado! Palavra:", wordle);
-        reconstruirTabuleiro(); // Pinta as cores e letras antigas
+        reconstruirTabuleiro();
     } else {
         console.log("Nenhum save encontrado. Iniciando novo jogo.");
-        await getRandomWord(); // Sorteia uma palavra nova
+        await getRandomWord();
     }
 
     // Botão de Doação 💚
@@ -474,7 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (donateBtn) {
         donateBtn.onclick = () => {
             donateOverlay.style.display = 'flex';
-            carregarMuralDoadores(); // Carrega a lista na hora
+            carregarMuralDoadores();
         };
     }
     if (closeDonate) {
@@ -483,7 +456,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-    // Eventos de Clique
     const rankingBtn = document.getElementById('ranking-btn');
     if (rankingBtn) rankingBtn.onclick = () => {
         document.getElementById('ranking-overlay').style.display = 'flex';
@@ -534,15 +506,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function sairDaConta() {
     try {
         await window.signOut(window.auth);
-        document.getElementById('user-menu').style.display = 'none'; // Fecha o menu
+        document.getElementById('user-menu').style.display = 'none'; 
         alert("Você saiu da conta.");
-        window.location.reload(); // Recarrega a página para limpar tudo
+        window.location.reload(); 
     } catch (error) {
         console.error("Erro ao sair:", error);
     }
 }
 
-// Função que alterna o Menu (Abre/Fecha)
 function toggleUserMenu() {
     const menu = document.getElementById('user-menu');
     if (menu.style.display === 'flex') {
@@ -557,18 +528,16 @@ function toggleUserMenu() {
 // ==========================================
 
 function iniciarMonitoramentoAuth() {
-    // 1. Se o Firebase não carregou, tenta de novo em 0.5s
     if (!window.auth) {
         setTimeout(iniciarMonitoramentoAuth, 500);
         return;
     }
 
-    // 2. Ouve as mudanças de estado (Entrou ou Saiu)
     window.onAuthStateChanged(window.auth, async (user) => {
         const btn = document.getElementById('open-login-btn');
         const userNameDisplay = document.getElementById('user-name-display');
         const loginOverlay = document.getElementById('login-overlay');
-        const adminBtn = document.getElementById('admin-btn-float'); // Botão da engrenagem
+        const adminBtn = document.getElementById('admin-btn-float');
 
         if (user) {
             // ===================================
@@ -577,35 +546,24 @@ function iniciarMonitoramentoAuth() {
             console.log("Status: Logado como", user.email);
             usuarioAtual = user;
 
-            // 1. Carrega os dados do jogador (Sequência)
             carregarSequenciaDoBanco(user.uid);
 
-            // 2. VERIFICAÇÃO DE ADMIN (Passo 4)
-            // Se a função existir e o e-mail for o seu, mostra a engrenagem
             if (typeof verificarAdmin === "function") {
                 verificarAdmin(user);
             }
 
-            // 3. Fecha modal de login se estiver aberto
             if (loginOverlay) loginOverlay.style.display = 'none';
-
-            // 4. Atualiza o nome no menu (Pega do Google ou do Email)
             let nomeDisplay = user.displayName ? user.displayName : user.email.split('@')[0];
             if (userNameDisplay) userNameDisplay.textContent = "OLÁ, " + nomeDisplay.toUpperCase();
 
-            // 5. Transforma o botão "Fazer Login" em "Perfil 👤"
             if (btn) {
-                btn.innerHTML = "👤"; // Ícone
-                btn.classList.remove("login-btn-header"); // Remove estilo antigo
-                btn.classList.add("profile-btn"); // Adiciona estilo redondo
-                
-                // Estilo visual
+                btn.innerHTML = "👤"; 
+                btn.classList.remove("login-btn-header"); 
+                btn.classList.add("profile-btn");
                 btn.style.backgroundColor = "#eee"; 
                 btn.style.color = "#1a1010";
-                
-                // Define o clique para abrir o menu suspenso
                 btn.onclick = function(e) {
-                    e.stopPropagation(); // Evita bugs de clique
+                    e.stopPropagation(); 
                     window.toggleUserMenu();
                 };
             }
@@ -617,22 +575,14 @@ function iniciarMonitoramentoAuth() {
             console.log("Status: Deslogado");
             usuarioAtual = null;
             sequenciaAtualLocal = 0;
-
-            // 1. Esconde menu de usuário e botão admin
             document.getElementById('user-menu').style.display = 'none';
             if (adminBtn) adminBtn.style.display = 'none';
-
-            // 2. Restaura o botão para "FAZER LOGIN" (Vermelho)
             if (btn) {
                 btn.textContent = "FAZER LOGIN";
                 btn.classList.remove("profile-btn");
                 btn.classList.add("login-btn-header");
-                
-                // Restaura cores originais
                 btn.style.backgroundColor = "#ff3b3b";
                 btn.style.color = "black";
-                
-                // Define o clique para abrir o modal de login
                 btn.onclick = () => {
                     showLogin();
                     if (loginOverlay) loginOverlay.style.display = 'flex';
@@ -642,14 +592,10 @@ function iniciarMonitoramentoAuth() {
     });
 }
 
-// Inicia o processo
 iniciarMonitoramentoAuth();
 
-// Função Global para Abrir/Fechar o Menu
 window.toggleUserMenu = function() {
     const menu = document.getElementById('user-menu');
-    
-    // Lógica simples de alternar
     if (menu.style.display === 'flex') {
         menu.style.display = 'none';
     } else {
@@ -663,28 +609,19 @@ window.toggleUserMenu = function() {
 // ==========================================
 
 async function fazerLoginSocial() {
-    // Define direto o Google como provedor
     const provider = new window.GoogleAuthProvider();
 
     try {
         console.log("Iniciando login com Google...");
-        
-        // Abre o Pop-up
         const result = await window.signInWithPopup(window.auth, provider);
         const user = result.user;
         
         console.log("Login Social OK:", user.displayName);
-
-        // --- VERIFICA SE O USUÁRIO JÁ EXISTE NO BANCO ---
         const userRef = window.doc(window.db, "jogadores", user.uid);
-        
-        // Atualiza nome/email (ou cria se não existir)
         await window.setDoc(userRef, {
             nome: user.displayName ? user.displayName.toUpperCase() : "JOGADOR GOOGLE",
             email: user.email,
         }, { merge: true });
-
-        // Se for usuário novo, zera os stats
         const isNewUser = result._tokenResponse && result._tokenResponse.isNewUser;
         if (isNewUser) {
             await window.setDoc(userRef, {
@@ -694,8 +631,6 @@ async function fazerLoginSocial() {
                 jogos: 0
             }, { merge: true });
         }
-
-        // Fecha o modal e carrega dados
         document.getElementById('login-overlay').style.display = 'none';
         carregarSequenciaDoBanco(user.uid);
 
@@ -715,32 +650,24 @@ async function fazerLoginSocial() {
 // --- ÁREA DO DESENVOLVEDOR (ADMIN) ---
 // ==========================================
 
-// COLOQUE AQUI O SEU E-MAIL DE LOGIN
 const ADMIN_EMAIL = "taagnyaugusto3214@gmail.com";
 
 function verificarAdmin(user) {
     const adminBtn = document.getElementById('admin-btn-float');
-    
-    // Se o usuário logado tiver o e-mail do chefe
     if (user && user.email === ADMIN_EMAIL) {
-        adminBtn.style.display = 'block'; // Mostra a engrenagem
-        
-        // Configura o clique
+        adminBtn.style.display = 'block'; 
         adminBtn.onclick = () => {
             document.getElementById('admin-overlay').style.display = 'flex';
             carregarStatsAdmin();
         };
     } else {
-        adminBtn.style.display = 'none'; // Esconde de meros mortais
+        adminBtn.style.display = 'none'; 
     }
 }
 
-// Fecha o painel
 const closeAdmin = document.getElementById('close-admin');
 if(closeAdmin) closeAdmin.onclick = () => document.getElementById('admin-overlay').style.display = 'none';
 
-
-// --- FUNÇÃO 1: ADICIONAR PALAVRA NOVA ---
 async function adicionarPalavraAoBanco() {
     const input = document.getElementById('new-word-input');
     const palavra = input.value.toUpperCase().trim();
@@ -751,8 +678,6 @@ async function adicionarPalavraAoBanco() {
     }
 
     try {
-        // Salva na coleção 'dicionario'
-        // Usamos a própria palavra como ID para evitar duplicatas
         await window.setDoc(window.doc(window.db, "dicionario", palavra), {
             palavra: palavra,
             adicionadoEm: new Date(),
@@ -760,9 +685,7 @@ async function adicionarPalavraAoBanco() {
         });
 
         alert(`Palavra "${palavra}" adicionada ao jogo!`);
-        input.value = ""; // Limpa campo
-        
-        // (Opcional) Adiciona ela na lista local imediatamente para testar
+        input.value = ""; 
         validWords.push(palavra); 
 
     } catch (error) {
@@ -771,28 +694,23 @@ async function adicionarPalavraAoBanco() {
     }
 }
 
-// --- FUNÇÃO 2: VER QUANTOS JOGADORES TÊM ---
 async function carregarStatsAdmin() {
     const display = document.getElementById('total-users-count');
     display.textContent = "Contando...";
     
     try {
-        // Conta documentos na coleção 'jogadores'
         const snapshot = await window.getDocs(window.collection(window.db, "jogadores"));
-        display.textContent = snapshot.size; // Mostra o número total
+        display.textContent = snapshot.size; 
     } catch (e) {
         display.textContent = "Erro";
     }
 }
 
-// --- FUNÇÃO 4: BUSCAR JOGADOR PARA BANIR ---
 window.buscarJogadorParaBanir = async function() {
-    console.log("Botão de buscar clicado!"); // Isso vai aparecer no F12
+    console.log("Botão de buscar clicado!"); 
     
     const input = document.getElementById('ban-search-input');
     const lista = document.getElementById('ban-list-container');
-    
-    // Verificação de segurança: Os elementos existem?
     if (!input || !lista) {
         console.error("Erro: Não achei o input ou a lista no HTML.");
         alert("Erro interno: Elementos HTML não encontrados.");
@@ -810,23 +728,18 @@ window.buscarJogadorParaBanir = async function() {
     lista.innerHTML = '<p style="color:white; text-align:center; padding:10px;">Buscando no banco de dados...</p>';
 
     try {
-        // Busca todos os jogadores
         const q = window.query(window.collection(window.db, "jogadores"));
         const snapshot = await window.getDocs(q);
         
-        lista.innerHTML = ''; // Limpa a lista
+        lista.innerHTML = ''; 
         let encontrou = false;
 
         snapshot.forEach((doc) => {
             const data = doc.data();
-            // Verifica se o nome existe e contém o termo pesquisado
             if (data.nome && data.nome.includes(termo)) {
                 encontrou = true;
-                
-                // Cria o visual do item
                 const div = document.createElement('div');
                 div.className = 'ban-item';
-                // Adicionamos estilo inline para garantir que apareça bonito
                 div.style.cssText = "display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; color: white;";
                 
                 div.innerHTML = `
@@ -846,14 +759,12 @@ window.buscarJogadorParaBanir = async function() {
         lista.innerHTML = `<p style="color:red; text-align:center;">Erro: ${e.message}</p>`;
     }
 }
-
-// --- FUNÇÃO 5: EXECUTAR O BANIMENTO ---
 window.confirmarBanimento = async function(uid, nome) {
     if (confirm(`TEM CERTEZA que deseja banir "${nome}"? Isso não pode ser desfeito.`)) {
         try {
             await window.deleteDoc(window.doc(window.db, "jogadores", uid));
             alert(`Jogador ${nome} banido!`);
-            window.buscarJogadorParaBanir(); // Atualiza a lista
+            window.buscarJogadorParaBanir();
         } catch (error) {
             console.error(error);
             alert("Erro ao banir (verifique se deleteDoc está importado no HTML): " + error.message);
@@ -861,16 +772,12 @@ window.confirmarBanimento = async function(uid, nome) {
     }
 }
 
-// --- FUNÇÃO 5: EXECUTAR O BANIMENTO ---
 window.confirmarBanimento = async function(uid, nome) {
     if (confirm(`TEM CERTEZA que deseja banir o jogador "${nome}"? Isso apagará todos os pontos e rank dele.`)) {
         try {
-            // Deleta o documento do jogador
             await window.deleteDoc(window.doc(window.db, "jogadores", uid));
             
             alert(`Jogador ${nome} foi banido com sucesso!`);
-            
-            // Atualiza a lista para sumir com ele
             buscarJogadorParaBanir();
             
         } catch (error) {
@@ -884,7 +791,6 @@ window.confirmarBanimento = async function(uid, nome) {
 // --- SISTEMA DE DOAÇÃO (LIVEPIX) ---
 // ==========================================
 
-// 1. CARREGAR MURAL (Público)
 async function carregarMuralDoadores() {
     const lista = document.getElementById('donors-list');
     
@@ -900,10 +806,8 @@ async function carregarMuralDoadores() {
         lista.innerHTML = '';
         snapshot.forEach((doc) => {
             const data = doc.data();
-            
-            // Cria o elemento SEM estilos inline, usando apenas classes
             const div = document.createElement('div');
-            div.className = 'donor-item'; // <--- Usa a classe do CSS novo
+            div.className = 'donor-item'; 
             
             div.innerHTML = `
                 <span>${data.nome}</span>
@@ -918,7 +822,6 @@ async function carregarMuralDoadores() {
     }
 }
 
-// 2. ADICIONAR DOADOR (Apenas Admin)
 window.adicionarDoadorManual = async function() {
     const nome = document.getElementById('donor-name').value;
     const valor = document.getElementById('donor-value').value;
@@ -929,14 +832,12 @@ window.adicionarDoadorManual = async function() {
         await window.addDoc(window.collection(window.db, "doacoes"), {
             nome: nome,
             valor: valor,
-            data: new Date() // Salva a data para ordenar
+            data: new Date() 
         });
         
         alert(`Doador ${nome} adicionado ao mural!`);
         document.getElementById('donor-name').value = '';
         document.getElementById('donor-value').value = '';
-        
-        // Atualiza a lista se estiver aberta
         carregarMuralDoadores();
 
     } catch (e) {
@@ -944,13 +845,11 @@ window.adicionarDoadorManual = async function() {
     }
 }
 
-// --- FUNÇÃO 6: LISTAR DOAÇÕES NO ADMIN ---
 window.carregarDoacoesAdmin = async function() {
     const lista = document.getElementById('admin-donations-list');
     lista.innerHTML = '<p style="color:white; text-align:center;">Carregando...</p>';
 
     try {
-        // Busca as últimas 20 doações
         const q = window.query(window.collection(window.db, "doacoes"), window.orderBy("data", "desc"), window.limit(20));
         const snapshot = await window.getDocs(q);
 
@@ -981,19 +880,13 @@ window.carregarDoacoesAdmin = async function() {
     }
 }
 
-// --- FUNÇÃO 7: EXCLUIR DOAÇÃO ---
 window.excluirDoacao = async function(id, nome, valor) {
     if (confirm(`Tem certeza que deseja apagar a doação de ${nome} (R$ ${valor})?`)) {
         try {
-            // Deleta do banco
             await window.deleteDoc(window.doc(window.db, "doacoes", id));
             
             alert("Doação removida!");
-            
-            // Atualiza a lista do admin
             carregarDoacoesAdmin();
-            
-            // Atualiza o mural público (caso esteja aberto atrás)
             carregarMuralDoadores();
             
         } catch (e) {
@@ -1002,9 +895,7 @@ window.excluirDoacao = async function(id, nome, valor) {
     }
 }
 
-// --- FUNÇÃO 8: ZERAR SEQUÊNCIAS (TEMPORADA) ---
 window.zerarTodasSequencias = async function() {
-    // 1. Confirmação Dupla de Segurança
     if (!confirm("ATENÇÃO: Isso vai zerar o foguinho 🔥 de TODOS os jogadores do site.\n\nDeseja continuar?")) return;
     
     const confirmacao = prompt("Para confirmar, digite a senha!");
@@ -1013,7 +904,6 @@ window.zerarTodasSequencias = async function() {
         return;
     }
 
-    // Muda texto do botão para avisar que está trabalhando
     const btn = event.target;
     const textoOriginal = btn.textContent;
     btn.textContent = "PROCESSANDO... (ISSO PODE DEMORAR)";
@@ -1021,9 +911,6 @@ window.zerarTodasSequencias = async function() {
 
     try {
         console.log("Iniciando reset global...");
-
-        // 2. Busca APENAS jogadores que têm sequência maior que 0
-        // (Isso economiza recursos do Firebase e é mais rápido)
         const q = window.query(
             window.collection(window.db, "jogadores"), 
             window.where("sequenciaAtual", ">", 0)
@@ -1038,12 +925,10 @@ window.zerarTodasSequencias = async function() {
             return;
         }
 
-        // 3. Atualiza todos eles
         let contador = 0;
-        const promises = []; // Array para guardar as tarefas
+        const promises = []; 
 
         snapshot.forEach((doc) => {
-            // Adiciona a tarefa de atualização na fila
             const tarefa = window.updateDoc(doc.ref, { 
                 sequenciaAtual: 0 
             });
@@ -1051,7 +936,6 @@ window.zerarTodasSequencias = async function() {
             contador++;
         });
 
-        // Espera todas as atualizações terminarem
         await Promise.all(promises);
 
         alert(`SUCESSO! A sequência de ${contador} jogadores foi zerada.`);
@@ -1061,7 +945,6 @@ window.zerarTodasSequencias = async function() {
         console.error(e);
         alert("Erro ao zerar: " + e.message);
     } finally {
-        // Restaura o botão
         btn.textContent = textoOriginal;
         btn.disabled = false;
     }
@@ -1073,17 +956,10 @@ window.zerarTodasSequencias = async function() {
 
 async function copiarResultado() {
     const btn = document.getElementById('share-btn');
-    
-    // 1. Monta o Cabeçalho
-    // Se ganhou, mostra quantas tentativas. Se perdeu, mostra "X/6".
-    // Nota: currentRow começa em 0, então somamos 1.
-    // Se perdeu (currentRow > 5), mostramos X.
     let tentativas = currentRow + 1;
-    if (tentativas > 6 && !isGameOver) tentativas = 6; // Ajuste fino
+    if (tentativas > 6 && !isGameOver) tentativas = 6; 
     if (!wordle || (currentRow >= 5 && document.querySelector('.green-overlay') === null)) tentativas = "X";
-    // Se ganhou, ajusta o número exato
     if (isGameOver) {
-         // Procura em qual linha ganhou
          const linhas = document.querySelectorAll('.tile-row');
          linhas.forEach((row, index) => {
              const tiles = row.children;
@@ -1096,9 +972,6 @@ async function copiarResultado() {
     }
 
     let textoCompartilhar = `NEXTAGE 🧛 ${tentativas}/6\n\n`;
-
-    // 2. Monta o Grid de Emojis
-    // Vamos varrer todas as linhas do tabuleiro
     for (let i = 0; i < 6; i++) {
         const row = document.getElementById(`row-${i}`);
         const tiles = row.children;
@@ -1117,42 +990,34 @@ async function copiarResultado() {
                 temCor = true;
             }
         }
-        
-        // Só adiciona a linha no texto se ela tiver sido jogada
+
         if (temCor) {
             textoCompartilhar += linhaEmojis + "\n";
         }
     }
 
-    // 3. Adiciona o Link do site e Sequência
     textoCompartilhar += `\n🔥 Sequência: ${sequenciaAtualLocal}`;
     textoCompartilhar += `\nJogue agora: ${window.location.href}`;
 
-    // 4. Copia para a Área de Transferência
     try {
         if (navigator.share) {
-            // Tenta usar o compartilhamento nativo do celular (abre o menu do Android/iPhone)
             await navigator.share({
                 title: 'Nextage Game',
                 text: textoCompartilhar
             });
         } else {
-            // Se for no PC, copia para o Ctrl+V
             await navigator.clipboard.writeText(textoCompartilhar);
-            
-            // Feedback Visual no Botão
             const textoOriginal = btn.textContent;
             btn.textContent = "COPIADO! ✅";
             btn.style.backgroundColor = "#538d4e";
             
             setTimeout(() => {
                 btn.textContent = textoOriginal;
-                btn.style.backgroundColor = "#538d4e"; // Mantém verde ou volta pro original
+                btn.style.backgroundColor = "#538d4e";
             }, 2000);
         }
     } catch (err) {
         console.error('Erro ao compartilhar:', err);
-        // Fallback simples
         alert("Erro ao copiar automaticamente. Tire um print!");
     }
 
@@ -1162,26 +1027,23 @@ async function copiarResultado() {
 // --- SISTEMA DE SALVAMENTO (LOCALSTORAGE) ---
 // ==========================================
 
-// 1. Salva o estado atual do jogo
 function salvarJogoLocal() {
-    // Se o jogo já acabou, não salva (para não travar no fim)
     if (isGameOver) {
         localStorage.removeItem('nextage_save');
         return;
     }
 
     const estadoJogo = {
-        wordle: wordle,              // A palavra secreta
-        currentRow: currentRow,      // Linha atual
-        currentTile: currentTile,    // Letra atual
-        guessRows: guessRows,        // O que já foi digitado
-        sequencia: sequenciaAtualLocal // Para não perder o foguinho
+        wordle: wordle,             
+        currentRow: currentRow,     
+        currentTile: currentTile,   
+        guessRows: guessRows,       
+        sequencia: sequenciaAtualLocal 
     };
 
     localStorage.setItem('nextage_save', JSON.stringify(estadoJogo));
 }
 
-// 2. Carrega o jogo salvo (se existir)
 function carregarJogoLocal() {
     const salvo = localStorage.getItem('nextage_save');
     
@@ -1192,22 +1054,17 @@ function carregarJogoLocal() {
         wordle = estado.wordle;
         currentRow = estado.currentRow;
         currentTile = estado.currentTile;
-        // Restaura o array de tentativas, mas cria novas referências para não bugar
         for (let i = 0; i < 6; i++) {
             guessRows[i] = [...estado.guessRows[i]]; 
         }
-        
-        // Restaura sequência visualmente (se tiver logado, o Firebase corrige depois)
+
         sequenciaAtualLocal = estado.sequencia || 0;
 
-        return true; // Avisa que carregou com sucesso
+        return true;
     }
-    return false; // Não tinha jogo salvo
 }
 
-// 3. Reconstrói o visual do tabuleiro (Cores e Letras)
 function reconstruirTabuleiro() {
-    // 1. Preenche todas as letras
     for (let i = 0; i < 6; i++) {
         const rowData = guessRows[i];
         const rowElement = document.getElementById(`row-${i}`);
@@ -1217,11 +1074,10 @@ function reconstruirTabuleiro() {
             const letra = rowData[j];
             if (letra) {
                 tiles[j].textContent = letra;
-                tiles[j].setAttribute('data', letra); // Ajuda na lógica
+                tiles[j].setAttribute('data', letra); 
             }
         }
 
-        // 2. Se a linha já foi confirmada (é menor que a atual), pinta as cores
         if (i < currentRow) {
             const guess = rowData.join('');
             for (let j = 0; j < 5; j++) {
@@ -1232,13 +1088,13 @@ function reconstruirTabuleiro() {
                 
                 tile.classList.add(colorClass);
                 tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
-                
-                // Pinta o teclado também
+
                 updateKeyboardStatus(letter, colorClass);
             }
         }
     }
 }
+
 
 
 
