@@ -6,7 +6,7 @@ const validWords = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
     'RAMOS', 'CARRO', 'NAVIO', 'PEIXE', 'DADOS', 'SAGAZ',
-    'NOBRE', 'AFETO', 'SUTIL', 'VIGOR', 'AUDAZ', 'SANTO', 'CAPAS'
+    'NOBRE', 'AFETO', 'SUTIL', 'VIGOR', 'AUDAZ', 'SANTO', 'CAPAS',
     'TESTE', 'SOLAR', 'PRATO', 'GRUPO', 'PODAM','TRENS','FUZIL','CHAVE', 'PORTA', "CASAL", "ADEGA", "APTAS", "TINTA", "FALSO", "PICOS", "ATUAR", "PISTA", "BURRO", "FAZER",
     "PIZZA", "QUINA", "PINTA", "BANAL", "CORPO", "DETER", "TENUE", "ABONO", "FLUXO", "PAVIO", "LIMAO", "CAQUI", "FINOS", "OBTER", "OVULO", "GRAUS", "CISAO", "ESTES", "HIDRO", "SUPER", "SINTO", "GRUTA", "TONTA", "MAGRO", "FESTA", "PAGAM",
     "GRUPO", "GERAL", "PLACA", "TELAS", "POUCA", "ATUAL", "PODER", "ASSIM", "INATA", "GERME", "BOSSA", "PRESA", "TORTA", "LENTO", "CRIAR", "TORAX", "TUFAO", "MULAS", "BEBER", "BOINA", "POLPA", "MAGIA", "NESSA", "CRASE", "PINHO", "GORDO", "COCOS", "BAZAR", "CAPIM", "LEMES", "LOGAR", "SANTO", "TOSAR", "LATEX", "LATAS", 
@@ -1139,6 +1139,7 @@ async function copiarResultado() {
     }
 
 }
+
 
 
 
