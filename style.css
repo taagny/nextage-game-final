@@ -572,3 +572,85 @@ header {
     }
 }
 
+/* ========================================================= */
+/* --- AJUSTE FINAL: DIMINUIR GRID PARA CABER TECLADO --- */
+/* ========================================================= */
+
+@media (max-width: 600px) {
+    
+    /* 1. Header mais compacto para ganhar espaço no topo */
+    header {
+        padding: 5px;
+        min-height: 50px;
+    }
+    .logo {
+        font-size: 1.8rem; /* Logo menor */
+    }
+
+    /* 2. DIMINUINDO O GRID (O que você pediu) */
+    .game-container {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding: 0;
+        align-items: flex-start; /* Joga o grid mais pra cima */
+    }
+
+    .tile-container {
+        gap: 3px; /* Menos espaço entre as linhas */
+        max-width: 100%; /* Garante que não estoure */
+    }
+
+    .tile-row {
+        gap: 3px; /* Menos espaço entre as letras */
+    }
+
+    .tile {
+        /* Reduzi de 14vw para 11vw. 
+           Isso faz os quadrados ficarem bem menores */
+        width: 11vw; 
+        height: 11vw;
+        
+        /* Trava o tamanho máximo em 45px para não ficar gigante em celulares largos */
+        max-width: 45px; 
+        max-height: 45px;
+        
+        font-size: 1.4rem; /* Ajusta o tamanho da letra */
+        border-width: 2px;
+    }
+
+    /* 3. Ajuste do Teclado para garantir que não corte nas laterais */
+    .keyboard-container {
+        width: 100%;
+        padding: 2px;
+        position: fixed; /* Fixa no fundo da tela */
+        bottom: 0;
+        left: 0;
+        background-color: #1a1010; /* Garante fundo preto atrás das teclas */
+        z-index: 100;
+    }
+
+    .key-row {
+        gap: 2px !important;
+        margin-bottom: 3px;
+    }
+
+    .keyboard-button {
+        height: 50px; /* Altura confortável */
+        font-size: 0.9rem;
+        min-width: 0 !important; /* Permite a tecla encolher para caber */
+        border-radius: 3px;
+    }
+}
+
+/* Ajuste específico para celulares muito pequenos (iPhone 5/SE) */
+@media (max-width: 360px) {
+    .tile {
+        width: 10vw;
+        height: 10vw;
+    }
+    .keyboard-button {
+        height: 45px;
+        font-size: 0.8rem;
+    }
+}
+
