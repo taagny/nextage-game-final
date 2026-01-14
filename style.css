@@ -648,3 +648,16 @@ header {
     .keyboard-button { height: 45px; font-size: 0.8rem; }
 }
 
+/* --- AJUSTE PARA SEQUÊNCIAS GIGANTES --- */
+
+#streak-display {
+    width: auto !important; /* Deixa a largura livre para crescer */
+    min-width: 140px; /* Tamanho mínimo para ficar bonito */
+    padding: 10px 25px !important; /* Mais espaço nas laterais */
+    white-space: nowrap; /* Garante que o número não quebre linha */
+}
+
+#streak-number {
+    font-size: clamp(1.5rem, 5vw, 2.5rem) !important; /* O número diminui um pouco se for MUITO grande pra caber na tela */
+    letter-spacing: 1px;
+}
