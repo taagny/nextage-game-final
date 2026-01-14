@@ -1140,6 +1140,87 @@ async function copiarResultado() {
 
 }
 
+// ==========================================
+// --- SISTEMA DE SALVAMENTO (LOCALSTORAGE) ---
+// ==========================================
+
+// 1. Salva o estado atual do jogo
+function salvarJogoLocal() {
+    // Se o jogo já acabou, não salva (para não travar no fim)
+    if (isGameOver) {
+        localStorage.removeItem('nextage_save');
+        return;
+    }
+
+    const estadoJogo = {
+        wordle: wordle,              // A palavra secreta
+        currentRow: currentRow,      // Linha atual
+        currentTile: currentTile,    // Letra atual
+        guessRows: guessRows,        // O que já foi digitado
+        sequencia: sequenciaAtualLocal // Para não perder o foguinho
+    };
+
+    localStorage.setItem('nextage_save', JSON.stringify(estadoJogo));
+}
+
+// 2. Carrega o jogo salvo (se existir)
+function carregarJogoLocal() {
+    const salvo = localStorage.getItem('nextage_save');
+    
+    if (salvo) {
+        const estado = JSON.parse(salvo);
+        
+        console.log("Recuperando jogo salvo...");
+        wordle = estado.wordle;
+        currentRow = estado.currentRow;
+        currentTile = estado.currentTile;
+        // Restaura o array de tentativas, mas cria novas referências para não bugar
+        for (let i = 0; i < 6; i++) {
+            guessRows[i] = [...estado.guessRows[i]]; 
+        }
+        
+        // Restaura sequência visualmente (se tiver logado, o Firebase corrige depois)
+        sequenciaAtualLocal = estado.sequencia || 0;
+
+        return true; // Avisa que carregou com sucesso
+    }
+    return false; // Não tinha jogo salvo
+}
+
+// 3. Reconstrói o visual do tabuleiro (Cores e Letras)
+function reconstruirTabuleiro() {
+    // 1. Preenche todas as letras
+    for (let i = 0; i < 6; i++) {
+        const rowData = guessRows[i];
+        const rowElement = document.getElementById(`row-${i}`);
+        const tiles = rowElement.children;
+
+        for (let j = 0; j < 5; j++) {
+            const letra = rowData[j];
+            if (letra) {
+                tiles[j].textContent = letra;
+                tiles[j].setAttribute('data', letra); // Ajuda na lógica
+            }
+        }
+
+        // 2. Se a linha já foi confirmada (é menor que a atual), pinta as cores
+        if (i < currentRow) {
+            const guess = rowData.join('');
+            for (let j = 0; j < 5; j++) {
+                const letter = guess[j];
+                const tile = tiles[j];
+                
+                let colorClass = wordle[j] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
+                
+                tile.classList.add(colorClass);
+                tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
+                
+                // Pinta o teclado também
+                updateKeyboardStatus(letter, colorClass);
+            }
+        }
+    }
+}
 
 
 
