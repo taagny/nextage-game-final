@@ -505,23 +505,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('reset-game').onclick = resetGame;
 
     // Teclado Físico
-    document.addEventListener('keydown', (e) => {
-        if (!e.key) return; // Correção do bug toUpperCase
+ document.addEventListener('keydown', (e) => {
+        if (!e.key) return;
         const key = e.key.toUpperCase();
         
-        const algumModalAberto = document.querySelector('.modal-overlay[style*="display: flex"]');
         const modalResultado = document.getElementById('modal-overlay');
+        const isModalResultadoAberto = modalResultado.style.display === 'flex';
+        
+        // Verifica se qualquer OUTRO modal (Login, Admin, Ajuda) está aberto
+        // O :not(#modal-overlay) garante que ignoramos o modal de resultado nessa checagem
+        const outrosModaisAbertos = document.querySelector('.modal-overlay[style*="display: flex"]:not(#modal-overlay)');
 
-        if (modalResultado.style.display === 'flex' && key === 'ENTER') {
-            resetGame();
-            return;
+        // 1. Se Login, Admin ou Ajuda estiverem abertos, bloqueia tudo
+        if (outrosModaisAbertos) return;
+
+        // 2. Se o jogo JÁ ACABOU (Vitória ou Derrota)
+        if (isGameOver) {
+            if (key === 'ENTER') {
+                if (isModalResultadoAberto) {
+                    // Se o modal JÁ está aberto e aperta Enter -> NOVO JOGO
+                    resetGame();
+                } else {
+                    // Se o modal está fechado e aperta Enter -> REABRE O MODAL
+                    // (Isso permite ver a sequência, compartilhar, etc)
+                    modalResultado.style.display = 'flex';
+                }
+            }
+            return; // Impede digitar letras depois que o jogo acabou
         }
 
-        if (!algumModalAberto) {
-            handleInput(key);
-        }
+        // 3. Se o jogo está ROLANDO (e nenhum modal estranho aberto)
+        handleInput(key);
     });
-});
 
 // ==========================================
 // --- MONITORAMENTO DE AUTH (PERFIL 👤) ---
@@ -1236,6 +1251,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
