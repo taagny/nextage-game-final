@@ -5,7 +5,7 @@ const keyboard = document.querySelector('#keyboard-container');
 const validWords = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
-    'RAMOS', 'CARRO', 'NAVIO', 'PEIXE', 'DADOS', 'SAGAZ',
+    'RAMOS', 'CARRO', 'NAVIO', 'PEIXE', 'DADOS', 'SAGAZ', 'EPICA',
     'NOBRE', 'AFETO', 'SUTIL', 'VIGOR', 'AUDAZ', 'SANTO', 'CAPAS',
     'TESTE', 'SOLAR', 'PRATO', 'GRUPO', 'PODAM','TRENS','FUZIL','CHAVE', 'PORTA', "CASAL", "ADEGA", "APTAS", "TINTA", "FALSO", "PICOS", "ATUAR", "PISTA", "BURRO", "FAZER",
     "PIZZA", "QUINA", "PINTA", "BANAL", "CORPO", "DETER", "TENUE", "ABONO", "FLUXO", "PAVIO", "LIMAO", "CAQUI", "FINOS", "OBTER", "OVULO", "GRAUS", "CISAO", "ESTES", "HIDRO", "SUPER", "SINTO", "GRUTA", "TONTA", "MAGRO", "FESTA", "PAGAM",
@@ -1236,6 +1236,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
