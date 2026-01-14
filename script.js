@@ -296,13 +296,12 @@ async function carregarSequenciaDoBanco(uid) {
     } catch(e) { console.log("Erro carregar sequencia", e); }
 }
 
-// 4. CARREGAR RANKING
+// --- FUNÇÃO DE CARREGAR RANKING (ATUALIZADA COM PONTINHOS) ---
 async function carregarRanking() {
     const listaContainer = document.querySelector('.ranking-list-container');
     listaContainer.innerHTML = '<p style="text-align:center; color:white; padding:20px;">Carregando...</p>';
 
     try {
-        // Continua ordenando por quem tem mais VITÓRIAS (Melhores jogadores primeiro)
         const q = window.query(window.collection(window.db, "jogadores"), window.orderBy("vitorias", "desc"), window.limit(20));
         const querySnapshot = await window.getDocs(q);
 
@@ -311,22 +310,22 @@ async function carregarRanking() {
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             let medalha = posicao;
+            
+            // Define os troféus
             if (posicao === 1) medalha = '🏆 1';
             if (posicao === 2) medalha = '🥈 2';
             if (posicao === 3) medalha = '🥉 3';
 
-            // --- ATUALIZADO: Mostra 'tentativas' na coluna do meio ---
-            // Coluna 1: Top
-            // Coluna 2: Nome
-            // Coluna 3: Tentativas (Erros) -> data.tentativas
-            // Coluna 4: Sequência -> data.sequenciaAtual
-            
+            // Formata os números (1000 vira 1.000)
+            const tentativasFormatado = Number(data.tentativas || 0).toLocaleString('pt-BR');
+            const sequenciaFormatada = Number(data.sequenciaAtual || 0).toLocaleString('pt-BR');
+
             const linhaHTML = `
                 <div class="ranking-row">
                     <span class="col-top">${medalha}</span>
                     <span class="col-name">${data.nome}</span>
-                    <span class="col-stat highlight-blue">${data.tentativas || 0}</span>
-                    <span class="col-stat highlight-blue">${data.sequenciaAtual || 0}</span>
+                    <span class="col-stat highlight-blue">${tentativasFormatado}</span>
+                    <span class="col-stat highlight-blue">${sequenciaFormatada}</span>
                 </div>
             `;
             listaContainer.innerHTML += linhaHTML;
@@ -1140,3 +1139,4 @@ async function copiarResultado() {
     }
 
 }
+
