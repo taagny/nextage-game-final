@@ -160,9 +160,9 @@ function checkRow() {
     const guess = guessRows[currentRow].join('');
     if (guess.length !== 5) return;
 
-    // MUDANÇA AQUI: Verifica no 'dicionarioCompleto'
+    // VALIDAÇÃO: Verifica na lista COMPLETA (Respostas + Estranhas)
     if (!dicionarioCompleto.includes(guess)) {
-        showMessage('Palavra não existe no dicionário'); // Mensagem atualizada
+        showMessage('Palavra não encontrada no dicionário');
         const row = document.getElementById(`row-${currentRow}`);
         row.classList.add('shake');
         setTimeout(() => row.classList.remove('shake'), 500);
@@ -170,21 +170,21 @@ function checkRow() {
     }
 
     const rowTiles = document.getElementById(`row-${currentRow}`).children;
-
     for (let i = 0; i < 5; i++) {
         const letter = guess[i];
         const tile = rowTiles[i];
         let colorClass = wordle[i] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
-        
         tile.classList.add(colorClass);
         tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
         updateKeyboardStatus(letter, colorClass);
     }
 
     if (guess === wordle) {
+        localStorage.removeItem('nextage_save');
         setTimeout(() => { showResult(true); isGameOver = true; }, 100);
     } else {
         if (currentRow >= 5) {
+            localStorage.removeItem('nextage_save');
             setTimeout(() => { showResult(false); isGameOver = true; }, 100);
         } else {
             currentRow++;
@@ -1141,6 +1141,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
