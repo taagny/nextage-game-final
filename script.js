@@ -7,7 +7,7 @@ const keyboard = document.querySelector('#keyboard-container');
 // 1. LISTA DE RESPOSTAS
 const palavrasRespostas = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 'FEMEA',
-    'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
+    'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA', 'GEMEA'
     'RAMOS', 'CARRO', 'NAVIO', 'PEIXE', 'DADOS', 'SAGAZ', 'EPICA',
     'NOBRE', 'AFETO', 'SUTIL', 'VIGOR', 'AUDAZ', 'SANTO', 'CAPAS',
     'TESTE', 'SOLAR', 'PRATO', 'GRUPO', 'PODAM','TRENS','FUZIL','CHAVE', 'PORTA', "CASAL", "ADEGA", "APTAS", "TINTA", "FALSO", "PICOS", "ATUAR", "PISTA", "BURRO", "FAZER", 'PODAM', 'TRENS', 'FUZIL',
@@ -69,7 +69,7 @@ const dicionarioCompleto = [
 'PUGNA', 'ÚBERE', 'VELHA', 'TRAGO', 'PENSO', 'FUNDO', 'MORFO', 'NARCO', 'LESTO', 'VASTA', 'PASMA', 'QUEDA', 'DERAM', 'ÁLAMO', 'DÚBIA', 'CEITA', 'UFANO', 'OLHOS', 'PODAR', 'ARDIS', 'TROÇO', 'PICHE', 'LINHA', 'APEAR', 'TROCO', 'PÓLIS',
 'VIGER', 'PREÇO', 'ÚMIDO', 'FROTA', 'ÁUDIO', 'BULIR', 'FOLIA', 'MOCHO', 'NESTE', 'OUTRA', 'PEITA', 'ILESO', 'FAROL', 'MONTA', 'DISSO', 'RESTO', 'COSMO', 'MANTO', 'MATAR', 'CHAVE', 'SEIVA', 'REDOR', 'CHAGA', 'BARRO', 'BOLSO', 'MOVER',
 'MISTO', 'FALSA', 'CÍVEL', 'RETRO', 'LIMPO', 'VAZIA', 'LÁBIA', 'LOUCA', 'VELOZ', 'BEDEL', 'NARIZ', 'CAMPA', 'NÁCAR', 'BARÃO', 'LOGIA', 'JUSTA', 'LOURO', 'CULTA', 'MIMAR', 'SAMBA', 'LUTAR', 'ÁLBUM', 'SABOR', 'BANTO', 'DADOS', 'MACHO',
-'GEMER', 'PORCA', 'LUCRO', 'AXIAL', 'COEVO', 'TOQUE', 'ZUMBI', 'PUNHA', 'LONGO', 'ARROZ', 'CALÇA', 'ENJOO', 'SACAR', 'RENTE', 'SALVA', 'DIABO', 'SUBIR', 'FINDO', 'FARTO', 'CALVO', 'URGIR', 'PAGAR', 'LOUSA', 'VENHO', 'XAMPU', 'BAIXA',
+'R', 'PORCA', 'LUCRO', 'AXIAL', 'COEVO', 'TOQUE', 'ZUMBI', 'PUNHA', 'LONGO', 'ARROZ', 'CALÇA', 'ENJOO', 'SACAR', 'RENTE', 'SALVA', 'DIABO', 'SUBIR', 'FINDO', 'FARTO', 'CALVO', 'URGIR', 'PAGAR', 'LOUSA', 'VENHO', 'XAMPU', 'BAIXA',
 'PLUMA', 'VALER', 'OUSAR', 'SABIÁ', 'SEXTO', 'FIRMA', 'BRUXA', 'SOLTA', 'FOCAR', 'SIGLA', 'FÁTUO', 'HÍFEN', 'FORRO', 'TORNA', 'REPOR', 'LENTO',
 'CHOÇA', 'RELER', 'CARDO', 'FAZES', 'GUETO', 'BUGRE', 'FUGIU', 'CORTE', 'PULAR', 'VOILÀ', 'VÁRIO', 'CUSTO', 'CORAR', 'FEIRA', 'MANIA', 'NESGA', 'CANIL', 'DEMÃO', 'VERSA', 'RÁCIO', 'SADIO', 'FERIR', 'MÍOPE', 'MODAL', 'TÊNIS'
 ];
@@ -794,6 +794,7 @@ window.carregarStatsAdmin = async function() {
         display.textContent = "Erro";
     }
 };
+
 
 
 
