@@ -21,7 +21,7 @@ const palavrasRespostas = [
 ];
 
 const dicionarioCompleto = [
-    'SAGAZ'
+'SAGAZ',
 'ÂMAGO', 'TERMO', 'NEGRO', 'ÊXITO', 'MEXER', 'NOBRE', 'SENSO', 'ÉTICA', 'AFETO', 'ALGOZ',
 'FAZER', 'PLENA', 'TÊNUE', 'ASSIM', 'MÚTUA', 'SOBRE', 'AQUÉM', 'PODER', 'SEÇÃO', 'VIGOR',
 'SUTIL', 'PORÉM', 'FOSSE', 'CERNE', 'IDEIA', 'SANAR', 'AUDAZ', 'MORAL', 'INATO', 'QUIÇÁ',
@@ -1141,6 +1141,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
