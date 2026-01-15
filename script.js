@@ -4,7 +4,7 @@
 const tileDisplay = document.querySelector('#tile-container');
 const keyboard = document.querySelector('#keyboard-container');
 
-// 1. LISTA DE RESPOSTAS (Apenas palavras que podem ser a Solução)
+// 1. LISTA DE RESPOSTAS
 const palavrasRespostas = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
@@ -25,10 +25,11 @@ const palavrasRespostas = [
     "ATRAS", "FOSCO", "TRAIR", "ORGAO", "CINTA", "CACHO", "COXAS", "POLOS", "ESSAS", "OLEOS", "BANDA", "LIXOS", "DORES", "ACESA", "CLARO", "DUBLE", "ALBUM", "NATAL", "AVIAO", "MASSA", "CATAR", "MAPAS", "LEVAR", "RIGOR", "POMBA", "FOSSO", "FRACA", "BANIR", "COPOS", "AMAGO", "DUROS", "ZEBRA", "CORDA", "CABRA", "MORNO", "TURMA", "MOVEL", "SETAS", "PONEI", "ORIXA", "LAUDO", "TATIL", "DOCAS", "RICOS", "DICAS", "MOTOS", "SEDAS", "PRAZO", "AGUDO", "TOLOS", "MIMAR", "FINAS", "POSAR", "NICHO", "COVAS", "TRENA", "DOSAR", "SOCOS", "BARAO", "FOCAR", "INVES", "PESTE", "ANAIS", "JAULA", "REGUA", "OMEGA", "ACHAR", "CORSO", "CANOS", "BARCA", "CAFES", "MACIO", "FATOS", "FICAR", "MOTEL", "BATOM", "TROPA", "SERIO", "JARRO", "VOGAL", "CANIL", "VISOR", "DENTE", "CASCA", "SANTA", "CHEFE", "PENTA", "FUSAO", "REINA", "GALAS", "MESMO", "CISNE", "LAPSO", "FONTE", "FOCOS", "AMIDO", "FERIR", "CEDRO", "CRUEL", "MAFIA", "EXATO", "CAPAZ", "LENCO", "ASSAR", "AINDA", "CAMPO", "ENFIM", "VERBA", "NOITE", "PENAL", "ANSIA", "SAPOS", "AMBAS", "MORAR", "AMBAR", "FONES", "AXILA", "JATOS", "POMPA", "OSSOS", "MICOS", "POUCO"
 ];
 
-// 2. LISTA TOTAL (Dicionário completo para validar se a palavra existe)
+// 2. LISTA TOTAL
 const dicionarioCompleto = [
-    ...palavrasRespostas,
-'SAGAZ', 'ÂMAGO', 'TERMO', 'NEGRO', 'ÊXITO', 'MEXER', 'NOBRE', 'SENSO', 'ÉTICA', 'AFETO', 'ALGOZ',
+    ...palavrasRespostas, 
+'SAGAZ',
+'ÂMAGO', 'TERMO', 'NEGRO', 'ÊXITO', 'MEXER', 'NOBRE', 'SENSO', 'ÉTICA', 'AFETO', 'ALGOZ',
 'FAZER', 'PLENA', 'TÊNUE', 'ASSIM', 'MÚTUA', 'SOBRE', 'AQUÉM', 'PODER', 'SEÇÃO', 'VIGOR',
 'SUTIL', 'PORÉM', 'FOSSE', 'CERNE', 'IDEIA', 'SANAR', 'AUDAZ', 'MORAL', 'INATO', 'QUIÇÁ',
 'MUITO', 'DESDE', 'JUSTO', 'HONRA', 'SONHO', 'TORPE', 'RAZÃO', 'AMIGO', 'ÉGIDE', 'ÍCONE',
@@ -71,7 +72,6 @@ const dicionarioCompleto = [
 'GEMER', 'PORCA', 'LUCRO', 'AXIAL', 'COEVO', 'TOQUE', 'ZUMBI', 'PUNHA', 'LONGO', 'ARROZ', 'CALÇA', 'ENJOO', 'SACAR', 'RENTE', 'SALVA', 'DIABO', 'SUBIR', 'FINDO', 'FARTO', 'CALVO', 'URGIR', 'PAGAR', 'LOUSA', 'VENHO', 'XAMPU', 'BAIXA',
 'PLUMA', 'VALER', 'OUSAR', 'SABIÁ', 'SEXTO', 'FIRMA', 'BRUXA', 'SOLTA', 'FOCAR', 'SIGLA', 'FÁTUO', 'HÍFEN', 'FORRO', 'TORNA', 'REPOR', 'LENTO',
 'CHOÇA', 'RELER', 'CARDO', 'FAZES', 'GUETO', 'BUGRE', 'FUGIU', 'CORTE', 'PULAR', 'VOILÀ', 'VÁRIO', 'CUSTO', 'CORAR', 'FEIRA', 'MANIA', 'NESGA', 'CANIL', 'DEMÃO', 'VERSA', 'RÁCIO', 'SADIO', 'FERIR', 'MÍOPE', 'MODAL', 'TÊNIS'
-
 ];
 
 let wordle;
@@ -90,12 +90,11 @@ const keys = [
 const guessRows = Array.from({ length: 6 }, () => Array(5).fill(''));
 
 // ==========================================
-// --- LÓGICA DO JOGO ---
+// --- LÓGICA DO JOGO (COM CORREÇÃO DE CORES) ---
 // ==========================================
 
 async function getRandomWord() {
     try {
-        // Tenta pegar palavra forçada pelo admin
         if(window.db && window.doc && window.getDoc) {
              const docRef = window.doc(window.db, "config", "jogo_diario");
              const docSnap = await window.getDoc(docRef);
@@ -105,8 +104,6 @@ async function getRandomWord() {
              }
         }
     } catch (e) {}
-
-    // Sorteia apenas da lista de RESPOSTAS
     const randomIndex = Math.floor(Math.random() * palavrasRespostas.length);
     wordle = palavrasRespostas[randomIndex].toUpperCase();
 }
@@ -175,11 +172,11 @@ function deleteLetter() {
     }
 }
 
+// --- FUNÇÃO CHECKROW CORRIGIDA (INTELIGENTE) ---
 function checkRow() {
     const guess = guessRows[currentRow].join('');
     if (guess.length !== 5) return;
 
-    // AQUI É A CORREÇÃO: Valida usando a lista COMPLETA
     if (!dicionarioCompleto.includes(guess)) {
         showMessage('Palavra não existe no dicionário');
         const row = document.getElementById(`row-${currentRow}`);
@@ -189,10 +186,34 @@ function checkRow() {
     }
 
     const rowTiles = document.getElementById(`row-${currentRow}`).children;
+    const solutionChars = wordle.split(''); // Array da palavra certa (ex: ['N','A','V','I','O'])
+    const guessChars = guess.split('');     // Array do chute (ex: ['V','I','C','I','O'])
+    const colors = new Array(5).fill('grey-overlay'); // Começa tudo cinza
+
+    // PASSO 1: Encontrar os VERDES (Posição exata)
+    guessChars.forEach((char, index) => {
+        if (char === solutionChars[index]) {
+            colors[index] = 'green-overlay';
+            solutionChars[index] = null; // Marca como "usado" na solução
+            guessChars[index] = null;    // Marca como "processado" no chute
+        }
+    });
+
+    // PASSO 2: Encontrar os AMARELOS (Letra existe mas em outro lugar)
+    guessChars.forEach((char, index) => {
+        if (char !== null && solutionChars.includes(char)) {
+            colors[index] = 'yellow-overlay';
+            // Remove a primeira ocorrência dessa letra dos disponíveis
+            solutionChars[solutionChars.indexOf(char)] = null; 
+        }
+    });
+
+    // PASSO 3: Aplicar as cores na tela
     for (let i = 0; i < 5; i++) {
-        const letter = guess[i];
         const tile = rowTiles[i];
-        let colorClass = wordle[i] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
+        const letter = guessRows[currentRow][i]; // Pega a letra original
+        const colorClass = colors[i];
+
         tile.classList.add(colorClass);
         tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
         updateKeyboardStatus(letter, colorClass);
@@ -215,13 +236,20 @@ function checkRow() {
 
 function updateKeyboardStatus(letter, colorClass) {
     const btn = document.getElementById(letter);
-    if (!btn || btn.classList.contains('green-overlay')) return;
+    if (!btn) return;
+    
+    // Se a tecla já é verde, ela não muda mais
+    if (btn.classList.contains('green-overlay')) return;
+    
+    // Se a tecla é amarela e vai virar verde, pode. Senão, mantém amarela.
+    if (btn.classList.contains('yellow-overlay') && colorClass !== 'green-overlay') return;
+
     btn.classList.remove('yellow-overlay', 'grey-overlay');
     btn.classList.add(colorClass);
 }
 
 // ==========================================
-// --- SISTEMA DE SAVE (LOCALSTORAGE) ---
+// --- SISTEMA DE SAVE (CORRIGIDO TAMBÉM) ---
 // ==========================================
 
 function salvarJogoLocal() {
@@ -252,18 +280,44 @@ function reconstruirTabuleiro() {
         const rowElement = document.getElementById(`row-${i}`);
         if(!rowElement) continue;
         const tiles = rowElement.children;
+
         for (let j = 0; j < 5; j++) {
             if (rowData[j]) {
                 tiles[j].textContent = rowData[j];
                 tiles[j].setAttribute('data', rowData[j]);
             }
         }
+
         if (i < currentRow) {
+            // LÓGICA INTELIGENTE AQUI TAMBÉM (Para o F5 não bugar as cores)
             const guess = rowData.join('');
+            const solutionChars = wordle.split('');
+            const guessChars = guess.split('');
+            const colors = new Array(5).fill('grey-overlay');
+
+            // Passo 1: Verdes
+            guessChars.forEach((char, index) => {
+                if (char === solutionChars[index]) {
+                    colors[index] = 'green-overlay';
+                    solutionChars[index] = null;
+                    guessChars[index] = null;
+                }
+            });
+
+            // Passo 2: Amarelos
+            guessChars.forEach((char, index) => {
+                if (char !== null && solutionChars.includes(char)) {
+                    colors[index] = 'yellow-overlay';
+                    solutionChars[solutionChars.indexOf(char)] = null;
+                }
+            });
+
+            // Aplica
             for (let j = 0; j < 5; j++) {
-                const letter = guess[j];
+                const letter = rowData[j];
                 const tile = tiles[j];
-                let colorClass = wordle[j] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
+                const colorClass = colors[j];
+                
                 tile.classList.add(colorClass);
                 tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
                 updateKeyboardStatus(letter, colorClass);
@@ -449,7 +503,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --- FIREBASE / AUTH / ADMIN ---
 // ==========================================
 
-const ADMIN_EMAIL = "seu_email_aqui@gmail.com"; // <--- VERIFIQUE ISSO
+const ADMIN_EMAIL = "seu_email_aqui@gmail.com"; 
 
 function iniciarMonitoramentoAuth() {
     if (!window.auth) { setTimeout(iniciarMonitoramentoAuth, 500); return; }
