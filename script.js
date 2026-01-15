@@ -604,30 +604,49 @@ async function carregarSequenciaDoBanco(uid) {
 
 async function carregarRanking() {
     const listaContainer = document.querySelector('.ranking-list-container');
-    listaContainer.innerHTML = '<p style="text-align:center;color:white;padding:20px;">Carregando...</p>';
+    listaContainer.innerHTML = '<p style="text-align:center; color:white; padding:20px;">Carregando Top 100...</p>';
+
     try {
-        const q = window.query(window.collection(window.db, "jogadores"), window.orderBy("vitorias", "desc"), window.limit(20));
+        // --- MUDANÇA AQUI: Ordenar por Sequência e limite de 100 ---
+        const q = window.query(
+            window.collection(window.db, "jogadores"), 
+            window.orderBy("sequenciaAtual", "desc"), // Ordena pelo Foguinho 🔥
+            window.limit(100) // Mostra 100 pessoas
+        );
+        
         const querySnapshot = await window.getDocs(q);
+
         listaContainer.innerHTML = '';
         let posicao = 1;
+        
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             let medalha = posicao;
+            
+            // Troféus para os 3 primeiros
             if (posicao === 1) medalha = '🏆 1';
-            if (posicao === 2) medalha = '🥈 2';
-            if (posicao === 3) medalha = '🥉 3';
+            else if (posicao === 2) medalha = '🥈 2';
+            else if (posicao === 3) medalha = '🥉 3';
+            else medalha = `# ${posicao}`; // Coloca um # para os outros
+
             const tentativas = (data.tentativas || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
             const sequencia = (data.sequenciaAtual || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            listaContainer.innerHTML += `
+
+            const linhaHTML = `
                 <div class="ranking-row">
                     <span class="col-top">${medalha}</span>
                     <span class="col-name">${data.nome}</span>
                     <span class="col-stat highlight-blue">${tentativas}</span>
                     <span class="col-stat highlight-blue">${sequencia}</span>
-                </div>`;
+                </div>
+            `;
+            listaContainer.innerHTML += linhaHTML;
             posicao++;
         });
-    } catch (e) { listaContainer.innerHTML = '<p style="color:red;text-align:center;">Erro ao carregar ranking.</p>'; }
+    } catch (error) {
+        console.error("Erro ranking:", error);
+        listaContainer.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar ranking.</p>';
+    }
 }
 
 window.adicionarPalavraAoBanco = async function() {
@@ -794,6 +813,7 @@ window.carregarStatsAdmin = async function() {
         display.textContent = "Erro";
     }
 };
+
 
 
 
