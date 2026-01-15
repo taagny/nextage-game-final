@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // --- FIREBASE / AUTH / ADMIN ---
 // ==========================================
 
-const ADMIN_EMAIL = "seu_email_aqui@gmail.com"; 
+const ADMIN_EMAIL = "taagnyaugusto3214@gmail.com"; 
 
 function iniciarMonitoramentoAuth() {
     if (!window.auth) { setTimeout(iniciarMonitoramentoAuth, 500); return; }
@@ -770,3 +770,4 @@ function showRegister() {
     <button class="auth-submit-btn" style="background-color: #ff3b3b;" onclick="criarContaFirebase()">CADASTRAR</button>
     <p class="auth-switch" onclick="showLogin()">JÁ POSSUI UMA CONTA? Faça LOGIN</p>`;
 }
+
