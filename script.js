@@ -3,6 +3,7 @@
 // ==========================================
 const tileDisplay = document.querySelector('#tile-container');
 const keyboard = document.querySelector('#keyboard-container');
+let jogoSincronizado = false;
 
 // 1. LISTA DE RESPOSTAS
 const palavrasRespostas = [
@@ -158,6 +159,7 @@ function addLetter(letter) {
         tile.textContent = letter;
         guessRows[currentRow][currentTile] = letter;
         currentTile++;
+        registrarInicioDePartida();
         salvarJogoLocal();
     }
 }
@@ -435,6 +437,7 @@ async function resetGame() {
     });
     document.querySelectorAll('.keyboard-button').forEach(btn => btn.classList.remove('green-overlay', 'yellow-overlay', 'grey-overlay'));
     document.getElementById('modal-overlay').style.display = 'none';
+    jogoSincronizado = false;
 }
 
 // ==========================================
@@ -573,22 +576,30 @@ window.sairDaConta = async function() {
 async function salvarVitoria() {
     if (!usuarioAtual) return;
     sequenciaAtualLocal++;
+    
+    const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
     try {
-        await window.updateDoc(window.doc(window.db, "jogadores", usuarioAtual.uid), {
+        await window.updateDoc(userRef, {
             vitorias: window.increment(1),
-            sequenciaAtual: window.increment(1)
+            sequenciaAtual: window.increment(1),
+            jogoAberto: false // <--- JOGO FECHADO CORRETAMENTE
         });
+        jogoSincronizado = false; // Reseta local
     } catch(e){}
 }
 
 async function salvarDerrota() {
     if (!usuarioAtual) return;
     sequenciaAtualLocal = 0;
+    
+    const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
     try {
-        await window.updateDoc(window.doc(window.db, "jogadores", usuarioAtual.uid), {
+        await window.updateDoc(userRef, {
             tentativas: window.increment(1),
-            sequenciaAtual: 0
+            sequenciaAtual: 0,
+            jogoAberto: false // <--- JOGO FECHADO CORRETAMENTE
         });
+        jogoSincronizado = false; // Reseta local
     } catch(e){}
 }
 
@@ -596,10 +607,37 @@ async function carregarSequenciaDoBanco(uid) {
     try {
         const q = window.query(window.collection(window.db, "jogadores"));
         const snapshot = await window.getDocs(q);
-        snapshot.forEach(doc => {
-            if(doc.id === uid) sequenciaAtualLocal = doc.data().sequenciaAtual || 0;
+        
+        snapshot.forEach(async (doc) => { // Adicione async aqui
+            if(doc.id === uid) {
+                const data = doc.data();
+                
+                // --- O XERIFE ANTI-TRAPAÇA ---
+                // Se o banco diz que tem jogo aberto, mas o usuário acabou de chegar...
+                // Significa que ele saiu sem terminar!
+                if (data.jogoAberto === true) {
+                    console.log("⚠️ DETECTADA FUGA DE PARTIDA ANTERIOR!");
+                    
+                    // PUNIÇÃO: Zera a sequência e marca uma derrota (tentativa)
+                    sequenciaAtualLocal = 0;
+                    
+                    alert("Você abandonou a partida anterior!\n\nSua sequência foi zerada como penalidade. 💀");
+                    
+                    // Atualiza o banco com a punição e fecha o jogo
+                    await window.updateDoc(doc.ref, {
+                        sequenciaAtual: 0,
+                        tentativas: window.increment(1),
+                        jogoAberto: false
+                    });
+                } else {
+                    // Jogador honesto, carrega normal
+                    sequenciaAtualLocal = data.sequenciaAtual || 0;
+                }
+                
+                console.log("Sequência carregada:", sequenciaAtualLocal);
+            }
         });
-    } catch(e){}
+    } catch(e) { console.log("Erro carregar sequencia", e); }
 }
 
 async function carregarRanking() {
@@ -813,6 +851,23 @@ window.carregarStatsAdmin = async function() {
         display.textContent = "Erro";
     }
 };
+
+// --- FUNÇÃO ANTI-TRAPAÇA (MARCAR JOGO COMO ABERTO) ---
+async function registrarInicioDePartida() {
+    if (!usuarioAtual || jogoSincronizado) return; // Se não tá logado ou já salvou, ignora
+
+    try {
+        console.log("Iniciando partida no banco (Anti-Cheat)...");
+        // Marca no banco que existe um jogo rolando (jogoAberto: true)
+        await window.updateDoc(window.doc(window.db, "jogadores", usuarioAtual.uid), {
+            jogoAberto: true
+        });
+        jogoSincronizado = true; // Impede que execute de novo nessa partida
+    } catch (e) {
+        console.error("Erro ao registrar início:", e);
+    }
+}
+
 
 
 
