@@ -6,7 +6,7 @@ const keyboard = document.querySelector('#keyboard-container');
 
 // 1. LISTA DE RESPOSTAS
 const palavrasRespostas = [
-    'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
+    'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 'FEMEA',
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
     'RAMOS', 'CARRO', 'NAVIO', 'PEIXE', 'DADOS', 'SAGAZ', 'EPICA',
     'NOBRE', 'AFETO', 'SUTIL', 'VIGOR', 'AUDAZ', 'SANTO', 'CAPAS',
@@ -794,3 +794,4 @@ window.carregarStatsAdmin = async function() {
         display.textContent = "Erro";
     }
 };
+
