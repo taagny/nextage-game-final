@@ -34,7 +34,7 @@ const dicionarioCompleto = [
 'SUTIL', 'PORÉM', 'FOSSE', 'CERNE', 'IDEIA', 'SANAR', 'AUDAZ', 'MORAL', 'INATO', 'QUIÇÁ',
 'MUITO', 'DESDE', 'JUSTO', 'HONRA', 'SONHO', 'TORPE', 'RAZÃO', 'AMIGO', 'ÉGIDE', 'ÍCONE',
 'ETNIA', 'FÚTIL', 'ANEXO', 'DENGO', 'TANGE', 'HAVER', 'LAPSO', 'ENTÃO', 'EXPOR', 'TEMPO',
-'BOÇAL', 'SEARA', 'SABER', 'HÁBIL', 'MÚTUO', 'GRAÇA', 'CASAL', 'ÓBICE', 'XIBIU', 'ÁVIDO',
+'BOÇAL', 'SEARA', 'SABER', 'HÁBIL', 'MÚTUO', 'GRAÇA', 'CASAL', 'ÓBICE', 'XIBIU', 'ÁVIDO', 'FEMEA',
 'DIZER', 'ARDIL', 'ESTAR', 'PESAR', 'DEVER', 'CAUSA', 'TENAZ', 'SENDO', 'AINDA', 'TEMOR', 'PÁRIA', 'BRADO', 'CRIVO', 'COSER', 'GENRO', 'ÁPICE', 'COMUM', 'POSSE', 'PROLE', 'ASSAZ', 'ÂNIMO', 'CEDER', 'FUGAZ',
 'CORJA', 'PAUTA', 'DETÉM', 'CENSO', 'CULTO', 'ÂNSIA', 'ATROZ', 'DIGNO', 'MUNDO', 'FORTE', 'MESMO', 'VULGO', 'VÍCIO', 'GLEBA', 'SAÚDE', 'CRIAR', 'COZER', 'TODOS', 'REVÉS', 'JEITO', 'PUDOR', 'VALHA', 'DOGMA', 'DENSO',
 'NENÉM', 'LOUCO', 'ATRÁS', 'ORDEM', 'REGRA', 'LIMBO', 'PEDIR', 'FELIZ', 'CLAVA', 'HOMEM', 'AJUDA', 'MERCÊ', 'USURA', 'IMPOR', 'BANAL', 'COISA', 'ROUND', 'JUÍZO', 'FALSO', 'LEGAL', 'FORMA', 'SÁBIO', 'CERTO', 'FALAR',
@@ -794,4 +794,5 @@ window.carregarStatsAdmin = async function() {
         display.textContent = "Erro";
     }
 };
+
 
