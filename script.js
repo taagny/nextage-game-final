@@ -1,5 +1,10 @@
+// ==========================================
+// --- VARIÁVEIS GLOBAIS ---
+// ==========================================
 const tileDisplay = document.querySelector('#tile-container');
 const keyboard = document.querySelector('#keyboard-container');
+
+// 1. LISTA DE RESPOSTAS (Apenas palavras que podem ser a Solução)
 const palavrasRespostas = [
     'IDEIA', 'AMIGO', 'CASAS', 'TERRA', 'FOGOS', 'NOITE', 
     'PODER', 'TEMPO', 'MUNDO', 'LIVRO', 'PLANO', 'FLORA',
@@ -20,9 +25,10 @@ const palavrasRespostas = [
     "ATRAS", "FOSCO", "TRAIR", "ORGAO", "CINTA", "CACHO", "COXAS", "POLOS", "ESSAS", "OLEOS", "BANDA", "LIXOS", "DORES", "ACESA", "CLARO", "DUBLE", "ALBUM", "NATAL", "AVIAO", "MASSA", "CATAR", "MAPAS", "LEVAR", "RIGOR", "POMBA", "FOSSO", "FRACA", "BANIR", "COPOS", "AMAGO", "DUROS", "ZEBRA", "CORDA", "CABRA", "MORNO", "TURMA", "MOVEL", "SETAS", "PONEI", "ORIXA", "LAUDO", "TATIL", "DOCAS", "RICOS", "DICAS", "MOTOS", "SEDAS", "PRAZO", "AGUDO", "TOLOS", "MIMAR", "FINAS", "POSAR", "NICHO", "COVAS", "TRENA", "DOSAR", "SOCOS", "BARAO", "FOCAR", "INVES", "PESTE", "ANAIS", "JAULA", "REGUA", "OMEGA", "ACHAR", "CORSO", "CANOS", "BARCA", "CAFES", "MACIO", "FATOS", "FICAR", "MOTEL", "BATOM", "TROPA", "SERIO", "JARRO", "VOGAL", "CANIL", "VISOR", "DENTE", "CASCA", "SANTA", "CHEFE", "PENTA", "FUSAO", "REINA", "GALAS", "MESMO", "CISNE", "LAPSO", "FONTE", "FOCOS", "AMIDO", "FERIR", "CEDRO", "CRUEL", "MAFIA", "EXATO", "CAPAZ", "LENCO", "ASSAR", "AINDA", "CAMPO", "ENFIM", "VERBA", "NOITE", "PENAL", "ANSIA", "SAPOS", "AMBAS", "MORAR", "AMBAR", "FONES", "AXILA", "JATOS", "POMPA", "OSSOS", "MICOS", "POUCO"
 ];
 
+// 2. LISTA TOTAL (Dicionário completo para validar se a palavra existe)
 const dicionarioCompleto = [
-'SAGAZ',
-'ÂMAGO', 'TERMO', 'NEGRO', 'ÊXITO', 'MEXER', 'NOBRE', 'SENSO', 'ÉTICA', 'AFETO', 'ALGOZ',
+    ...palavrasRespostas,
+'SAGAZ', 'ÂMAGO', 'TERMO', 'NEGRO', 'ÊXITO', 'MEXER', 'NOBRE', 'SENSO', 'ÉTICA', 'AFETO', 'ALGOZ',
 'FAZER', 'PLENA', 'TÊNUE', 'ASSIM', 'MÚTUA', 'SOBRE', 'AQUÉM', 'PODER', 'SEÇÃO', 'VIGOR',
 'SUTIL', 'PORÉM', 'FOSSE', 'CERNE', 'IDEIA', 'SANAR', 'AUDAZ', 'MORAL', 'INATO', 'QUIÇÁ',
 'MUITO', 'DESDE', 'JUSTO', 'HONRA', 'SONHO', 'TORPE', 'RAZÃO', 'AMIGO', 'ÉGIDE', 'ÍCONE',
@@ -65,6 +71,7 @@ const dicionarioCompleto = [
 'GEMER', 'PORCA', 'LUCRO', 'AXIAL', 'COEVO', 'TOQUE', 'ZUMBI', 'PUNHA', 'LONGO', 'ARROZ', 'CALÇA', 'ENJOO', 'SACAR', 'RENTE', 'SALVA', 'DIABO', 'SUBIR', 'FINDO', 'FARTO', 'CALVO', 'URGIR', 'PAGAR', 'LOUSA', 'VENHO', 'XAMPU', 'BAIXA',
 'PLUMA', 'VALER', 'OUSAR', 'SABIÁ', 'SEXTO', 'FIRMA', 'BRUXA', 'SOLTA', 'FOCAR', 'SIGLA', 'FÁTUO', 'HÍFEN', 'FORRO', 'TORNA', 'REPOR', 'LENTO',
 'CHOÇA', 'RELER', 'CARDO', 'FAZES', 'GUETO', 'BUGRE', 'FUGIU', 'CORTE', 'PULAR', 'VOILÀ', 'VÁRIO', 'CUSTO', 'CORAR', 'FEIRA', 'MANIA', 'NESGA', 'CANIL', 'DEMÃO', 'VERSA', 'RÁCIO', 'SADIO', 'FERIR', 'MÍOPE', 'MODAL', 'TÊNIS'
+
 ];
 
 let wordle;
@@ -72,7 +79,7 @@ let currentRow = 0;
 let currentTile = 0;
 let isGameOver = false;
 let usuarioAtual = null;
-let sequenciaAtualLocal = 0; 
+let sequenciaAtualLocal = 0;
 
 const keys = [
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -83,10 +90,23 @@ const keys = [
 const guessRows = Array.from({ length: 6 }, () => Array(5).fill(''));
 
 // ==========================================
-// --- FUNÇÕES DO JOGO ---
+// --- LÓGICA DO JOGO ---
 // ==========================================
 
-function getRandomWord() {
+async function getRandomWord() {
+    try {
+        // Tenta pegar palavra forçada pelo admin
+        if(window.db && window.doc && window.getDoc) {
+             const docRef = window.doc(window.db, "config", "jogo_diario");
+             const docSnap = await window.getDoc(docRef);
+             if (docSnap.exists()) {
+                 wordle = docSnap.data().palavraAtiva;
+                 return;
+             }
+        }
+    } catch (e) {}
+
+    // Sorteia apenas da lista de RESPOSTAS
     const randomIndex = Math.floor(Math.random() * palavrasRespostas.length);
     wordle = palavrasRespostas[randomIndex].toUpperCase();
 }
@@ -127,9 +147,8 @@ function createKeyboard() {
 
 function handleInput(key) {
     if (isGameOver) return;
-    
     const modalAberto = document.querySelector('.modal-overlay[style*="display: flex"]');
-    if (modalAberto) return;
+    if (modalAberto) return; 
 
     if (key === 'ENTER') return checkRow();
     if (key === '<<' || key === 'BACKSPACE') return deleteLetter();
@@ -160,9 +179,9 @@ function checkRow() {
     const guess = guessRows[currentRow].join('');
     if (guess.length !== 5) return;
 
-    // VALIDAÇÃO: Verifica na lista COMPLETA (Respostas + Estranhas)
+    // AQUI É A CORREÇÃO: Valida usando a lista COMPLETA
     if (!dicionarioCompleto.includes(guess)) {
-        showMessage('Palavra não encontrada no dicionário');
+        showMessage('Palavra não existe no dicionário');
         const row = document.getElementById(`row-${currentRow}`);
         row.classList.add('shake');
         setTimeout(() => row.classList.remove('shake'), 500);
@@ -202,13 +221,64 @@ function updateKeyboardStatus(letter, colorClass) {
 }
 
 // ==========================================
-// --- RESULTADO E SEQUÊNCIA ---
+// --- SISTEMA DE SAVE (LOCALSTORAGE) ---
+// ==========================================
+
+function salvarJogoLocal() {
+    if (isGameOver) { localStorage.removeItem('nextage_save'); return; }
+    const estado = { wordle, currentRow, currentTile, guessRows, sequencia: sequenciaAtualLocal };
+    localStorage.setItem('nextage_save', JSON.stringify(estado));
+}
+
+function carregarJogoLocal() {
+    try {
+        const salvo = localStorage.getItem('nextage_save');
+        if (salvo) {
+            const estado = JSON.parse(salvo);
+            wordle = estado.wordle;
+            currentRow = estado.currentRow;
+            currentTile = estado.currentTile;
+            for (let i = 0; i < 6; i++) { guessRows[i] = [...estado.guessRows[i]]; }
+            sequenciaAtualLocal = estado.sequencia || 0;
+            return true;
+        }
+    } catch (e) { console.error("Erro save:", e); }
+    return false;
+}
+
+function reconstruirTabuleiro() {
+    for (let i = 0; i < 6; i++) {
+        const rowData = guessRows[i];
+        const rowElement = document.getElementById(`row-${i}`);
+        if(!rowElement) continue;
+        const tiles = rowElement.children;
+        for (let j = 0; j < 5; j++) {
+            if (rowData[j]) {
+                tiles[j].textContent = rowData[j];
+                tiles[j].setAttribute('data', rowData[j]);
+            }
+        }
+        if (i < currentRow) {
+            const guess = rowData.join('');
+            for (let j = 0; j < 5; j++) {
+                const letter = guess[j];
+                const tile = tiles[j];
+                let colorClass = wordle[j] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
+                tile.classList.add(colorClass);
+                tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
+                updateKeyboardStatus(letter, colorClass);
+            }
+        }
+    }
+}
+
+// ==========================================
+// --- RESULTADOS E MODAIS ---
 // ==========================================
 
 async function showResult(won) {
     const modal = document.getElementById('modal-overlay');
     modal.style.display = 'flex';
-    
     document.getElementById('modal-title').textContent = won ? "PARABÉNS!" : "FIM DE JOGO";
     document.getElementById('modal-word-reveal').textContent = `A palavra era: ${wordle}`;
     
@@ -218,20 +288,13 @@ async function showResult(won) {
     if (streakDiv && streakNumber) {
         if (usuarioAtual) {
             streakDiv.style.display = 'flex';
-
-            if (won) {
-                await salvarVitoria();
-            } else {
-                await salvarDerrota();
-            }
-
+            if (won) await salvarVitoria();
+            else await salvarDerrota();
             streakNumber.textContent = Number(sequenciaAtualLocal).toLocaleString('pt-BR');
         } else {
             streakDiv.style.display = 'none';
         }
     }
-    // ----------------------------
-
     generateMiniGrid();
 }
 
@@ -251,27 +314,6 @@ function generateMiniGrid() {
     }
 }
 
-function resetGame() {
-    localStorage.removeItem('nextage_save');
-    getRandomWord();
-    currentRow = 0;
-    currentTile = 0;
-    isGameOver = false;
-    guessRows.forEach(row => row.fill(''));
-    
-    const tiles = document.querySelectorAll('.tile');
-    tiles.forEach(tile => {
-        tile.textContent = '';
-        tile.classList.remove('green-overlay', 'yellow-overlay', 'grey-overlay');
-        tile.style.borderColor = '#3a3a3c';
-    });
-    
-    const keys = document.querySelectorAll('.keyboard-button');
-    keys.forEach(btn => btn.classList.remove('green-overlay', 'yellow-overlay', 'grey-overlay'));
-    
-    document.getElementById('modal-overlay').style.display = 'none';
-}
-
 function showMessage(text) {
     let container = document.querySelector('.message-container');
     if (!container) {
@@ -286,183 +328,59 @@ function showMessage(text) {
     setTimeout(() => container.removeChild(message), 2500);
 }
 
-// ==========================================
-// --- BACK-END  ---
-// ==========================================
-
-// 1. SALVAR VITÓRIA 
-async function salvarVitoria() {
-    if (!usuarioAtual) return;
-    sequenciaAtualLocal++;
-    
-    const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
-    try {
-        await window.updateDoc(userRef, {
-            vitorias: window.increment(1),
-            sequenciaAtual: window.increment(1)
-        });
-    } catch (error) {
-        console.error("Erro ao salvar vitória:", error);
+async function copiarResultado() {
+    const btn = document.getElementById('share-btn');
+    let tentativas = currentRow + 1;
+    if (tentativas > 6 && !isGameOver) tentativas = 6;
+    if (!wordle || (currentRow >= 5 && document.querySelector('.green-overlay') === null)) tentativas = "X";
+    if (isGameOver) {
+         const linhas = document.querySelectorAll('.tile-row');
+         linhas.forEach((row, index) => {
+             const tiles = row.children;
+             let tudoVerde = true;
+             for(let t of tiles) if(!t.classList.contains('green-overlay')) tudoVerde = false;
+             if(tudoVerde) tentativas = index + 1;
+         });
     }
-}
 
-// 2. SALVAR DERROTA (Zera Sequência)
-async function salvarDerrota() {
-    if (!usuarioAtual) return;
-    sequenciaAtualLocal = 0;
-    
-    const userRef = window.doc(window.db, "jogadores", usuarioAtual.uid);
-    try {
-        await window.updateDoc(userRef, {
-            sequenciaAtual: 0,
-            tentativas: window.increment(1) 
-        });
-    } catch (error) {
-        console.error("Erro ao salvar derrota:", error);
+    let texto = `NEXTAGE 🧛 ${tentativas}/6\n\n`;
+    for (let i = 0; i < 6; i++) {
+        const row = document.getElementById(`row-${i}`);
+        const tiles = row.children;
+        let linha = "";
+        let temCor = false;
+        for (let tile of tiles) {
+            if (tile.classList.contains('green-overlay')) { linha += "🟩"; temCor = true; }
+            else if (tile.classList.contains('yellow-overlay')) { linha += "🟨"; temCor = true; }
+            else if (tile.classList.contains('grey-overlay')) { linha += "⬛"; temCor = true; }
+        }
+        if (temCor) texto += linha + "\n";
     }
-}
-
-async function carregarSequenciaDoBanco(uid) {
-    try {
-        const q = window.query(window.collection(window.db, "jogadores"));
-        const querySnapshot = await window.getDocs(q);
-        querySnapshot.forEach((doc) => {
-            if (doc.id === uid) {
-                const data = doc.data();
-                sequenciaAtualLocal = data.sequenciaAtual || 0;
-                console.log("Sequência carregada:", sequenciaAtualLocal);
-            }
-        });
-    } catch(e) { console.log("Erro carregar sequencia", e); }
-}
-
-async function carregarRanking() {
-    const listaContainer = document.querySelector('.ranking-list-container');
-    listaContainer.innerHTML = '<p style="text-align:center; color:white; padding:20px;">Carregando...</p>';
+    texto += `\n🔥 Sequência: ${sequenciaAtualLocal}`;
+    texto += `\nJogue agora: ${window.location.href}`;
 
     try {
-        const q = window.query(window.collection(window.db, "jogadores"), window.orderBy("vitorias", "desc"), window.limit(20));
-        const querySnapshot = await window.getDocs(q);
-
-        listaContainer.innerHTML = '';
-        let posicao = 1;
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            let medalha = posicao;
-            
-            if (posicao === 1) medalha = '🏆 1';
-            if (posicao === 2) medalha = '🥈 2';
-            if (posicao === 3) medalha = '🥉 3';
-
-            const tentativas = (data.tentativas || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            const sequencia = (data.sequenciaAtual || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-            const linhaHTML = `
-                <div class="ranking-row">
-                    <span class="col-top">${medalha}</span>
-                    <span class="col-name">${data.nome}</span>
-                    <span class="col-stat highlight-blue">${tentativas}</span>
-                    <span class="col-stat highlight-blue">${sequencia}</span>
-                </div>
-            `;
-            listaContainer.innerHTML += linhaHTML;
-            posicao++;
-        });
-    } catch (error) {
-        console.error("Erro ranking:", error);
-        listaContainer.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar ranking.</p>';
-    }
+        await navigator.clipboard.writeText(texto);
+        const original = btn.textContent;
+        btn.textContent = "COPIADO! ✅";
+        setTimeout(() => btn.textContent = original, 2000);
+    } catch (e) { alert("Erro ao copiar."); }
 }
 
-async function criarContaFirebase() {
-    const nome = document.getElementById('reg-name').value;
-    const email = document.getElementById('reg-email').value;
-    const senha = document.getElementById('reg-pass').value;
-
-    if (!nome || !email || !senha) { alert("Preencha todos os campos!"); return; }
-
-    try {
-        const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
-        const user = userCredential.user;
-
-        await window.setDoc(window.doc(window.db, "jogadores", user.uid), {
-            nome: nome.toUpperCase(),
-            email: email,
-            vitorias: 0,
-            sequenciaAtual: 0,
-            tentativas: 0 
-        });
-        
-        alert("Conta criada com sucesso!");
-    } catch (error) { alert("Erro ao criar conta: " + error.message); }
-}
-
-async function fazerLoginFirebase() {
-    const email = document.getElementById('login-email').value;
-    const senha = document.getElementById('login-pass').value;
-    const btn = document.getElementById('btn-entrar');
-
-    if (!email || !senha) { alert("Preencha e-mail e senha!"); return; }
-
-    const textoOriginal = btn.textContent;
-    btn.textContent = "ENTRANDO...";
-    btn.disabled = true;
-
-    try {
-        const userCredential = await window.signInWithEmailAndPassword(window.auth, email, senha);
-        console.log("Login realizado!");
-        document.getElementById('login-overlay').style.display = 'none';
-
-        usuarioAtual = userCredential.user;
-        carregarSequenciaDoBanco(usuarioAtual.uid);
-
-    } catch (error) {
-        console.error(error);
-        if (error.code === 'auth/wrong-password') alert("Senha errada!");
-        else if (error.code === 'auth/user-not-found') alert("E-mail não existe!");
-        else alert("Erro: " + error.message);
-        
-        btn.textContent = textoOriginal;
-        btn.disabled = false;
-    }
-}
-
-// ==========================================
-// --- INTERFACE DE LOGIN (HTML) ---
-// ==========================================
-
-function showLogin() {
-    const auth = document.getElementById('auth-container');
-    const googleIcon = `<svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>`;
-
-    auth.innerHTML = `
-        <input type="email" id="login-email" class="auth-input" placeholder="E-mail">
-        <input type="password" id="login-pass" class="auth-input" placeholder="Senha">
-        <button id="btn-entrar" class="auth-submit-btn" onclick="fazerLoginFirebase()">ENTRAR</button>
-        
-        <div class="separator">OU</div>
-        
-        <!-- APENAS O BOTÃO DO GOOGLE AGORA -->
-        <button class="social-btn" onclick="fazerLoginSocial()">
-            ${googleIcon} Entre com o Gmail
-        </button>
-        
-        <p class="auth-switch" id="switch-to-register">NÃO TEM CONTA?? Cadastre-se</p>
-    `;
-    document.getElementById('switch-to-register').onclick = showRegister;
-}
-
-function showRegister() {
-    const auth = document.getElementById('auth-container');
-    auth.innerHTML = `
-        <input type="text" id="reg-name" class="auth-input" placeholder="Digite seu nome">
-        <input type="email" id="reg-email" class="auth-input" placeholder="E-mail">
-        <input type="password" id="reg-pass" class="auth-input" placeholder="Senha">
-        <input type="password" class="auth-input" placeholder="Confirmar Senha">
-        <button class="auth-submit-btn" style="background-color: #ff3b3b;" onclick="criarContaFirebase()">CADASTRAR</button>
-        <p class="auth-switch" id="switch-to-login">JÁ POSSUI UMA CONTA? Faça LOGIN</p>
-    `;
-    document.getElementById('switch-to-login').onclick = showLogin;
+async function resetGame() {
+    localStorage.removeItem('nextage_save');
+    await getRandomWord();
+    currentRow = 0;
+    currentTile = 0;
+    isGameOver = false;
+    guessRows.forEach(row => row.fill(''));
+    document.querySelectorAll('.tile').forEach(tile => {
+        tile.textContent = '';
+        tile.classList.remove('green-overlay', 'yellow-overlay', 'grey-overlay');
+        tile.style.borderColor = '#3a3a3c';
+    });
+    document.querySelectorAll('.keyboard-button').forEach(btn => btn.classList.remove('green-overlay', 'yellow-overlay', 'grey-overlay'));
+    document.getElementById('modal-overlay').style.display = 'none';
 }
 
 // ==========================================
@@ -472,58 +390,40 @@ function showRegister() {
 document.addEventListener('DOMContentLoaded', async () => {
     createGrid();
     createKeyboard();
-    const carregou = carregarJogoLocal();
 
+    const carregou = carregarJogoLocal();
     if (carregou) {
-        console.log("Jogo restaurado! Palavra:", wordle);
         reconstruirTabuleiro();
     } else {
-        console.log("Nenhum save encontrado. Iniciando novo jogo.");
         await getRandomWord();
     }
 
-    // Botão de Doação 💚
-    const donateBtn = document.getElementById('donate-btn');
-    const donateOverlay = document.getElementById('donate-overlay');
-    const closeDonate = document.getElementById('close-donate');
     const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-        shareBtn.onclick = copiarResultado;
-    }
-
-    if (donateBtn) {
-        donateBtn.onclick = () => {
-            donateOverlay.style.display = 'flex';
-            carregarMuralDoadores();
-        };
-    }
-    if (closeDonate) {
-        closeDonate.onclick = () => {
-            donateOverlay.style.display = 'none';
-        };
-    }
+    if (shareBtn) shareBtn.onclick = copiarResultado;
 
     const rankingBtn = document.getElementById('ranking-btn');
     if (rankingBtn) rankingBtn.onclick = () => {
         document.getElementById('ranking-overlay').style.display = 'flex';
         carregarRanking();
     };
+    document.getElementById('close-ranking').onclick = () => document.getElementById('ranking-overlay').style.display = 'none';
 
-    const closeRanking = document.getElementById('close-ranking');
-    if (closeRanking) closeRanking.onclick = () => document.getElementById('ranking-overlay').style.display = 'none';
-
-    document.getElementById('open-login-btn').onclick = () => {
-        showLogin();
-        document.getElementById('login-overlay').style.display = 'flex';
+    const donateBtn = document.getElementById('donate-btn');
+    if (donateBtn) donateBtn.onclick = () => {
+        document.getElementById('donate-overlay').style.display = 'flex';
+        carregarMuralDoadores();
     };
+    document.getElementById('close-donate').onclick = () => document.getElementById('donate-overlay').style.display = 'none';
 
-    document.getElementById('close-login').onclick = () => document.getElementById('login-overlay').style.display = 'none';
+    const closeAdmin = document.getElementById('close-admin');
+    if(closeAdmin) closeAdmin.onclick = () => document.getElementById('admin-overlay').style.display = 'none';
+
     document.getElementById('info-btn').onclick = () => document.getElementById('help-overlay').style.display = 'flex';
     document.getElementById('close-help').onclick = () => document.getElementById('help-overlay').style.display = 'none';
     document.getElementById('close-modal').onclick = () => document.getElementById('modal-overlay').style.display = 'none';
     document.getElementById('reset-game').onclick = resetGame;
+    document.getElementById('close-login').onclick = () => document.getElementById('login-overlay').style.display = 'none';
 
-     // --- TECLADO FÍSICO INTELIGENTE ---
     document.addEventListener('keydown', (e) => {
         if (!e.key) return;
         const key = e.key.toUpperCase();
@@ -546,39 +446,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ==========================================
-// --- MONITORAMENTO DE AUTH (PERFIL 👤) ---
+// --- FIREBASE / AUTH / ADMIN ---
 // ==========================================
 
-// Função para Sair da Conta
-async function sairDaConta() {
-    try {
-        await window.signOut(window.auth);
-        document.getElementById('user-menu').style.display = 'none'; 
-        alert("Você saiu da conta.");
-        window.location.reload(); 
-    } catch (error) {
-        console.error("Erro ao sair:", error);
-    }
-}
-
-function toggleUserMenu() {
-    const menu = document.getElementById('user-menu');
-    if (menu.style.display === 'flex') {
-        menu.style.display = 'none';
-    } else {
-        menu.style.display = 'flex';
-    }
-}
-
-// ==========================================
-// --- MONITORAMENTO CENTRAL DE AUTH ---
-// ==========================================
+const ADMIN_EMAIL = "seu_email_aqui@gmail.com"; // <--- VERIFIQUE ISSO
 
 function iniciarMonitoramentoAuth() {
-    if (!window.auth) {
-        setTimeout(iniciarMonitoramentoAuth, 500);
-        return;
-    }
+    if (!window.auth) { setTimeout(iniciarMonitoramentoAuth, 500); return; }
 
     window.onAuthStateChanged(window.auth, async (user) => {
         const btn = document.getElementById('open-login-btn');
@@ -587,571 +461,258 @@ function iniciarMonitoramentoAuth() {
         const adminBtn = document.getElementById('admin-btn-float');
 
         if (user) {
-            // ===================================
-            // --- CENÁRIO: USUÁRIO LOGADO ✅ ---
-            // ===================================
-            console.log("Status: Logado como", user.email);
             usuarioAtual = user;
-
             carregarSequenciaDoBanco(user.uid);
-
-            if (typeof verificarAdmin === "function") {
-                verificarAdmin(user);
+            
+            if (user.email === ADMIN_EMAIL) {
+                if(adminBtn) {
+                    adminBtn.style.display = 'block';
+                    adminBtn.onclick = () => document.getElementById('admin-overlay').style.display = 'flex';
+                }
             }
 
             if (loginOverlay) loginOverlay.style.display = 'none';
-            let nomeDisplay = user.displayName ? user.displayName : user.email.split('@')[0];
-            if (userNameDisplay) userNameDisplay.textContent = "OLÁ, " + nomeDisplay.toUpperCase();
+
+            let nome = user.displayName || user.email.split('@')[0];
+            if (userNameDisplay) userNameDisplay.textContent = "OLÁ, " + nome.toUpperCase();
 
             if (btn) {
-                btn.innerHTML = "👤"; 
-                btn.classList.remove("login-btn-header"); 
-                btn.classList.add("profile-btn");
-                btn.style.backgroundColor = "#eee"; 
-                btn.style.color = "#1a1010";
-                btn.onclick = function(e) {
-                    e.stopPropagation(); 
-                    window.toggleUserMenu();
-                };
+                btn.innerHTML = "👤";
+                btn.className = "profile-btn";
+                btn.style.backgroundColor = "#eee";
+                btn.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
             }
-
         } else {
-            // ===================================
-            // --- CENÁRIO: USUÁRIO DESLOGADO ❌ ---
-            // ===================================
-            console.log("Status: Deslogado");
             usuarioAtual = null;
             sequenciaAtualLocal = 0;
+            if(adminBtn) adminBtn.style.display = 'none';
             document.getElementById('user-menu').style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
+
             if (btn) {
                 btn.textContent = "FAZER LOGIN";
-                btn.classList.remove("profile-btn");
-                btn.classList.add("login-btn-header");
+                btn.className = "login-btn-header";
                 btn.style.backgroundColor = "#ff3b3b";
-                btn.style.color = "black";
-                btn.onclick = () => {
-                    showLogin();
-                    if (loginOverlay) loginOverlay.style.display = 'flex';
-                };
+                btn.onclick = () => { showLogin(); document.getElementById('login-overlay').style.display = 'flex'; };
             }
         }
     });
 }
-
 iniciarMonitoramentoAuth();
 
+// --- FUNÇÕES GLOBAIS ---
 window.toggleUserMenu = function() {
     const menu = document.getElementById('user-menu');
-    if (menu.style.display === 'flex') {
-        menu.style.display = 'none';
-    } else {
-        menu.style.display = 'flex';
-    }
-}
+    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+};
 
+window.sairDaConta = async function() {
+    await window.signOut(window.auth);
+    window.location.reload();
+};
 
-// ==========================================
-// --- LOGIN SOCIAL (GOOGLE) ---
-// ==========================================
-
-async function fazerLoginSocial() {
-    const provider = new window.GoogleAuthProvider();
-
+async function salvarVitoria() {
+    if (!usuarioAtual) return;
+    sequenciaAtualLocal++;
     try {
-        console.log("Iniciando login com Google...");
-        const result = await window.signInWithPopup(window.auth, provider);
-        const user = result.user;
-        
-        console.log("Login Social OK:", user.displayName);
-        const userRef = window.doc(window.db, "jogadores", user.uid);
-        await window.setDoc(userRef, {
-            nome: user.displayName ? user.displayName.toUpperCase() : "JOGADOR GOOGLE",
-            email: user.email,
-        }, { merge: true });
-        const isNewUser = result._tokenResponse && result._tokenResponse.isNewUser;
-        if (isNewUser) {
-            await window.setDoc(userRef, {
-                vitorias: 0,
-                tentativas: 0,
-                sequenciaAtual: 0,
-                jogos: 0
-            }, { merge: true });
-        }
-        document.getElementById('login-overlay').style.display = 'none';
-        carregarSequenciaDoBanco(user.uid);
-
-    } catch (error) {
-        console.error(error);
-        if (error.code === 'auth/popup-closed-by-user') {
-            alert("Login cancelado.");
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-            alert("Já existe uma conta com esse e-mail.");
-        } else {
-            alert("Erro no login Google: " + error.message);
-        }
-    }
-}
-
-// ==========================================
-// --- ÁREA DO DESENVOLVEDOR (ADMIN) ---
-// ==========================================
-
-const ADMIN_EMAIL = "taagnyaugusto3214@gmail.com";
-
-function verificarAdmin(user) {
-    const adminBtn = document.getElementById('admin-btn-float');
-    if (user && user.email === ADMIN_EMAIL) {
-        adminBtn.style.display = 'block'; 
-        adminBtn.onclick = () => {
-            document.getElementById('admin-overlay').style.display = 'flex';
-            carregarStatsAdmin();
-        };
-    } else {
-        adminBtn.style.display = 'none'; 
-    }
-}
-
-const closeAdmin = document.getElementById('close-admin');
-if(closeAdmin) closeAdmin.onclick = () => document.getElementById('admin-overlay').style.display = 'none';
-
-async function adicionarPalavraAoBanco() {
-    const input = document.getElementById('new-word-input');
-    const palavra = input.value.toUpperCase().trim();
-
-    if (palavra.length !== 5) {
-        alert("A palavra precisa ter exatamente 5 letras!");
-        return;
-    }
-
-    try {
-        await window.setDoc(window.doc(window.db, "dicionario", palavra), {
-            palavra: palavra,
-            adicionadoEm: new Date(),
-            autor: "Admin"
+        await window.updateDoc(window.doc(window.db, "jogadores", usuarioAtual.uid), {
+            vitorias: window.increment(1),
+            sequenciaAtual: window.increment(1)
         });
-
-        alert(`Palavra "${palavra}" adicionada ao jogo!`);
-        input.value = ""; 
-        palavrasRespostas.push(palavra); 
-
-    } catch (error) {
-        console.error(error);
-        alert("Erro ao salvar palavra.");
-    }
+    } catch(e){}
 }
 
-async function carregarStatsAdmin() {
-    const display = document.getElementById('total-users-count');
-    display.textContent = "Contando...";
-    
+async function salvarDerrota() {
+    if (!usuarioAtual) return;
+    sequenciaAtualLocal = 0;
     try {
-        const snapshot = await window.getDocs(window.collection(window.db, "jogadores"));
-        display.textContent = snapshot.size; 
-    } catch (e) {
-        display.textContent = "Erro";
-    }
+        await window.updateDoc(window.doc(window.db, "jogadores", usuarioAtual.uid), {
+            tentativas: window.increment(1),
+            sequenciaAtual: 0
+        });
+    } catch(e){}
 }
 
-window.buscarJogadorParaBanir = async function() {
-    console.log("Botão de buscar clicado!"); 
-    
-    const input = document.getElementById('ban-search-input');
-    const lista = document.getElementById('ban-list-container');
-    if (!input || !lista) {
-        console.error("Erro: Não achei o input ou a lista no HTML.");
-        alert("Erro interno: Elementos HTML não encontrados.");
-        return;
-    }
-
-    const termo = input.value.toUpperCase().trim();
-    console.log("Termo pesquisado:", termo);
-
-    if (termo.length < 3) {
-        lista.innerHTML = '<p style="color:orange; text-align:center; padding:10px;">Digite pelo menos 3 letras.</p>';
-        return;
-    }
-
-    lista.innerHTML = '<p style="color:white; text-align:center; padding:10px;">Buscando no banco de dados...</p>';
-
+async function carregarSequenciaDoBanco(uid) {
     try {
         const q = window.query(window.collection(window.db, "jogadores"));
         const snapshot = await window.getDocs(q);
-        
-        lista.innerHTML = ''; 
-        let encontrou = false;
-
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.nome && data.nome.includes(termo)) {
-                encontrou = true;
-                const div = document.createElement('div');
-                div.className = 'ban-item';
-                div.style.cssText = "display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; color: white;";
-                
-                div.innerHTML = `
-                    <span>${data.nome} <br><small style="color:#888">${data.email}</small></span>
-                    <button onclick="confirmarBanimento('${doc.id}', '${data.nome}')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;">BANIR 🗑️</button>
-                `;
-                lista.appendChild(div);
-            }
+        snapshot.forEach(doc => {
+            if(doc.id === uid) sequenciaAtualLocal = doc.data().sequenciaAtual || 0;
         });
-
-        if (!encontrou) {
-            lista.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">Ninguém encontrado com esse nome.</p>';
-        }
-
-    } catch (e) {
-        console.error("Erro na busca:", e);
-        lista.innerHTML = `<p style="color:red; text-align:center;">Erro: ${e.message}</p>`;
-    }
-}
-window.confirmarBanimento = async function(uid, nome) {
-    if (confirm(`TEM CERTEZA que deseja banir "${nome}"? Isso não pode ser desfeito.`)) {
-        try {
-            await window.deleteDoc(window.doc(window.db, "jogadores", uid));
-            alert(`Jogador ${nome} banido!`);
-            window.buscarJogadorParaBanir();
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao banir (verifique se deleteDoc está importado no HTML): " + error.message);
-        }
-    }
+    } catch(e){}
 }
 
-window.confirmarBanimento = async function(uid, nome) {
-    if (confirm(`TEM CERTEZA que deseja banir o jogador "${nome}"? Isso apagará todos os pontos e rank dele.`)) {
-        try {
-            await window.deleteDoc(window.doc(window.db, "jogadores", uid));
-            
-            alert(`Jogador ${nome} foi banido com sucesso!`);
-            buscarJogadorParaBanir();
-            
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao banir: " + error.message);
-        }
-    }
-}
-
-// ==========================================
-// --- SISTEMA DE DOAÇÃO (LIVEPIX) ---
-// ==========================================
-
-async function carregarMuralDoadores() {
-    const lista = document.getElementById('donors-list');
-    
+async function carregarRanking() {
+    const listaContainer = document.querySelector('.ranking-list-container');
+    listaContainer.innerHTML = '<p style="text-align:center;color:white;padding:20px;">Carregando...</p>';
     try {
-        const q = window.query(window.collection(window.db, "doacoes"), window.orderBy("data", "desc"), window.limit(50));
-        const snapshot = await window.getDocs(q);
-
-        if (snapshot.empty) {
-            lista.innerHTML = '<p class="donate-loading">Seja o primeiro a apoiar! 💚</p>';
-            return;
-        }
-
-        lista.innerHTML = '';
-        snapshot.forEach((doc) => {
+        const q = window.query(window.collection(window.db, "jogadores"), window.orderBy("vitorias", "desc"), window.limit(20));
+        const querySnapshot = await window.getDocs(q);
+        listaContainer.innerHTML = '';
+        let posicao = 1;
+        querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const div = document.createElement('div');
-            div.className = 'donor-item'; 
-            
-            div.innerHTML = `
-                <span>${data.nome}</span>
-                <span class="donor-badge">R$ ${data.valor}</span>
-            `;
-            lista.appendChild(div);
+            let medalha = posicao;
+            if (posicao === 1) medalha = '🏆 1';
+            if (posicao === 2) medalha = '🥈 2';
+            if (posicao === 3) medalha = '🥉 3';
+            const tentativas = (data.tentativas || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            const sequencia = (data.sequenciaAtual || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            listaContainer.innerHTML += `
+                <div class="ranking-row">
+                    <span class="col-top">${medalha}</span>
+                    <span class="col-name">${data.nome}</span>
+                    <span class="col-stat highlight-blue">${tentativas}</span>
+                    <span class="col-stat highlight-blue">${sequencia}</span>
+                </div>`;
+            posicao++;
         });
-
-    } catch (e) {
-        console.error(e);
-        lista.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar.</p>';
-    }
+    } catch (e) { listaContainer.innerHTML = '<p style="color:red;text-align:center;">Erro ao carregar ranking.</p>'; }
 }
+
+window.adicionarPalavraAoBanco = async function() {
+    const val = document.getElementById('new-word-input').value.toUpperCase().trim();
+    if(val.length === 5) {
+        await window.setDoc(window.doc(window.db, "dicionario", val), { palavra: val });
+        alert("Adicionado!");
+    }
+};
+
+window.definirPalavraDoDia = async function() {
+    const val = document.getElementById('force-word-input').value.toUpperCase().trim();
+    if(!val) {
+        try { await window.deleteDoc(window.doc(window.db, "config", "jogo_diario")); alert("Modo Aleatório"); } catch(e){}
+    } else if(val.length === 5) {
+        await window.setDoc(window.doc(window.db, "config", "jogo_diario"), { palavraAtiva: val });
+        alert("Definido: " + val);
+    }
+};
+
+window.buscarJogadorParaBanir = async function() {
+    const term = document.getElementById('ban-search-input').value.toUpperCase();
+    const list = document.getElementById('ban-list-container');
+    list.innerHTML = "Buscando...";
+    const q = window.query(window.collection(window.db, "jogadores"));
+    const snap = await window.getDocs(q);
+    list.innerHTML = "";
+    snap.forEach(doc => {
+        const d = doc.data();
+        if(d.nome && d.nome.includes(term)) {
+            list.innerHTML += `<div class="ban-item"><span>${d.nome}</span><button onclick="confirmarBanimento('${doc.id}', '${d.nome}')" style="color:red">X</button></div>`;
+        }
+    });
+};
+
+window.confirmarBanimento = async function(uid, nome) {
+    if(confirm("Banir " + nome + "?")) {
+        await window.deleteDoc(window.doc(window.db, "jogadores", uid));
+        alert("Banido.");
+        window.buscarJogadorParaBanir();
+    }
+};
 
 window.adicionarDoadorManual = async function() {
     const nome = document.getElementById('donor-name').value;
     const valor = document.getElementById('donor-value').value;
-
-    if (!nome || !valor) { alert("Preencha nome e valor!"); return; }
-
-    try {
-        await window.addDoc(window.collection(window.db, "doacoes"), {
-            nome: nome,
-            valor: valor,
-            data: new Date() 
-        });
-        
-        alert(`Doador ${nome} adicionado ao mural!`);
-        document.getElementById('donor-name').value = '';
-        document.getElementById('donor-value').value = '';
-        carregarMuralDoadores();
-
-    } catch (e) {
-        alert("Erro ao salvar: " + e.message);
-    }
-}
+    await window.addDoc(window.collection(window.db, "doacoes"), { nome, valor, data: new Date() });
+    alert("Doador Add");
+};
 
 window.carregarDoacoesAdmin = async function() {
-    const lista = document.getElementById('admin-donations-list');
-    lista.innerHTML = '<p style="color:white; text-align:center;">Carregando...</p>';
+    const list = document.getElementById('admin-donations-list');
+    list.innerHTML = "Carregando...";
+    const q = window.query(window.collection(window.db, "doacoes"), window.orderBy("data", "desc"), window.limit(20));
+    const snap = await window.getDocs(q);
+    list.innerHTML = "";
+    snap.forEach(doc => {
+        list.innerHTML += `<div class="admin-donation-item"><span>${doc.data().nome} - R$${doc.data().valor}</span><button onclick="excluirDoacao('${doc.id}')" style="color:red">X</button></div>`;
+    });
+};
 
+window.excluirDoacao = async function(id) {
+    if(confirm("Apagar doação?")) {
+        await window.deleteDoc(window.doc(window.db, "doacoes", id));
+        window.carregarDoacoesAdmin();
+    }
+};
+
+window.carregarMuralDoadores = async function() {
+    const lista = document.getElementById('donors-list');
     try {
-        const q = window.query(window.collection(window.db, "doacoes"), window.orderBy("data", "desc"), window.limit(20));
+        const q = window.query(window.collection(window.db, "doacoes"), window.orderBy("data", "desc"), window.limit(50));
         const snapshot = await window.getDocs(q);
-
-        if (snapshot.empty) {
-            lista.innerHTML = '<p style="color:#666; text-align:center;">Nenhuma doação encontrada.</p>';
-            return;
-        }
-
+        if (snapshot.empty) { lista.innerHTML = '<p class="donate-loading">Seja o primeiro a apoiar! 💚</p>'; return; }
         lista.innerHTML = '';
         snapshot.forEach((doc) => {
             const data = doc.data();
-            
-            const div = document.createElement('div');
-            div.className = 'admin-donation-item';
-            div.innerHTML = `
-                <div>
-                    <span style="color: #fff; font-weight: bold;">${data.nome}</span>
-                    <span style="color: #00ff00;">R$ ${data.valor}</span>
-                </div>
-                <button class="btn-del-don" onclick="excluirDoacao('${doc.id}', '${data.nome}', '${data.valor}')">X</button>
-            `;
-            lista.appendChild(div);
+            lista.innerHTML += `<div class="donor-item"><span>${data.nome}</span><span class="donor-badge">R$ ${data.valor}</span></div>`;
         });
-
-    } catch (e) {
-        console.error(e);
-        lista.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar lista.</p>';
-    }
-}
-
-window.excluirDoacao = async function(id, nome, valor) {
-    if (confirm(`Tem certeza que deseja apagar a doação de ${nome} (R$ ${valor})?`)) {
-        try {
-            await window.deleteDoc(window.doc(window.db, "doacoes", id));
-            
-            alert("Doação removida!");
-            carregarDoacoesAdmin();
-            carregarMuralDoadores();
-            
-        } catch (e) {
-            alert("Erro ao excluir: " + e.message);
-        }
-    }
-}
+    } catch (e) { lista.innerHTML = '<p style="color:red">Erro.</p>'; }
+};
 
 window.zerarTodasSequencias = async function() {
-    if (!confirm("ATENÇÃO: Isso vai zerar o foguinho 🔥 de TODOS os jogadores do site.\n\nDeseja continuar?")) return;
-    
-    const confirmacao = prompt("Para confirmar, digite a senha!");
-    if (confirmacao !== "Casper360") {
-        alert("Cancelado. Nada foi alterado.");
-        return;
-    }
+    if(!confirm("ATENÇÃO: Zerar foguinho de todos?")) return;
+    if(prompt("Senha:") !== "BATATA123") return;
+    const q = window.query(window.collection(window.db, "jogadores"), window.where("sequenciaAtual", ">", 0));
+    const snap = await window.getDocs(q);
+    snap.forEach(doc => window.updateDoc(doc.ref, { sequenciaAtual: 0 }));
+    alert("Zerado.");
+};
 
-    const btn = event.target;
-    const textoOriginal = btn.textContent;
-    btn.textContent = "PROCESSANDO... (ISSO PODE DEMORAR)";
-    btn.disabled = true;
-
+window.fazerLoginSocial = async function() {
+    const provider = new window.GoogleAuthProvider();
     try {
-        console.log("Iniciando reset global...");
-        const q = window.query(
-            window.collection(window.db, "jogadores"), 
-            window.where("sequenciaAtual", ">", 0)
-        );
-
-        const snapshot = await window.getDocs(q);
-
-        if (snapshot.empty) {
-            alert("Ninguém tem sequência ativa para zerar.");
-            btn.textContent = textoOriginal;
-            btn.disabled = false;
-            return;
+        const result = await window.signInWithPopup(window.auth, provider);
+        const userRef = window.doc(window.db, "jogadores", result.user.uid);
+        await window.setDoc(userRef, { nome: result.user.displayName.toUpperCase(), email: result.user.email }, { merge: true });
+        if (result._tokenResponse && result._tokenResponse.isNewUser) {
+            await window.setDoc(userRef, { vitorias: 0, tentativas: 0, sequenciaAtual: 0, jogos: 0 }, { merge: true });
         }
+        document.getElementById('login-overlay').style.display = 'none';
+        carregarSequenciaDoBanco(result.user.uid);
+    } catch(e) { alert("Erro login Google: " + e.message); }
+};
 
-        let contador = 0;
-        const promises = []; 
+window.fazerLoginFirebase = async function() {
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-pass').value;
+    try {
+        const cred = await window.signInWithEmailAndPassword(window.auth, email, senha);
+        usuarioAtual = cred.user;
+        carregarSequenciaDoBanco(usuarioAtual.uid);
+        document.getElementById('login-overlay').style.display = 'none';
+    } catch(e) { alert("Erro: " + e.code); }
+};
 
-        snapshot.forEach((doc) => {
-            const tarefa = window.updateDoc(doc.ref, { 
-                sequenciaAtual: 0 
-            });
-            promises.push(tarefa);
-            contador++;
+window.criarContaFirebase = async function() {
+    const nome = document.getElementById('reg-name').value;
+    const email = document.getElementById('reg-email').value;
+    const senha = document.getElementById('reg-pass').value;
+    try {
+        const cred = await window.createUserWithEmailAndPassword(window.auth, email, senha);
+        await window.setDoc(window.doc(window.db, "jogadores", cred.user.uid), {
+            nome: nome.toUpperCase(), email, vitorias: 0, tentativas: 0, sequenciaAtual: 0, jogos: 0
         });
+        alert("Conta criada!");
+    } catch(e) { alert(e.message); }
+};
 
-        await Promise.all(promises);
-
-        alert(`SUCESSO! A sequência de ${contador} jogadores foi zerada.`);
-        console.log("Reset concluído.");
-
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao zerar: " + e.message);
-    } finally {
-        btn.textContent = textoOriginal;
-        btn.disabled = false;
-    }
+function showLogin() {
+    const googleIcon = `<svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>`;
+    document.getElementById('auth-container').innerHTML = `
+    <input type="email" id="login-email" class="auth-input" placeholder="E-mail">
+    <input type="password" id="login-pass" class="auth-input" placeholder="Senha">
+    <button id="btn-entrar" class="auth-submit-btn" onclick="fazerLoginFirebase()">ENTRAR</button>
+    <div class="separator">OU</div>
+    <button class="social-btn" onclick="fazerLoginSocial()">${googleIcon} Entre com o Gmail</button>
+    <p class="auth-switch" onclick="showRegister()">NÃO TEM CONTA?? Cadastre-se</p>`;
 }
 
-// ==========================================
-// --- FUNÇÃO DE COMPARTILHAR (EMOJIS) ---
-// ==========================================
-
-async function copiarResultado() {
-    const btn = document.getElementById('share-btn');
-    let tentativas = currentRow + 1;
-    if (tentativas > 6 && !isGameOver) tentativas = 6; 
-    if (!wordle || (currentRow >= 5 && document.querySelector('.green-overlay') === null)) tentativas = "X";
-    if (isGameOver) {
-         const linhas = document.querySelectorAll('.tile-row');
-         linhas.forEach((row, index) => {
-             const tiles = row.children;
-             let tudoVerde = true;
-             for(let t of tiles) {
-                 if(!t.classList.contains('green-overlay')) tudoVerde = false;
-             }
-             if(tudoVerde) tentativas = index + 1;
-         });
-    }
-
-    let textoCompartilhar = `NEXTAGE 🧛 ${tentativas}/6\n\n`;
-    for (let i = 0; i < 6; i++) {
-        const row = document.getElementById(`row-${i}`);
-        const tiles = row.children;
-        let linhaEmojis = "";
-        let temCor = false;
-
-        for (let tile of tiles) {
-            if (tile.classList.contains('green-overlay')) {
-                linhaEmojis += "🟩";
-                temCor = true;
-            } else if (tile.classList.contains('yellow-overlay')) {
-                linhaEmojis += "🟨";
-                temCor = true;
-            } else if (tile.classList.contains('grey-overlay')) {
-                linhaEmojis += "⬛";
-                temCor = true;
-            }
-        }
-
-        if (temCor) {
-            textoCompartilhar += linhaEmojis + "\n";
-        }
-    }
-
-    textoCompartilhar += `\n🔥 Sequência: ${sequenciaAtualLocal}`;
-    textoCompartilhar += `\nJogue agora: ${window.location.href}`;
-
-    try {
-        if (navigator.share) {
-            await navigator.share({
-                title: 'Nextage Game',
-                text: textoCompartilhar
-            });
-        } else {
-            await navigator.clipboard.writeText(textoCompartilhar);
-            const textoOriginal = btn.textContent;
-            btn.textContent = "COPIADO! ✅";
-            btn.style.backgroundColor = "#538d4e";
-            
-            setTimeout(() => {
-                btn.textContent = textoOriginal;
-                btn.style.backgroundColor = "#538d4e";
-            }, 2000);
-        }
-    } catch (err) {
-        console.error('Erro ao compartilhar:', err);
-        alert("Erro ao copiar automaticamente. Tire um print!");
-    }
-
+function showRegister() {
+    document.getElementById('auth-container').innerHTML = `
+    <input type="text" id="reg-name" class="auth-input" placeholder="Digite seu nome">
+    <input type="email" id="reg-email" class="auth-input" placeholder="E-mail">
+    <input type="password" id="reg-pass" class="auth-input" placeholder="Senha">
+    <button class="auth-submit-btn" style="background-color: #ff3b3b;" onclick="criarContaFirebase()">CADASTRAR</button>
+    <p class="auth-switch" onclick="showLogin()">JÁ POSSUI UMA CONTA? Faça LOGIN</p>`;
 }
-
-// ==========================================
-// --- SISTEMA DE SALVAMENTO (LOCALSTORAGE) ---
-// ==========================================
-
-function salvarJogoLocal() {
-    if (isGameOver) {
-        localStorage.removeItem('nextage_save');
-        return;
-    }
-
-    const estadoJogo = {
-        wordle: wordle,             
-        currentRow: currentRow,     
-        currentTile: currentTile,   
-        guessRows: guessRows,       
-        sequencia: sequenciaAtualLocal 
-    };
-
-    localStorage.setItem('nextage_save', JSON.stringify(estadoJogo));
-}
-
-function carregarJogoLocal() {
-    const salvo = localStorage.getItem('nextage_save');
-    
-    if (salvo) {
-        const estado = JSON.parse(salvo);
-        
-        console.log("Recuperando jogo salvo...");
-        wordle = estado.wordle;
-        currentRow = estado.currentRow;
-        currentTile = estado.currentTile;
-        for (let i = 0; i < 6; i++) {
-            guessRows[i] = [...estado.guessRows[i]]; 
-        }
-
-        sequenciaAtualLocal = estado.sequencia || 0;
-
-        return true;
-    }
-}
-
-function reconstruirTabuleiro() {
-    for (let i = 0; i < 6; i++) {
-        const rowData = guessRows[i];
-        const rowElement = document.getElementById(`row-${i}`);
-        const tiles = rowElement.children;
-
-        for (let j = 0; j < 5; j++) {
-            const letra = rowData[j];
-            if (letra) {
-                tiles[j].textContent = letra;
-                tiles[j].setAttribute('data', letra); 
-            }
-        }
-
-        if (i < currentRow) {
-            const guess = rowData.join('');
-            for (let j = 0; j < 5; j++) {
-                const letter = guess[j];
-                const tile = tiles[j];
-                
-                let colorClass = wordle[j] === letter ? 'green-overlay' : (wordle.includes(letter) ? 'yellow-overlay' : 'grey-overlay');
-                
-                tile.classList.add(colorClass);
-                tile.style.borderColor = colorClass === 'green-overlay' ? '#538d4e' : (colorClass === 'yellow-overlay' ? '#b59f3b' : '#3a3a3c');
-
-                updateKeyboardStatus(letter, colorClass);
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
