@@ -518,10 +518,16 @@ function iniciarMonitoramentoAuth() {
             usuarioAtual = user;
             carregarSequenciaDoBanco(user.uid);
             
+            // Verifica Admin
             if (user.email === ADMIN_EMAIL) {
                 if(adminBtn) {
                     adminBtn.style.display = 'block';
-                    adminBtn.onclick = () => document.getElementById('admin-overlay').style.display = 'flex';
+                    
+                    // NOVO: Abre o painel E carrega as estatísticas
+                    adminBtn.onclick = () => {
+                        document.getElementById('admin-overlay').style.display = 'flex';
+                        window.carregarStatsAdmin(); 
+                    };
                 }
             }
 
@@ -771,3 +777,20 @@ function showRegister() {
     <p class="auth-switch" onclick="showLogin()">JÁ POSSUI UMA CONTA? Faça LOGIN</p>`;
 }
 
+// --- FUNÇÃO PARA CONTAR JOGADORES (ADMIN) ---
+window.carregarStatsAdmin = async function() {
+    const display = document.getElementById('total-users-count');
+    if (!display) return;
+    
+    display.textContent = "Contando...";
+    try {
+        // Busca todos os jogadores para contar
+        const q = window.query(window.collection(window.db, "jogadores"));
+        const snapshot = await window.getDocs(q);
+        
+        display.textContent = snapshot.size; // Mostra o total
+    } catch (e) {
+        console.error(e);
+        display.textContent = "Erro";
+    }
+};
