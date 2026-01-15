@@ -358,9 +358,15 @@ header {
     padding-right: 5px;
 }
 
+/* --- AJUSTE DE COLUNAS DO RANKING --- */
 .ranking-header-row, .ranking-row {
     display: grid;
-    grid-template-columns: 0.8fr 3fr 1fr 1fr;
+    /* 
+       MUDANÇA NAS LARGURAS:
+       Antes: 0.8fr 3fr 1fr 1fr
+       Agora: 0.7fr 2fr 1.3fr 1.3fr (Dá mais espaço para os números)
+    */
+    grid-template-columns: 0.7fr 2fr 1.3fr 1.3fr;
     align-items: center;
     padding: 10px;
     font-size: 0.8rem;
@@ -368,9 +374,17 @@ header {
     color: #1a1010;
     border-radius: 4px;
     margin-bottom: 5px;
+    gap: 5px; /* Adiciona um espacinho extra entre colunas */
 }
-.ranking-header-row { font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
-.col-name { text-align: left; font-weight: bold; }
+
+/* Garante que o nome não quebre o layout se for gigante */
+.col-name {
+    text-align: left;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Coloca "..." se o nome for muito longo */
+}
 .highlight-blue { color: #3b82f6; font-weight: 900; }
 
 /* ================================================== */
@@ -644,4 +658,5 @@ header {
     font-size: clamp(1.5rem, 5vw, 2.5rem) !important; 
     letter-spacing: 1px;
 }
+
 
