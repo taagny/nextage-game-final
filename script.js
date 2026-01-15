@@ -733,7 +733,7 @@ async function adicionarPalavraAoBanco() {
 
         alert(`Palavra "${palavra}" adicionada ao jogo!`);
         input.value = ""; 
-        validWords.push(palavra); 
+        palavrasRespostas.push(palavra); 
 
     } catch (error) {
         console.error(error);
@@ -1141,6 +1141,7 @@ function reconstruirTabuleiro() {
         }
     }
 }
+
 
 
 
