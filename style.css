@@ -12,13 +12,13 @@ body {
 
 header {
     display: flex;
-    justify-content: space-between; /* Espalha os itens laterais */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
     padding: 15px 40px;
     box-sizing: border-box;
-    position: relative; /* Importante para o logo se posicionar */
-    min-height: 110px; /* Aumentei a altura do header para caber o logo maior */
+    position: relative; 
+    min-height: 110px;
     z-index: 10;
 }
 
@@ -27,24 +27,24 @@ header {
     color: #ff3b3b;
     
     /* TAMANHO E ESTILO */
-    font-size: 5rem; /* Aumentei bastante (era 2.8rem) */
-    letter-spacing: 3px; /* Espaça as letras para alinhar melhor com o grid */
-    text-shadow: 4px 4px 0px #000; /* Sombra forte para destacar */
+    font-size: 5rem; 
+    letter-spacing: 3px; 
+    text-shadow: 4px 4px 0px #000; 
     
     /* CENTRALIZAÇÃO PERFEITA */
-    position: absolute; /* Ignora os botões laterais */
+    position: absolute; 
     left: 50%; 
-    top: 55%; /* Empurrei levemente para baixo para alinhar o centro visual */
-    transform: translate(-50%, -50%); /* Centraliza no meio exato da tela */
+    top: 55%; 
+    transform: translate(-50%, -50%);
     
     margin: 0;
-    pointer-events: none; /* Evita cliques acidentais no logo */
-    white-space: nowrap; /* Garante que o texto não quebre linha */
+    pointer-events: none; 
+    white-space: nowrap; 
 }
 
 @media (max-width: 768px) {
     .logo {
-        font-size: 3rem; /* No celular fica menor para não vazar */
+        font-size: 3rem; 
     }
     header {
         padding: 10px 20px;
@@ -93,33 +93,33 @@ header {
 }
 
 .icons-left span {
-    font-size: 3rem; /* Aumentei para ficar bem grande */
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); /* Sombra para dar destaque */
+    font-size: 3rem; 
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); 
     cursor: default;
 }
 
 .icons-right {
     display: flex;
     align-items: center;
-    gap: 20px; /* Espaço entre o ícone de Ajuda e o Botão de Login */
+    gap: 20px; 
 }
 
 #info-btn {
-    font-size: 2.5rem; /* Mesmo tamanho do troféu */
-    transition: transform 0.2s ease; /* Animação suave */
-    line-height: 1; /* Remove espaços extras verticais */
+    font-size: 2.5rem; 
+    transition: transform 0.2s ease; 
+    line-height: 1;
 }
 
 #info-btn:hover {
-    transform: scale(1.15); /* Cresce um pouco quando passa o mouse */
+    transform: scale(1.15); 
 }
 
-/* Cores do Jogo */
+
 .green-overlay { background-color: #538d4e !important; border-color: #538d4e !important; }
 .yellow-overlay { background-color: #b59f3b !important; border-color: #b59f3b !important; }
 .grey-overlay { background-color: #3a3a3c !important; border-color: #3a3a3c !important; }
 
-/* Animação de Erro (Tremer) */
+
 .shake { animation: shake 0.5s; }
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -183,9 +183,9 @@ header {
     z-index: 10;
 }
 
-/* --- ESTILOS DO LOGIN E CADASTRO (Novo Design) --- */
+/* --- ESTILOS DO LOGIN E CADASTRO --- */
 .login-card {
-    background-color: #4a3333 !important; /* Marrom Escuro */
+    background-color: #4a3333 !important;
     width: 380px;
     padding: 40px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
@@ -206,7 +206,7 @@ header {
     margin-bottom: 15px;
     border-radius: 6px;
     border: none;
-    background: #a5a5a5; /* Cinza */
+    background: #a5a5a5; 
     color: #1a1010;
     font-weight: bold;
     font-size: 0.9rem;
@@ -217,7 +217,7 @@ header {
 .auth-submit-btn {
     width: 100%;
     padding: 15px;
-    background: #221515; /* Botão escuro para Login */
+    background: #221515; 
     color: white;
     border: none;
     border-radius: 6px;
@@ -248,35 +248,32 @@ header {
 .separator::after { margin-left: 10px; }
 
 .social-btn {
-    width: 100%; /* Garante que ocupe a largura total, igual aos inputs */
-    height: 48px; /* Altura fixa para ficar igual aos inputs */
-    padding: 0 15px; /* Espaçamento lateral */
-    margin-bottom: 10px; /* Espaço entre um botão e outro */
+    width: 100%; 
+    height: 48px; 
+    padding: 0 15px; 
+    margin-bottom: 10px; 
     border-radius: 6px;
     border: none;
-    background: #a5a5a5; /* Cinza igual aos inputs */
-    color: #1a1010; /* Cor do texto */
+    background: #a5a5a5; 
+    color: #1a1010; 
     font-weight: bold;
     font-size: 0.9rem;
     cursor: pointer;
-    
-    /* Alinhamento Flexbox para ícone e texto ficarem na mesma linha */
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    gap: 12px; /* Espaço entre o ícone e o texto */
+    gap: 12px; 
     transition: background 0.2s;
 }
 
 .social-btn:hover {
-    background: #bfbfbf; /* Cor ao passar o mouse */
+    background: #bfbfbf;
 }
 
-/* IMPORTANTE: Isso impede que o ícone fique gigante */
 .social-icon {
     width: 24px !important;
     height: 24px !important;
-    min-width: 24px; /* Impede que o ícone seja esmagado */
+    min-width: 24px; 
 }
 
 .auth-switch {
@@ -339,13 +336,11 @@ header {
 
 /* --- ESTILOS DO RANKING --- */
 
-/* --- DESIGN DO RANKING (IDÊNTICO À IMAGEM) --- */
-
 .ranking-card {
-    background-color: #3e2b2b !important; /* Marrom escuro da imagem */
+    background-color: #3e2b2b !important; 
     width: 550px;
     max-width: 95%;
-    height: 75vh; /* Altura fixa para caber na tela */
+    height: 75vh; 
     padding: 30px;
     display: flex;
     flex-direction: column;
@@ -357,32 +352,27 @@ header {
 /* Título RANKING NEXTAGE */
 .ranking-title {
     font-family: 'Creepster', cursive;
-    color: #ff3b3b; /* Vermelho sangue */
+    color: #ff3b3b; 
     font-size: 3rem;
-    line-height: 0.9; /* Letras próximas verticalmente */
+    line-height: 0.9;
     margin-top: 0;
     margin-bottom: 25px;
-    text-shadow: 3px 3px 0px #1a1010; /* Sombra preta para destacar */
+    text-shadow: 3px 3px 0px #1a1010;
     letter-spacing: 2px;
 }
 
-/* Container da lista (Scroll) */
 .ranking-list-container {
     flex-grow: 1;
-    overflow-y: auto; /* Permite rolar para baixo */
+    overflow-y: auto; 
     padding-right: 8px;
     margin-top: 10px;
 }
 
-/* Customização da Barra de Rolagem */
 .ranking-list-container::-webkit-scrollbar { width: 6px; }
 .ranking-list-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
 .ranking-list-container::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-
-/* Grid Layout (Define a largura das colunas) */
 .ranking-header-row, .ranking-row {
     display: grid;
-    /* Colunas: TOP (pequeno) | NOME (grande) | STAT 1 | STAT 2 */
     grid-template-columns: 0.8fr 3fr 1fr 1fr; 
     align-items: center;
     padding: 12px 15px;
@@ -390,26 +380,23 @@ header {
     font-size: 0.8rem;
 }
 
-/* Cabeçalho (TOP, JOGADOR...) */
 .ranking-header-row {
     background: white;
     color: #1a1010;
     font-weight: bold;
     border-radius: 4px;
     text-transform: uppercase;
-    margin-bottom: 10px; /* Espaço antes da lista começar */
+    margin-bottom: 10px;
 }
 
-/* Linhas dos Jogadores */
 .ranking-row {
     background: white;
     color: #1a1010;
     border-radius: 4px;
-    margin-bottom: 8px; /* Espacinho branco entre cada jogador */
+    margin-bottom: 8px; 
     font-weight: 600;
 }
 
-/* Estilos de Texto dentro das linhas */
 .col-top {
     color: #555;
     font-weight: bold;
@@ -426,20 +413,17 @@ header {
     text-align: center;
 }
 
-/* Cor Azul para os números (Igual da imagem) */
 .highlight-blue {
-    color: #3b82f6; /* Azul brilhante */
+    color: #3b82f6; 
     font-weight: bold;
     font-size: 0.9rem;
 }
 
 /* --- BOTÃO DE PERFIL E MENU SAIR --- */
-
-/* Transforma o botão retangular em uma bolinha */
 .profile-btn {
     width: 45px;
     height: 45px;
-    border-radius: 50%; /* Faz ficar redondo */
+    border-radius: 50%; 
     background-color: #eee;
     color: #1a1010;
     font-size: 1.5rem;
@@ -456,30 +440,16 @@ header {
     background-color: #fff;
 }
 
-/* --- MENU DE PERFIL (CORRIGIDO) --- */
-
-/* --- MENU DE PERFIL PREMIUM --- */
-
 #user-menu {
-    display: none; /* Começa escondido */
-    
-    /* Posicionamento */
+    display: none; 
     position: absolute;
     top: 85px;
     right: 35px;
-    
-    /* --- AQUI ESTÁ A CORREÇÃO --- */
-    /* Ao mudar para 'flex' via JS, ele respeitará a coluna */
     flex-direction: column; 
     align-items: center; 
     justify-content: center;
-    /* ---------------------------- */
-
-    /* Estilo Visual (Dark Glass) */
     background: rgba(20, 20, 30, 0.95);
     backdrop-filter: blur(10px);
-    
-    /* Borda e Sombra */
     border: 1px solid #ff3b3b;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(255, 59, 59, 0.2);
@@ -496,35 +466,28 @@ header {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Nome do Usuário */
 .user-name-display {
     color: #fff;
     font-family: 'Roboto', sans-serif;
-    font-weight: 700; /* Mais negrito */
+    font-weight: 700;
     font-size: 1rem;
     margin-bottom: 15px;
     padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Linha divisória sutil */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
     letter-spacing: 1px;
 }
 
-/* --- BOTÃO DE SAIR ESTILIZADO --- */
 .logout-btn {
     width: 100%;
     padding: 12px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    
-    /* Gradiente Vermelho */
     background: linear-gradient(135deg, #ff3b3b 0%, #a60000 100%);
     color: white;
-    
     font-weight: bold;
     font-size: 0.9rem;
     text-transform: uppercase;
-    
-    /* Flex para alinhar ícone e texto */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -534,14 +497,12 @@ header {
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-/* Efeito ao passar o mouse */
 .logout-btn:hover {
-    transform: translateY(-2px); /* Sobe um pouquinho */
-    box-shadow: 0 6px 12px rgba(255, 59, 59, 0.4); /* Brilho vermelho */
-    background: linear-gradient(135deg, #ff5c5c 0%, #c40000 100%); /* Fica mais claro */
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 12px rgba(255, 59, 59, 0.4); 
+    background: linear-gradient(135deg, #ff5c5c 0%, #c40000 100%); 
 }
 
-/* Efeito ao clicar */
 .logout-btn:active {
     transform: scale(0.98);
 }
@@ -552,14 +513,14 @@ header {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.95);
-    z-index: 6000; /* Fica acima de tudo */
+    z-index: 6000; 
     justify-content: center;
     align-items: center;
 }
 
 .admin-content {
     background-color: #111;
-    border: 2px solid #00ff00; /* Verde Hacker */
+    border: 2px solid #00ff00;
     padding: 30px;
     border-radius: 10px;
     width: 400px;
@@ -604,7 +565,6 @@ header {
 }
 .admin-btn:hover { background: #007700; }
 
-/* Item da lista de banir */
 .ban-item {
     display: flex;
     justify-content: space-between;
@@ -641,71 +601,58 @@ header {
 
 .social-links-container {
     display: flex;
-    flex-direction: column; /* Um embaixo do outro (celular) */
+    flex-direction: column;
     gap: 10px;
     margin-top: 15px;
 }
 
-/* Estilo Base do Botão */
 .social-link-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* Espaço entre ícone e texto */
+    gap: 10px; 
     
     padding: 12px;
     border-radius: 8px;
-    text-decoration: none; /* Remove o sublinhado do link */
+    text-decoration: none;
     color: white;
     font-weight: bold;
     font-size: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Efeito ao passar o mouse */
 .social-link-btn:hover {
-    transform: translateY(-3px); /* Sobe um pouquinho */
-    filter: brightness(1.2); /* Fica mais brilhante */
+    transform: translateY(-3px); 
+    filter: brightness(1.2); 
 }
 
-/* Cores Específicas */
-
-/* Instagram (Degradê Oficial) */
 .instagram {
     background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     box-shadow: 0 4px 10px rgba(220, 39, 67, 0.4);
 }
 
-/* TikTok (Preto com borda sutil) */
 .tiktok {
     background-color: #000;
     border: 1px solid #333;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-/* LivePix (Verde Dinheiro) */
 .livepix {
     background-color: #00bfa5;
     box-shadow: 0 4px 10px rgba(0, 191, 165, 0.4);
 }
 
-/* Para telas maiores (PC), coloca os botões lado a lado */
 @media (min-width: 600px) {
     .social-links-container {
-        flex-direction: row; /* Lado a lado */
+        flex-direction: row; 
         justify-content: center;
     }
     .social-link-btn {
-        flex: 1; /* Todos com a mesma largura */
+        flex: 1; 
         font-size: 0.9rem;
     }
 }
 
-/* --- MODAL DE DOAÇÃO (VISUAL CORRIGIDO - TEMA RED) --- */
-
-/* --- CSS DO MURAL (FORÇANDO VERMELHO) --- */
-
-/* Fundo e Borda do Cartão */
 .donate-card {
     background-color: #3e2b2b !important;
     border: 2px solid #ff3b3b !important;
@@ -714,7 +661,6 @@ header {
     max-width: 90%;
 }
 
-/* Título */
 .donate-title {
     font-family: 'Creepster', cursive;
     color: #ff3b3b !important;
@@ -724,7 +670,6 @@ header {
     text-align: center;
 }
 
-/* Subtítulo */
 .donate-subtitle {
     font-size: 0.9rem;
     color: #ccc !important;
@@ -733,7 +678,6 @@ header {
     line-height: 1.4;
 }
 
-/* Botão Vermelho */
 .donate-cta-btn {
     display: block;
     background-color: #ff3b3b !important;
@@ -756,7 +700,6 @@ header {
     background-color: #ff5555 !important;
 }
 
-/* Container da Lista */
 .donors-list-scroll {
     background: rgba(0,0,0,0.5) !important;
     border: 1px solid #555;
@@ -766,7 +709,6 @@ header {
     overflow-y: auto;
 }
 
-/* Item Doador */
 .donor-item {
     display: flex;
     justify-content: space-between;
@@ -777,17 +719,15 @@ header {
     border-radius: 5px;
     margin-bottom: 8px;
     font-weight: bold;
-    border-left: 5px solid #ff3b3b !important; /* Faixa vermelha */
+    border-left: 5px solid #ff3b3b !important; 
 }
 
-/* Valor do Pix */
 .donor-badge {
-    color: #ff3b3b !important; /* Texto vermelho */
+    color: #ff3b3b !important;
     font-size: 1rem;
     font-weight: 900;
 }
 
-/* Títulos pequenos */
 .donate-list-title {
     font-size: 0.8rem;
     text-transform: uppercase;
@@ -802,7 +742,6 @@ header {
     padding-top: 20px;
 }
 
-/* Item da lista de doações no Admin */
 .admin-donation-item {
     display: flex;
     justify-content: space-between;
@@ -838,7 +777,6 @@ header {
 
 @media (max-width: 768px) {
 
-    /* 1. Ajuste do Cabeçalho e Logo */
     header {
         padding: 10px 15px;
         min-height: 70px;
@@ -848,29 +786,26 @@ header {
     }
 
     .logo {
-        position: relative; /* Remove o absolute para não ficar por cima dos botões */
+        position: relative; 
         left: auto;
         top: auto;
         transform: none;
-        font-size: 2.2rem; /* Diminui muito a fonte */
+        font-size: 2.2rem; 
         letter-spacing: 1px;
         margin: 0;
-        order: 2; /* Mantém no meio visualmente se possível */
+        order: 2; 
     }
 
-    /* Ícones laterais menores */
     .icons-left, .icons-right {
-        transform: scale(0.85); /* Diminui os ícones em 15% */
+        transform: scale(0.85);
         gap: 10px;
     }
 
-    /* Esconde o texto "FAZER LOGIN" e deixa só o ícone se precisar */
     .login-btn-header {
         padding: 8px 12px;
         font-size: 0.8rem;
     }
 
-    /* 2. Ajuste do Tabuleiro (Grid) */
     .tile-container {
         gap: 4px;
     }
@@ -878,16 +813,14 @@ header {
         gap: 4px;
     }
     .tile {
-        /* Usa % da largura da tela em vez de pixels fixos */
         width: 13vw; 
         height: 13vw;
         max-width: 55px;
         max-height: 55px;
-        font-size: 1.5rem; /* Letra menor dentro do quadrado */
+        font-size: 1.5rem; 
         border-width: 2px;
     }
 
-    /* 3. Ajuste do Teclado */
     .keyboard-container {
         width: 100%;
         padding: 5px;
@@ -895,56 +828,51 @@ header {
     }
     .key-row {
         width: 100%;
-        gap: 3px; /* Menos espaço entre teclas */
+        gap: 3px; 
         justify-content: center;
     }
     .keyboard-button {
-        flex: 1; /* Estica para caber */
+        flex: 1;
         height: 50px;
         font-size: 0.85rem;
         padding: 0;
-        min-width: 8px; /* Evita que sumam */
+        min-width: 8px; 
     }
     .keyboard-button.wide {
-        flex: 1.5; /* Enter e Backspace um pouco maiores */
-        font-size: 0.7rem; /* Texto menor para caber */
+        flex: 1.5; 
+        font-size: 0.7rem; 
     }
 
-    /* 4. Ajuste dos Modais (Login, Ranking, Admin) */
     .modal-content, 
     .login-card, 
     .donate-card, 
     .ranking-card, 
     .admin-content {
-        width: 90% !important; /* Ocupa quase toda a largura */
+        width: 90% !important; 
         padding: 20px;
-        max-height: 85vh; /* Evita cortar se a tela for baixa */
-        overflow-y: auto; /* Permite rolar se o conteúdo for grande */
+        max-height: 85vh; 
+        overflow-y: auto; 
     }
 
-    /* Ajustes específicos do Ranking no celular */
     .ranking-card {
         height: 80vh;
     }
     .ranking-header-row, .ranking-row {
-        font-size: 0.7rem; /* Letra menor na tabela */
+        font-size: 0.7rem; 
         padding: 8px 5px;
     }
 
-    /* Ajustes dos Botões Sociais (Ficam um embaixo do outro) */
     .social-links-container {
         flex-direction: column;
     }
-    
-    /* Menu de Usuário Flutuante */
+
     #user-menu {
-        right: 10px; /* Mais perto da borda */
+        right: 10px; 
         top: 70px;
         width: 180px;
     }
 }
 
-/* Ajuste para telas MUITO pequenas (iPhone SE, Galaxy Fold fechado) */
 @media (max-width: 380px) {
     .logo { font-size: 1.5rem; }
     .tile { font-size: 1.2rem; }
@@ -952,8 +880,9 @@ header {
 }
 
 .selected-tile {
-    border-color: #ff3b3b !important; /* Borda vermelha */
-    box-shadow: 0 0 15px rgba(255, 59, 59, 0.5); /* Brilho */
+    border-color: #ff3b3b !important; 
+    box-shadow: 0 0 15px rgba(255, 59, 59, 0.5); 
     transition: all 0.1s;
-    z-index: 5; /* Fica acima dos outros */
+    z-index: 5; 
 }
+
