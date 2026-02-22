@@ -3,9 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nextage Game</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='4' y='4' width='56' height='56' rx='12' fill='%23ff3b3b' stroke='white' stroke-width='4'/><text x='32' y='48' font-family='Arial, sans-serif' font-weight='900' font-size='42' text-anchor='middle' fill='white'>N</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -19,9 +18,12 @@
         </div>
         <h1 class="logo">NEXTAGE</h1>
 <div class="icons-right">
-            <span id="info-btn" style="cursor:pointer" title="Como Jogar">ℹ️</span>
-            <button class="login-btn-header" id="open-login-btn">FAZER LOGIN</button>
-        </div>
+    <span id="info-btn" style="cursor:pointer" title="Como Jogar">ℹ️</span>
+    
+    <button id="open-runner-btn" class="runner-btn-header">MODO RUNNER</button>
+    <button class="login-btn-header" id="open-login-btn">FAZER LOGIN</button>
+</div>
+
 <div id="user-menu">
             <div id="user-name-display" class="user-name-display">Carregando...</div>
             <button onclick="sairDaConta()" class="logout-btn">
@@ -33,9 +35,11 @@
         </div>
     </header>
 
-    <div class="game-container">
-        <div id="tile-container" class="tile-container"></div>
-    </div>
+<div class="game-container">
+    <div id="game-timer" style="display: none;">00:00</div>
+    
+    <div id="tile-container" class="tile-container"></div>
+</div>
 
     <div id="keyboard-container" class="keyboard-container"></div>
 
@@ -47,7 +51,6 @@
             <h2 id="modal-title"></h2>
             <p id="modal-word-reveal" class="word-reveal"></p>
 
-
             <div id="streak-display" style="display: none; margin: 10px auto; align-items: center; justify-content: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; width: fit-content;">
                 <span style="font-size: 2rem;">🔥</span>
                 <div style="display: flex; flex-direction: column; line-height: 1; text-align: left;">
@@ -55,7 +58,6 @@
                     <span id="streak-number" style="font-size: 1.5rem; font-weight: bold; color: #ff9f43;">0</span>
                 </div>
             </div>
-            <!-- ----------------------------------------------- -->
 
             <div id="mini-grid" class="mini-grid"></div>
             
@@ -152,10 +154,10 @@
             <span class="col-stat">SEQUENCIAS</span>
         </div>
 
-        <!-- Lista de Jogadores (Scroll) -->
+        
         <div class="ranking-list-container">
             
-            <!-- 1º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">🏆 1</span>
                 <span class="col-name">KAIQUE PEREIRA</span>
@@ -163,7 +165,7 @@
                 <span class="col-stat highlight-blue">294</span>
             </div>
 
-            <!-- 2º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">🥈 2</span>
                 <span class="col-name">LETÍCIA SANTOS</span>
@@ -171,7 +173,7 @@
                 <span class="col-stat highlight-blue">240</span>
             </div>
 
-            <!-- 3º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">🥉 3</span>
                 <span class="col-name">RENAN PACHECO</span>
@@ -179,7 +181,7 @@
                 <span class="col-stat highlight-blue">240</span>
             </div>
 
-            <!-- 4º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">4</span>
                 <span class="col-name">GABRIELLA LEITE</span>
@@ -187,7 +189,7 @@
                 <span class="col-stat highlight-blue">231</span>
             </div>
 
-            <!-- 5º Lugar -->
+           
             <div class="ranking-row">
                 <span class="col-top">5</span>
                 <span class="col-name">MIRELLE PATRICIA</span>
@@ -195,7 +197,7 @@
                 <span class="col-stat highlight-blue">230</span>
             </div>
 
-            <!-- 6º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">6</span>
                 <span class="col-name">CAUAN SILVA</span>
@@ -203,7 +205,7 @@
                 <span class="col-stat highlight-blue">225</span>
             </div>
             
-            <!-- 7º Lugar -->
+            
             <div class="ranking-row">
                 <span class="col-top">7</span>
                 <span class="col-name">DANIEL</span>
@@ -211,7 +213,7 @@
                 <span class="col-stat highlight-blue">220</span>
             </div>
             
-             <!-- 8º Lugar -->
+             
             <div class="ranking-row">
                 <span class="col-top">8</span>
                 <span class="col-name">ANA CAROLINE</span>
@@ -223,12 +225,11 @@
     </div>
 </div>
 
-<!-- ÁREA DO DESENVOLVEDOR (VERSÃO FINAL COMPLETA) -->
 <div id="admin-overlay" class="admin-overlay" style="display: none;">
     <div class="admin-content" style="max-height: 90vh; overflow-y: auto;">
         <button id="close-admin" class="close-button">&times;</button>
         <h1 class="logo-modal" style="color: #00ff00; text-shadow: 0 0 10px #00ff00; margin-top: 0;">DEV MODE</h1>
-        
+
         <div class="admin-section">
             <h3>➕ Adicionar Palavra</h3>
             <input type="text" id="new-word-input" placeholder="Ex: TESTE" maxlength="5" style="text-transform: uppercase;">
@@ -280,12 +281,10 @@
 </div>
 
 
-<!-- MODAL DE DOAÇÃO -->
 <div id="donate-overlay" class="modal-overlay">
     <div class="modal-content donate-card">
         <button id="close-donate" class="close-button">&times;</button>
         
-        <!-- Título -->
         <h2 class="donate-title">APOIADORES</h2>
         
         <p class="donate-subtitle">
@@ -293,12 +292,10 @@
             Sua doação aparece aqui em baixo 👇
         </p>
 
-        <!-- Botão -->
         <a href="https://livepix.gg/taagny" target="_blank" class="donate-cta-btn">
             MANDAR PIX 💸
         </a>
 
-        <!-- Lista -->
         <div class="donors-container">
             <h3 class="donate-list-title">Últimos Apoiadores</h3>
             <div id="donors-list" class="donors-list-scroll">
@@ -356,19 +353,16 @@
 
   console.log("🔥 Firebase carregado com sucesso!");
 
+
   window.auth = auth;
   window.db = db;
-  
-  // Auth Básico
   window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
   window.signInWithEmailAndPassword = signInWithEmailAndPassword;
   window.signOut = signOut;
   window.onAuthStateChanged = onAuthStateChanged;
-  
-  window.GoogleAuthProvider = GoogleAuthProvider;    
+  window.GoogleAuthProvider = GoogleAuthProvider;     
   window.FacebookAuthProvider = FacebookAuthProvider; 
   window.signInWithPopup = signInWithPopup;           
-
   window.collection = collection;
   window.addDoc = addDoc;
   window.getDocs = getDocs;
@@ -385,7 +379,30 @@
   console.log("✅ Firebase Configurado Corretamente!");
 
 </script>
+<div id="runner-overlay" class="modal-overlay">
+    <div class="modal-content runner-card">
+        <button id="close-runner" class="close-button">&times;</button>
+        
+        <h1 class="logo-modal" style="font-size: 2.5rem; margin-bottom: 20px;">MODO RUNNER</h1>
+        
+        <p style="color: #ccc; margin-bottom: 20px;">
+            Acerte o máximo de palavras possível antes do tempo acabar!
+        </p>
 
+        <div class="runner-options">
+            <button onclick="iniciarPreparacao(10)" class="time-btn">10s</button>
+            <button onclick="iniciarPreparacao(30)" class="time-btn">30s</button>
+            <button onclick="iniciarPreparacao(60)" class="time-btn">60s</button>
+        </div>
+    </div>
+</div>
+
+<div id="prep-overlay" class="modal-overlay" style="background: rgba(0,0,0,0.95); z-index: 9000; display: none;">
+    <div style="text-align: center;">
+        <h2 style="color: #fff; font-size: 2rem; margin-bottom: 20px;">PREPARE-SE</h2>
+        <div id="prep-countdown" style="font-size: 8rem; color: #ff3b3b; font-family: 'Creepster', cursive;">5</div>
+    </div>
+</div>
     <script src="script.js"></script>
 </body>
 
