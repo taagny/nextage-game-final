@@ -67,4 +67,4 @@ Para rodar este projeto na sua máquina:
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/SEU_USUARIO/nextage-game.git
+   git clone https://github.com/taagny/nextage-game.git
