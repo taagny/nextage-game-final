@@ -164,8 +164,8 @@ function Header() {
             <div className="user-menu-wrapper">
               <button className="user-btn" onClick={() => setOpenMenu(prev => !prev)}>
                 <span className="user-avatar">
-                  {userName.charAt(0).toUpperCase()}
-                </span>
+  {userName?.charAt?.(0)?.toUpperCase?.() || "?"}
+</span>
                 <span className="user-name">{userName}</span>
               </button>
 
