@@ -155,7 +155,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                         <h2>{name}</h2>
 
                         <div className="profile-badge">
-                            Perfil: <strong>{stats.profile?.toUpperCase()}</strong>
+                            Perfil: <strong>{(stats?.profile ?? "iniciante").toUpperCase()}</strong>
                         </div>
 
                         <div className="profile-metrics">
