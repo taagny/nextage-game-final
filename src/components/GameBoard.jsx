@@ -114,7 +114,7 @@ function GameBoard() {
 
   useEffect(() => {
     function handleKey(e) {
-      const key = e.key.toUpperCase()
+      const key = e.key?.toUpperCase?.() || ""
 
       if (isGameOver) return
       if (key === "ENTER") return submitGuess()

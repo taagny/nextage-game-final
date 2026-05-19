@@ -70,7 +70,7 @@ function Runner() {
 
   useEffect(() => {
     function handleKey(e) {
-      const key = e.key.toUpperCase()
+      const key = e.key?.toUpperCase?.() || ""
 
       if (!isRunning || finished || openRunnerRanking) return
 
