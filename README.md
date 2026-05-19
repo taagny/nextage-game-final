@@ -1,70 +1,16 @@
+# React + Vite
 
-  
-  # 🧛 NEXTAGE GAME
-  
-  **Um jogo de adivinhação de palavras com tema sombrio, ranking global e sistema de sequências.**
-  
-  [JOGAR AGORA](https://nextage-game.vercel.app)
-  
-  <br>
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-  ![Version](https://img.shields.io/badge/version-1.0.0-red?style=for-the-badge)
-  ![Status](https://img.shields.io/badge/status-online-success?style=for-the-badge)
-  ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
-</div>
+Currently, two official plugins are available:
 
-<br>
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## 📜 Sobre o Projeto
+## React Compiler
 
-**Nextage** é uma versão moderna e gamificada do clássico Wordle/Termo, desenvolvida com foco em engajamento da comunidade. 
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-Diferente dos jogos tradicionais, o Nextage possui um **Ecossistema Online** completo: os jogadores não apenas adivinham a palavra, mas competem em um ranking global, acumulam sequências de vitórias (streak 🔥) e podem apoiar o projeto através de um mural de doações integrado.
+## Expanding the ESLint configuration
 
-## 🚀 Tecnologias Utilizadas
-
-O projeto foi desenvolvido utilizando as seguintes tecnologias:
-
-<div style="display: inline_block"><br>
-  <img align="center" alt="HTML5" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/html5/html5-original.svg">
-  <img align="center" alt="CSS3" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/css3/css3-original.svg">
-  <img align="center" alt="Js" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-plain.svg">
-  <img align="center" alt="Firebase" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/firebase/firebase-plain.svg">
-  <img align="center" alt="Git" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/git/git-original.svg">
-</div>
-
-## ✨ Funcionalidades Principais
-
-### 🎮 Gameplay
-- **Mecânica Wordle:** Adivinhe a palavra de 5 letras em 6 tentativas.
-- **Feedback Visual:** Cores indicativas (Verde, Amarelo, Cinza) com animações fluidas.
-- **Teclado Virtual Inteligente:** As teclas mudam de cor conforme o progresso.
-- **Sistema de Streak (Sequência):** Ganhe partidas consecutivas para aumentar seu "Fogo" 🔥. Perder zera a contagem.
-
-### 🌐 Conectividade (Firebase)
-- **Login Social:** Autenticação rápida via Google.
-- **Ranking Global:** Tabela de líderes em tempo real mostrando Vitórias, Tentativas e Sequências.
-- **Mural da Fama:** Lista dinâmica de apoiadores do projeto.
-
-### ⚙️ Painel do Desenvolvedor (Admin)
-Uma área secreta exclusiva para o dono do jogo:
-- **Adicionar Palavras:** Insira novas palavras no banco de dados.
-- **God Mode:** Force uma palavra específica para o dia (ex: evento especial).
-- **Modo Ban:** Remova jogadores com nomes ofensivos do ranking.
-- **Gestão Financeira:** Adicione e remova doadores do mural manualmente.
-- **Reset de Temporada:** Botão de emergência para zerar a sequência de todos os jogadores.
-
-## 📱 Layout Responsivo
-
-O jogo foi desenhado com a metodologia **Mobile First**, adaptando-se perfeitamente a:
-- Celulares (Android/iOS)
-- Tablets
-- Desktops (4K support)
-
-## 🛠️ Como rodar localmente
-
-Para rodar este projeto na sua máquina:
-
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/taagny/nextage-game.git
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
