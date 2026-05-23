@@ -8,6 +8,7 @@ const AuthContext = createContext()
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [gameInProgress, setGameInProgress] = useState(false)
   const [mustAcceptTerms, setMustAcceptTerms] = useState(false)
 
   useEffect(() => {
@@ -64,6 +65,8 @@ export function AuthProvider({ children }) {
       value={{
         user,
         loading,
+        gameInProgress,
+        setGameInProgress,
         mustAcceptTerms,
         acceptTerms,
         rejectTerms
