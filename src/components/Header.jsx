@@ -16,7 +16,7 @@ import TermsModal from "./TermsModal"
 
 function Header() {
 
-  const { user, gameInProgress } = useAuth()
+  const { user, gameInProgress, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -29,7 +29,6 @@ function Header() {
   const [openRanking, setOpenRanking] = useState(false)
   const [openInfo, setOpenInfo] = useState(false)
   const [openDev, setOpenDev] = useState(false)
-  const [openTerms, setOpenTerms] = useState(false)
   const [userName, setUserName] = useState("")
   const [openPremium, setOpenPremium] = useState(false)
 
@@ -39,39 +38,18 @@ function Header() {
       return
     }
 
-    const checkUserData = async () => {
+    const loadUserName = async () => {
       const ref = doc(db, "jogadores", user.uid)
       const snap = await getDoc(ref)
 
       if (!snap.exists()) return
 
       const data = snap.data()
-      setUserName(data.nome || "")
-
-      if (data.termsAccepted !== true) {
-        setOpenTerms(true)
-      }
+      setUserName(data?.nome ?? "")
     }
 
-    checkUserData()
+    loadUserName()
   }, [user])
-
-  async function handleAcceptTerms() {
-    if (!user) return
-
-    const ref = doc(db, "jogadores", user.uid)
-
-    await updateDoc(ref, {
-      termsAccepted: true,
-      termsAcceptedAt: serverTimestamp()
-    })
-
-    setOpenTerms(false)
-  }
-
-  async function handleRejectTerms() {
-    await signOut(auth)
-  }
 
   async function handleLogout() {
     if (gameInProgress && user) {
@@ -164,9 +142,9 @@ function Header() {
             <div className="user-menu-wrapper">
               <button className="user-btn" onClick={() => setOpenMenu(prev => !prev)}>
                 <span className="user-avatar">
-  {userName?.charAt?.(0)?.toUpperCase?.() || "?"}
-</span>
-                <span className="user-name">{userName}</span>
+                  {userName?.charAt?.(0)?.toUpperCase?.() || "?"}
+                </span>
+                <span className="user-name">{userName || "Usuário"}</span>
               </button>
 
               {openMenu && (
@@ -202,11 +180,13 @@ function Header() {
       <InfoModal isOpen={openInfo} onClose={() => setOpenInfo(false)} />
       <DevModal isOpen={openDev} onClose={() => setOpenDev(false)} />
 
-      <TermsModal
-        isOpen={openTerms}
-        onAccept={handleAcceptTerms}
-        onReject={handleRejectTerms}
-      />
+      {user && mustAcceptTerms && (
+        <TermsModal
+          isOpen={true}
+          onAccept={acceptTerms}
+          onReject={rejectTerms}
+        />
+      )}
 
       <PremiumModal isOpen={openPremium} onClose={() => setOpenPremium(false)} />
     </>
