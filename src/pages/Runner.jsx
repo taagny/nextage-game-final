@@ -39,10 +39,10 @@ function Runner() {
     board,
     results,
     addLetter,
-    deleteLetter,
     submitGuess,
     resetBoard,
-    currentRow
+    currentRow,
+    clearCurrentRow
   } = useWordle(secret)
 
   const finished = selectedTime && (timeLeft <= 0 || lostByError)
@@ -92,13 +92,17 @@ function Runner() {
         return
       }
 
-      if (key === "BACKSPACE") return deleteLetter()
+      if (key === "BACKSPACE") {
+        clearCurrentRow()
+        return
+      }
+
       if (/^[A-Z]$/.test(key)) return addLetter(key)
     }
 
     window.addEventListener("keydown", handleKey)
     return () => window.removeEventListener("keydown", handleKey)
-  }, [addLetter, deleteLetter, submitGuess, isRunning, finished, openRunnerRanking, currentRow])
+  }, [addLetter, submitGuess, isRunning, finished, openRunnerRanking, currentRow])
 
   useEffect(() => {
     function handleOpenRanking() {
@@ -110,7 +114,6 @@ function Runner() {
     return () => window.removeEventListener("openRunnerRanking", handleOpenRanking)
   }, [isRunning])
 
-  // ✅ RESTAURADO: botão Runner durante a run
   useEffect(() => {
     function handleOpenRunnerMode() {
       handleChangeTime()
@@ -215,7 +218,11 @@ function Runner() {
       return
     }
 
-    if (key === "BACKSPACE") return deleteLetter()
+    if (key === "BACKSPACE") {
+      clearCurrentRow()
+      return
+    }
+
     if (/^[A-Z]$/.test(key)) return addLetter(key)
   }
 

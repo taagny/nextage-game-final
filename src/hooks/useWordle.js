@@ -32,12 +32,7 @@ export function useWordle(secret) {
   }, [])
 
   useEffect(() => {
-    setBoard(Array(6).fill(null).map(() => Array(5).fill("")))
-    setResults(Array(6).fill(null))
-    setCurrentRow(0)
-    setCurrentCol(0)
-    setIsManualSelection(false)
-    setIsGameOver(false)
+    resetBoard()
   }, [secret])
 
   function addLetter(letter) {
@@ -94,6 +89,19 @@ export function useWordle(secret) {
       return newBoard
     })
 
+    setIsManualSelection(false)
+  }
+
+  function clearCurrentRow() {
+    if (isGameOver) return
+
+    setBoard(prev => {
+      const newBoard = [...prev]
+      newBoard[currentRow] = ["", "", "", "", ""]
+      return newBoard
+    })
+
+    setCurrentCol(0)
     setIsManualSelection(false)
   }
 
@@ -157,6 +165,7 @@ export function useWordle(secret) {
     results,
     addLetter,
     deleteLetter,
+    clearCurrentRow,
     submitGuess,
     isGameOver,
     streak,
