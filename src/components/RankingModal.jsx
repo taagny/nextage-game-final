@@ -73,9 +73,8 @@ function RankingModal({ isOpen, onClose }) {
                 {getMedal(index)}
               </span>
 
-              <span className={`ranking-name-new ${player.premium?.active ? "premium-name" : ""}`}>
+              <span className="ranking-name-new">
                 {player.nome}
-                {player.premium?.active && <span className="premium-badge">👑</span>}
               </span>
 
               <span className="ranking-stat-new">

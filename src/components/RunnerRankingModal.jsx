@@ -75,14 +75,10 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
               </span>
 
               <span
-                className={`ranking-name-new ${
-                  player.premium?.active ? "premium-name" : ""
-                }`}
+                className="ranking-name-new"
               >
                 {player.nome}
-                {player.premium?.active && (
-                  <span className="premium-badge">👑</span>
-                )}
+                
               </span>
 
               <span className="ranking-stat-new highlight-blue">

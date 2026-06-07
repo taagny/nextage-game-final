@@ -30,7 +30,6 @@ function Header() {
   const [openInfo, setOpenInfo] = useState(false)
   const [openDev, setOpenDev] = useState(false)
   const [userName, setUserName] = useState("")
-  const [openPremium, setOpenPremium] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -104,10 +103,6 @@ function Header() {
         <div className="header-left">
           <button className="icon-btn" onClick={handleTrophyClick}>
             <span className="trophy-emoji">🏆</span>
-          </button>
-
-          <button className="icon-btn premium-icon" onClick={() => setOpenPremium(true)}>
-            👑
           </button>
         </div>
 
@@ -188,7 +183,6 @@ function Header() {
         />
       )}
 
-      <PremiumModal isOpen={openPremium} onClose={() => setOpenPremium(false)} />
     </>
   )
 }
