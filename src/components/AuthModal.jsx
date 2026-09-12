@@ -3,7 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   sendPasswordResetEmail
 } from "firebase/auth"
 import { auth } from "../services/firebase"
@@ -39,6 +40,22 @@ function AuthModal({ isOpen, onClose }) {
 
     setErrors(newErrors)
   }, [email, senha, confirmSenha, isLogin])
+
+  // Captura o resultado do login com Google quando o usuário volta
+  // do redirect (signInWithRedirect recarrega a página inteira).
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // Usuário logou com sucesso via Google
+          handleClose()
+        }
+      })
+      .catch((error) => {
+        console.error("Google sign-in error:", error.code, error.message)
+        setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
+      })
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -89,16 +106,13 @@ function AuthModal({ isOpen, onClose }) {
     }
   }
 
-  async function handleGoogle() {
+  function handleGoogle() {
     setInfoMessage("")
     const provider = new GoogleAuthProvider()
-    try {
-      await signInWithPopup(auth, provider)
-      handleClose()
-    } catch (error) {
-  console.error("Google sign-in error:", error.code, error.message)
-  setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
-}
+    signInWithRedirect(auth, provider)
+    // A página vai redirecionar para o Google agora.
+    // O resultado é tratado no useEffect com getRedirectResult acima,
+    // quando o usuário voltar.
   }
 
   async function handleResetPassword() {
