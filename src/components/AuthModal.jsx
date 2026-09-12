@@ -3,8 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   sendPasswordResetEmail
 } from "firebase/auth"
 import { auth } from "../services/firebase"
@@ -40,23 +39,6 @@ function AuthModal({ isOpen, onClose }) {
 
     setErrors(newErrors)
   }, [email, senha, confirmSenha, isLogin])
-
-  // Captura o resultado do login com Google quando o usuário volta
-  // do redirect (signInWithRedirect recarrega a página inteira).
-  useEffect(() => {
-  getRedirectResult(auth)
-    .then((result) => {
-      console.log("getRedirectResult retornou:", result)
-      console.log("auth.currentUser agora:", auth.currentUser)
-      if (result) {
-        handleClose()
-      }
-    })
-    .catch((error) => {
-      console.error("Google sign-in error:", error.code, error.message)
-      setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
-    })
-}, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -107,13 +89,32 @@ function AuthModal({ isOpen, onClose }) {
     }
   }
 
-  function handleGoogle() {
+  async function handleGoogle() {
     setInfoMessage("")
     const provider = new GoogleAuthProvider()
-    signInWithRedirect(auth, provider)
-    // A página vai redirecionar para o Google agora.
-    // O resultado é tratado no useEffect com getRedirectResult acima,
-    // quando o usuário voltar.
+    try {
+      await signInWithPopup(auth, provider)
+      handleClose()
+    } catch (error) {
+      console.error("Google sign-in error:", error.code, error.message)
+
+      let message = "Erro ao entrar com Google. Tente novamente."
+
+      if (error.code === "auth/popup-blocked") {
+        message = "Seu navegador bloqueou a janela de login. Permita popups para este site e tente novamente."
+      }
+
+      if (error.code === "auth/popup-closed-by-user") {
+        message = "A janela de login foi fechada antes de concluir. Tente novamente."
+      }
+
+      if (error.code === "auth/cancelled-popup-request") {
+        // Usuário clicou mais de uma vez rápido; não precisa mostrar erro.
+        return
+      }
+
+      setErrors({ firebase: message })
+    }
   }
 
   async function handleResetPassword() {
