@@ -44,18 +44,19 @@ function AuthModal({ isOpen, onClose }) {
   // Captura o resultado do login com Google quando o usuário volta
   // do redirect (signInWithRedirect recarrega a página inteira).
   useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // Usuário logou com sucesso via Google
-          handleClose()
-        }
-      })
-      .catch((error) => {
-        console.error("Google sign-in error:", error.code, error.message)
-        setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
-      })
-  }, [])
+  getRedirectResult(auth)
+    .then((result) => {
+      console.log("getRedirectResult retornou:", result)
+      console.log("auth.currentUser agora:", auth.currentUser)
+      if (result) {
+        handleClose()
+      }
+    })
+    .catch((error) => {
+      console.error("Google sign-in error:", error.code, error.message)
+      setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
+    })
+}, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
