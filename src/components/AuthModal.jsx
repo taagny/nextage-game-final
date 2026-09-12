@@ -96,8 +96,9 @@ function AuthModal({ isOpen, onClose }) {
       await signInWithPopup(auth, provider)
       handleClose()
     } catch (error) {
-      setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
-    }
+  console.error("Google sign-in error:", error.code, error.message)
+  setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
+}
   }
 
   async function handleResetPassword() {
