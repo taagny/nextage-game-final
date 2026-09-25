@@ -78,6 +78,12 @@ function UserSettingsModal({ isOpen, onClose, user }) {
         onClose()
     }
 
+    const creationTime = user?.metadata?.creationTime
+    const creationDate = creationTime ? new Date(creationTime) : null
+    const formattedCreationDate = creationDate && !Number.isNaN(creationDate.getTime())
+        ? new Intl.DateTimeFormat("pt-BR").format(creationDate)
+        : null
+
     const chartData = recentMatches.map((m, index) => ({
         partida: index + 1,
         tentativas: m.attempts
@@ -149,23 +155,33 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                     </button>
                 </div>
 
-                {activeTab === "profile" && stats && (
+                {activeTab === "profile" && (stats || formattedCreationDate) && (
                     <div className="profile-content">
 
                         <h2>{name}</h2>
 
-                        <div className="profile-badge">
-                            Perfil: <strong>{(stats?.profile ?? "iniciante").toUpperCase()}</strong>
-                        </div>
+                        {formattedCreationDate && (
+                            <p className="profile-created-at">
+                                Conta criada em: {formattedCreationDate}
+                            </p>
+                        )}
 
-                        <div className="profile-metrics">
-                            <div>🏆 Vitórias: {stats.totalWins}</div>
-                            <div>🎮 Jogos: {stats.totalGames}</div>
-                            <div>⏱ Média Tempo: {(stats.avgTimePerWord / 1000).toFixed(1)}s</div>
-                            <div>🎯 Média Tentativas: {stats.avgAttemptsPerWord?.toFixed(2)}</div>
-                        </div>
+                        {stats && (
+                            <>
+                                <div className="profile-badge">
+                                    Perfil: <strong>{(stats?.profile ?? "iniciante").toUpperCase()}</strong>
+                                </div>
 
-                        {renderDistribution()}
+                                <div className="profile-metrics">
+                                    <div>🏆 Vitórias: {stats.totalWins}</div>
+                                    <div>🎮 Jogos: {stats.totalGames}</div>
+                                    <div>⏱ Média Tempo: {(stats.avgTimePerWord / 1000).toFixed(1)}s</div>
+                                    <div>🎯 Média Tentativas: {stats.avgAttemptsPerWord?.toFixed(2)}</div>
+                                </div>
+
+                                {renderDistribution()}
+                            </>
+                        )}
 
                         <div className="profile-actions">
                             <button className="close-profile-btn" onClick={onClose}>
