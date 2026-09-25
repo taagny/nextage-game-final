@@ -1,0 +1,178 @@
+# NEXTAGE — relatório técnico do projeto
+
+## 1. Visão geral
+
+NEXTAGE é uma aplicação web de jogos de palavras, implementada como Single Page Application (SPA). O modo clássico apresenta um desafio de palavra de cinco letras com até seis tentativas; o modo Runner permite resolver várias palavras dentro de uma duração escolhida (10, 30 ou 60 segundos). A aplicação também inclui autenticação, sequências e estatísticas de jogadores, rankings, perfil/evolução, consentimento para coleta de métricas e um painel de exportação para pesquisa acadêmica.
+
+A interface e as mensagens são predominantemente em português. A aplicação usa Firebase Authentication e Cloud Firestore no cliente para identidade e persistência. O projeto não contém um servidor/backend de aplicação próprio no código versionado.
+
+## 2. Tecnologias, linguagens e tipagem
+
+- **JavaScript moderno (ES modules)** para lógica, serviços e scripts Node.
+- **JSX com React 19** para componentes e telas.
+- **CSS** para estilos e responsividade.
+- **JSON** para configuração, dependências, dados do dicionário e configuração Firebase.
+- **Vite 8** como servidor de desenvolvimento e empacotador, com plugin React.
+- **Firebase JS SDK 12**: Authentication e Firestore.
+- **React Router DOM 7**: navegação no cliente.
+- **Recharts 3**: gráfico de evolução do perfil.
+- Scripts auxiliares Node usam `fs`, `path` e `url`.
+
+O código da aplicação é JavaScript sem TypeScript, sem declarações formais de tipos e sem validação estática de esquemas Firestore. Os contratos de dados são implícitos em objetos e propriedades usados pelo código (por exemplo, `stats`, `runnerScores` e `partidas`). `@types/react` e `@types/react-dom` aparecem nas dependências de desenvolvimento, mas isso não torna o projeto tipado nem há configuração/compilação TypeScript. ESLint verifica arquivos `.js` e `.jsx` com regras recomendadas, hooks do React e React Refresh.
+
+## 3. Estrutura do repositório
+
+```text
+.
+├── index.html                    # HTML base e ponto de entrada da SPA
+├── package.json                  # Scripts e dependências
+├── package-lock.json             # Lockfile npm
+├── vite.config.js                # Configuração do Vite e plugin React
+├── eslint.config.js              # Regras ESLint
+├── firebase.json                 # Configuração Firebase Functions
+├── .firebaserc                   # Projeto Firebase selecionado
+├── public/
+│   ├── dictionary.json           # Dicionário consumido pelo jogo
+│   ├── favicon.svg               # Ícone do site
+│   └── icons.svg                 # Símbolos SVG
+├── scripts/
+│   ├── raw-words.txt             # Fonte textual para geração do dicionário
+│   ├── generateDictionary.js     # Normaliza/filtra/ordena palavras e grava JSON
+│   └── validateDictionary.js     # Confere cobertura das respostas no dicionário
+└── src/
+    ├── main.jsx                  # Bootstrap React, Router, AuthProvider e CSS
+    ├── App.jsx                   # Layout e rotas
+    ├── context/AuthContext.jsx   # Estado global de autenticação/consentimento
+    ├── components/               # Componentes de interface e modais
+    ├── hooks/                    # Estado e regras dos dois jogos
+    ├── pages/                    # Telas associadas às rotas
+    ├── services/                 # Inicialização Firebase e operações de dados
+    ├── styles/                   # CSS organizado por área
+    └── utils/                    # Regras do jogo e lista de respostas
+```
+
+### Componentes da aplicação
+
+- `src/main.jsx`: monta o React em `#root`, envolve a aplicação em `React.StrictMode`, `BrowserRouter` e `AuthProvider`, e importa as folhas CSS globais.
+- `src/App.jsx`: compõe `Layout`, `Header` e rotas `/` (clássico), `/runner` e `/premium-success`.
+- `src/components/Layout.jsx`: contêiner estrutural.
+- `src/components/Header.jsx`: navegação, login/logout, menu de perfil, termos, ranking clássico, informações e entrada no Runner. Usa eventos customizados `openRunnerRanking` e `openRunnerMode` para comunicar com `Runner`.
+- `src/components/GameBoard.jsx`: tabuleiro clássico, teclado, entrada por teclado físico/virtual, compartilhamento, estado da partida e registro de métricas.
+- `src/components/Keyboard.jsx`: teclado virtual e resumo de cores/status das letras.
+- `src/components/Modal.jsx`: invólucro simples que renderiza conteúdo quando `isOpen` é verdadeiro.
+- `src/components/AuthModal.jsx`: login/cadastro por e-mail e Google e recuperação de senha.
+- `src/components/TermsModal.jsx`: texto de consentimento e ações aceitar/rejeitar.
+- `src/components/RankingModal.jsx`: ranking por sequência clássica.
+- `src/components/RunnerRankingModal.jsx`: ranking de pontuação por duração do Runner.
+- `src/components/UserSettingsModal.jsx`: perfil, distribuição de acertos, gráfico das partidas recentes e alteração do nome.
+- `src/components/InfoModal.jsx`: instruções e links sociais.
+- `src/components/DevModal.jsx`: painel de métricas globais e exportações CSV/JSON.
+- `src/components/PremiumModal.jsx`: listagem de apoiadores e link para pagamento configurado por variáveis de ambiente. Está importado no Header, mas não é renderizado atualmente.
+- `src/pages/Home.jsx`: posiciona o tabuleiro clássico.
+- `src/pages/Runner.jsx`: interface e ciclo de partida do Runner.
+- `src/pages/Auth.jsx`: tela de autenticação independente; não está associada a uma rota em `App.jsx` (o fluxo em uso é pelo modal do Header).
+- `src/pages/PremiumSuccess.jsx`: tela de sucesso e atualização de dados premium.
+
+## 4. Fluxos e funções principais
+
+### Inicialização e autenticação
+
+`src/services/firebase.js` inicializa o Firebase a partir de uma configuração embutida e exporta `auth` e `db`. `AuthProvider` em `src/context/AuthContext.jsx` observa mudanças com `onAuthStateChanged`, fornece `user`, `loading`, `gameInProgress`, `mustAcceptTerms`, `acceptTerms()` e `rejectTerms()` por `useAuth()`. O provider oculta os filhos até terminar a verificação inicial. Para usuários autenticados, consulta `jogadores/{uid}` e exige `termsAccepted === true`; aceitar atualiza `termsAccepted` e `termsAcceptedAt`, rejeitar encerra a sessão.
+
+`AuthModal` chama `signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `signInWithPopup` (Google) e `sendPasswordResetEmail`; mensagens de falha são traduzidas para o usuário. O componente antigo `Auth.jsx` usa login/cadastro por e-mail, mas não oferece Google nem recuperação e não é usado pelas rotas atuais.
+
+### Jogo clássico
+
+`src/hooks/useWordle.js` mantém o tabuleiro de seis linhas por cinco letras, resultados, linha/coluna atual, seleção manual, fim de jogo, sequência local e aviso de palavra inválida. Carrega `/dictionary.json` para um `Set`. Expõe, entre outras, `addLetter`, `deleteLetter`, `clearCurrentRow`, `submitGuess`, `resetBoard` e `setExternalStreak`.
+
+`src/utils/gameLogic.js` exporta `checkGuess(secret, guess)`, que devolve cinco estados (`correct`, `present`, `absent`). Primeiro marca correspondências na posição e depois procura letras restantes, consumindo cada ocorrência para tratar letras duplicadas.
+
+`src/utils/answers.js` fornece o conjunto de palavras que podem ser sorteadas como soluções. `GameBoard` seleciona uma resposta por `useMemo` e avança a partida ao aumentar `gameKey`. Letras podem ser digitadas no teclado físico, clicadas no teclado virtual ou inseridas em coluna selecionada. Uma resposta correta abre o modal de vitória; a função `generateShareText()` gera a grade textual colorida e `handleShare()` copia-a via Clipboard API.
+
+Quando o jogo termina, `GameBoard` determina vitória pelo resultado da linha atual. Em caso de vitória chama `incrementStreak`, `updatePlayerStats` e `saveMatchHistory`; em derrota chama `resetStreak` e `saveMatchHistory`. Para usuário autenticado, `GameBoard` chama `ensurePlayerExists` e então lê `sequenciaAtual` do perfil para inicializar o estado local do hook via `setExternalStreak` (`src/components/GameBoard.jsx`, `src/services/playerService.js`, `src/hooks/useWordle.js`). O campo persistido é `sequenciaAtual`; o hook mantém esse valor em seu estado local `streak`.
+
+### Runner e ranking
+
+`src/hooks/useRunner.js` fornece estado e operações `start`, `stop`, `reset(newDuration)` e `incrementScore`; enquanto ativo, decrementa `timeLeft` em intervalos de um segundo.
+
+`src/pages/Runner.jsx` oferece opções de 10, 30 e 60 segundos, contagem regressiva preparatória de cinco segundos, tabuleiro/teclado do jogo de palavras e placar. Cada acerto incrementa a pontuação e sorteia uma nova solução. A corrida termina quando o tempo acaba ou quando uma submissão no último palpite da palavra não retorna `true`. Atenção: no último palpite, o código também encerra a corrida se `submitGuess()` retornar `false` por palavra incompleta, palavra inválida ou dicionário ainda não carregado; portanto, o encerramento não se limita a seis palpites válidos sem acerto (`src/pages/Runner.jsx`, `src/hooks/useWordle.js`). Ao concluir e existir usuário, chama `saveRunnerRecord(uid, String(selectedTime), score)`. O header abre o ranking e o modo por eventos de janela. Escape reinicia uma corrida selecionada; Enter reinicia após a tela de resultado.
+
+`src/components/RunnerRankingModal.jsx` lê os documentos de `jogadores`, ordena por `runnerScores[time]`, mostra até cem jogadores e indica a posição do usuário autenticado. `saveRunnerRecord` só substitui o recorde para uma duração se a pontuação recebida for maior.
+
+### Persistência, estatísticas e administração
+
+`src/services/playerService.js` centraliza funções Firestore:
+
+- `ensurePlayerExists(uid, nome, email)`: cria perfil com sequência, consentimento, recordes Runner e estatísticas zeradas se ainda não existir.
+- `getPlayer(uid)`: carrega o documento do jogador ou retorna `null`.
+- `incrementStreak(uid)` / `resetStreak(uid)`: atualiza sequência, vitórias ou tentativas.
+- `updatePlayerStats(uid, timeMs, attempts)`: soma jogos/vitórias/tempo/tentativas, distribuição de acertos e calcula médias/perfil (`iniciante`, `medio`, `avancado`) com base em palavras por minuto.
+- `saveMatchHistory(uid, data)`: cria registro em `jogadores/{uid}/partidas` com timestamp do servidor.
+- `saveRunnerRecord(uid, time, score)`: mantém melhor pontuação por duração.
+
+`src/services/adminService.js` oferece `getGlobalStats()`, `exportSummaryCSV()`, `exportMatchesCSV()` e `exportFullBackup()`. As exportações buscam jogadores e, para partidas/histórico completo, consultam subcoleções de partidas; downloads são montados no navegador com `Blob` e URL temporária. `DevModal` exibe o painel e dispara as exportações. O acesso visual é condicionado no Header a um UID de desenvolvedor codificado no cliente.
+
+`src/components/RankingModal.jsx` consulta jogadores ordenados por `sequenciaAtual` decrescente. `UserSettingsModal` lê perfil e até dez partidas recentes, calcula média de tempo e uma variação percentual de tentativas entre metades do histórico, renderiza um gráfico Recharts e permite atualizar `nome`.
+
+### Dicionário
+
+`src/utils/answers.js` contém as respostas usadas como soluções; `public/dictionary.json` contém palavras aceitas como palpites. `scripts/generateDictionary.js` lê `scripts/raw-words.txt`, remove acentos, converte para maiúsculas, mantém apenas palavras de cinco letras A–Z, elimina duplicadas, ordena e grava o JSON. `scripts/validateDictionary.js` verifica se as respostas declaradas aparecem no dicionário.
+
+## 5. Dados e integrações externas
+
+- **Firestore**: coleção `jogadores`, documento por UID, campo `partidas` como subcoleção; dados esperados incluem `nome`, `email`, `sequenciaAtual`, `vitorias`, `tentativas`, `jogos`, `online`, `termsAccepted`, `runnerScores` e `stats`.
+- **Firebase Authentication**: e-mail/senha, Google Popup e recuperação de senha.
+- **Pagamento**: `PremiumModal` seleciona `VITE_STRIPE_PAYMENT_LINK_LOCAL` em `localhost` ou `VITE_STRIPE_PAYMENT_LINK_PROD` fora dele.
+- **Fontes**: Google Fonts (`Creepster` e `Roboto`) referenciadas em `index.html`.
+- **Compartilhamento**: `navigator.clipboard` no modo clássico.
+
+`firebase.json` declara uma configuração de Cloud Functions (`source: functions`, codebase `default`), mas não existe diretório `functions/` entre os arquivos do projeto; a aplicação inspecionada não apresenta código de funções server-side. `.firebaserc` aponta o alias `default` para `nextage-d6d48`.
+
+## 6. Estilos
+
+- `src/styles/base.css`: reset global, cores/fontes base e contêiner da aplicação.
+- `src/styles/layout.css`: header, navegação, menu de usuário e responsividade.
+- `src/styles/components.css`: modais, consentimento, perfil, métricas, painel dev e premium.
+- `src/styles/ranking.css`: ranking e classes de apresentação premium.
+- `src/styles/game.css`: tabuleiro, teclado, estados de letra, animações e responsividade.
+- `src/styles/runner.css`: temporizador, preparação e resultados do Runner.
+- `src/styles/auth.css`: telas e modal de autenticação.
+
+## 7. Comandos disponíveis
+
+Requer Node.js e npm. No diretório do projeto:
+
+```bash
+npm install
+npm run dev          # servidor Vite de desenvolvimento
+npm run build        # build de produção em dist/
+npm run preview      # servir o build localmente
+npm run lint         # ESLint no projeto
+npm run generate:dict # regenerar public/dictionary.json
+npm run validate:dict # validar cobertura das respostas
+```
+
+Não há script de testes automatizados declarado em `package.json`.
+
+## 8. Observações e limitações identificadas
+
+1. **JavaScript sem contrato estático**: objetos recebidos do Firestore são usados diretamente; mudanças no formato dos documentos podem resultar em erros de execução. Não há camada de validação central do esquema.
+2. **Dicionário assíncrono**: enquanto `/dictionary.json` não termina de carregar, `submitGuess()` retorna `false`; falha de rede instala um conjunto vazio, tornando todos os palpites inválidos sem fallback local.
+3. **Criação do documento e aceite de termos**: `ensurePlayerExists` é chamado pelo efeito de montagem de `GameBoard`, não diretamente pelo cadastro no `AuthModal`; o perfil novo começa com `termsAccepted: false` (`src/components/GameBoard.jsx`, `src/services/playerService.js`). `AuthProvider` consulta o documento e exige aceite; `acceptTerms()` usa `updateDoc`, que não cria um documento ausente (`src/context/AuthContext.jsx`). Como a criação do perfil e a verificação/aceitação de termos ocorrem em efeitos/fluxos distintos, a ordem de execução importa: não se deve afirmar que o aceite sempre falha nem que o documento sempre estará pronto antes da atualização. O fluxo merece teste explícito para conta recém-criada e falhas de rede.
+4. **Atualização de estatísticas não transacional**: `updatePlayerStats` lê e substitui o objeto `stats` com valores calculados no cliente. Atualizações concorrentes podem perder incrementos; as gravações e exportações também não têm tratamento de erro visível consistente.
+5. **Proteção de administração apenas na interface**: o UID de desenvolvedor está no bundle cliente. O painel faz consultas amplas no Firestore; a autorização real e as regras de segurança precisam ser garantidas nas regras do Firebase, que não estão versionadas aqui.
+6. **Fluxo premium não verificado no servidor**: `PremiumSuccess` ativa dados premium no Firestore com base em presença de `session_id` na URL; no projeto não foi encontrado código server-side de verificação da sessão de pagamento. `PremiumModal` está importado no Header, mas sem renderização nem estado para abri-lo na implementação atual.
+7. **Métricas de disponibilidade**: o documento inicializa `online: false` e `lastActive: null`; no código revisado não há atualização de presença/heartbeat. `getGlobalStats` conta jogadores online a partir desse campo.
+8. **Métricas de jogos**: `updatePlayerStats` é chamado apenas no caminho de vitória; ainda assim incrementa `totalGames` e `totalWins` juntos. Derrotas são salvas no histórico e resetam sequência, mas não incrementam esses totais nem `abandonedGames` (abandono é incrementado no logout com partida em andamento). Isso afeta interpretações das estatísticas agregadas.
+9. **Consultas amplas**: rankings Runner, estatísticas globais e exportações fazem leitura da coleção inteira `jogadores`; a exportação de partidas faz leituras por jogador em série. Escala, custo e regras Firestore podem limitar esses caminhos.
+10. **Configuração de ambiente**: os links de pagamento dependem de variáveis `VITE_STRIPE_PAYMENT_LINK_*`; não há arquivo de exemplo de ambiente versionado. A configuração cliente Firebase fica no código-fonte; a proteção de dados não deve depender de ocultar chaves cliente, e sim das regras de segurança/autorização Firebase.
+11. **Rota de sucesso**: a página `/premium-success` é acessível sem autenticação; sem `user` ou `session_id`, o efeito navega à rota inicial. Não há rota de fallback/404 declarada em `App.jsx`.
+12. **Scripts do dicionário**: o gerador usa caminhos relativos ao diretório corrente, então deve ser executado na raiz do repositório (como nos scripts npm). O validador extrai strings de `answers.js` por expressão regular, não por importação/execução do módulo.
+
+## 9. Configuração de qualidade e deploy
+
+`eslint.config.js` ignora `dist`, aplica as configurações recomendadas do ESLint e plugins React Hooks/React Refresh em arquivos JavaScript e JSX. `vite.config.js` limita-se ao plugin React. `firebase.json` só declara configuração de Functions; não há configuração de Firebase Hosting, regras ou índices Firestore no repositório. O deploy e as permissões efetivas do Firestore dependem da configuração do projeto Firebase externo.
+
+---
+
+Este documento descreve a implementação encontrada no repositório e não substitui uma auditoria das regras/configurações no console Firebase ou do ambiente externo de pagamentos.
