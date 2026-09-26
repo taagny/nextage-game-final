@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import Modal from "./Modal"
 import { doc, getDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore"
 import { db } from "../services/firebase"
+import { getProfileLevel } from "../utils/profileLevel"
 import {
     LineChart,
     Line,
@@ -11,6 +12,12 @@ import {
     Tooltip,
     ResponsiveContainer
 } from "recharts"
+
+const PROFILE_LABELS = {
+    iniciante: "INICIANTE",
+    medio: "MÉDIO",
+    avancado: "AVANÇADO"
+}
 
 function UserSettingsModal({ isOpen, onClose, user }) {
 
@@ -169,7 +176,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                         {stats && (
                             <>
                                 <div className="profile-badge">
-                                    Perfil: <strong>{(stats?.profile ?? "iniciante").toUpperCase()}</strong>
+                                    Perfil: <strong>{PROFILE_LABELS[getProfileLevel(stats.totalWins)]}</strong>
                                 </div>
 
                                 <div className="profile-metrics">

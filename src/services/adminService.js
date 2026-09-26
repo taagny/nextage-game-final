@@ -1,5 +1,6 @@
 import { collection, getDocs } from "firebase/firestore"
 import { db } from "./firebase"
+import { getProfileLevel } from "../utils/profileLevel"
 
 export async function getGlobalStats() {
   const snapshot = await getDocs(collection(db, "jogadores"))
@@ -87,7 +88,7 @@ export async function exportSummaryCSV() {
     const totalWins = stats.totalWins || 0
     const avgTime = (stats.avgTimePerWord || 0) / 1000
     const avgAttempts = stats.avgAttemptsPerWord || 0
-    const profile = stats.profile || ""
+    const profile = getProfileLevel(totalWins)
 
     csv += `${participantId};${totalGames};${totalWins};${avgTime.toFixed(2)};${avgAttempts.toFixed(2)};${profile}\n`
 

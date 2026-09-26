@@ -1,5 +1,6 @@
 import { doc, getDoc, setDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "./firebase"
+import { getProfileLevel } from "../utils/profileLevel"
 
 export async function ensurePlayerExists(uid, nome, email) {
   const ref = doc(db, "jogadores", uid)
@@ -124,18 +125,7 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
   const avgTime = totalTimeMs / totalWins
   const avgAttempts = totalAttempts / totalWins
 
-  const wordsPerMinute =
-    totalTimeMs > 0
-      ? totalWins / (totalTimeMs / 60000)
-      : 0
-
-  let profile = "iniciante"
-
-  if (wordsPerMinute >= 20) {
-    profile = "avancado"
-  } else if (wordsPerMinute >= 10) {
-    profile = "medio"
-  }
+  const profile = getProfileLevel(totalWins)
 
   await updateDoc(ref, {
     stats: {

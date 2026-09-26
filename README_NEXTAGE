@@ -106,7 +106,7 @@ Quando o jogo termina, `GameBoard` determina vitória pelo resultado da linha at
 - `ensurePlayerExists(uid, nome, email)`: cria perfil com sequência, consentimento, recordes Runner e estatísticas zeradas se ainda não existir.
 - `getPlayer(uid)`: carrega o documento do jogador ou retorna `null`.
 - `incrementStreak(uid)` / `resetStreak(uid)`: atualiza sequência, vitórias ou tentativas.
-- `updatePlayerStats(uid, timeMs, attempts)`: soma jogos/vitórias/tempo/tentativas, distribuição de acertos e calcula médias/perfil (`iniciante`, `medio`, `avancado`) com base em palavras por minuto.
+- `updatePlayerStats(uid, timeMs, attempts)`: soma jogos/vitórias/tempo/tentativas e distribuição de acertos, calcula médias e classifica o perfil pelo total de vitórias clássicas: `iniciante` (0–99), `medio` (100–500) e `avancado` (501+).
 - `saveMatchHistory(uid, data)`: cria registro em `jogadores/{uid}/partidas` com timestamp do servidor.
 - `saveRunnerRecord(uid, time, score)`: mantém melhor pontuação por duração.
 
