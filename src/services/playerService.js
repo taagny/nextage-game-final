@@ -27,6 +27,7 @@ export async function ensurePlayerExists(uid, nome, email) {
         totalGames: 0,
         totalWins: 0,
         totalTimeMs: 0,
+        totalPlayTimeMs: 0,
         totalAttempts: 0,
         avgTimePerWord: 0,
         avgAttemptsPerWord: 0,
@@ -105,6 +106,7 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
   const totalGames = (stats.totalGames || 0) + 1
   const totalWins = (stats.totalWins || 0) + 1
   const totalTimeMs = (stats.totalTimeMs || 0) + timeMs
+  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
   const totalAttempts = (stats.totalAttempts || 0) + attempts
   const abandonedGames = stats.abandonedGames || 0
 
@@ -132,6 +134,7 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
       totalGames,
       totalWins,
       totalTimeMs,
+      totalPlayTimeMs,
       totalAttempts,
       avgTimePerWord: avgTime,
       avgAttemptsPerWord: avgAttempts,
@@ -139,6 +142,20 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
       abandonedGames,
       guessDistribution: updatedDistribution
     }
+  })
+}
+
+export async function updatePlayerPlayTime(uid, timeMs) {
+  const ref = doc(db, "jogadores", uid)
+  const snap = await getDoc(ref)
+
+  if (!snap.exists()) return
+
+  const stats = snap.data().stats || {}
+  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
+
+  await updateDoc(ref, {
+    "stats.totalPlayTimeMs": totalPlayTimeMs
   })
 }
 

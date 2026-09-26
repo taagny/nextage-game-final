@@ -19,6 +19,17 @@ const PROFILE_LABELS = {
     avancado: "AVANÇADO"
 }
 
+function formatPlayTime(timeMs) {
+    const totalSeconds = Math.floor(timeMs / 1000)
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (hours > 0) return `${hours}h ${minutes}min ${seconds}s`
+    if (minutes > 0) return `${minutes}min ${seconds}s`
+    return `${seconds}s`
+}
+
 function UserSettingsModal({ isOpen, onClose, user }) {
 
     const [activeTab, setActiveTab] = useState("profile")
@@ -182,6 +193,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                 <div className="profile-metrics">
                                     <div>🏆 Vitórias: {stats.totalWins}</div>
                                     <div>🎮 Jogos: {stats.totalGames}</div>
+                                    <div>⌛ Tempo total jogado: {formatPlayTime(stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0)}</div>
                                     <div>⏱ Média Tempo: {(stats.avgTimePerWord / 1000).toFixed(1)}s</div>
                                     <div>🎯 Média Tentativas: {stats.avgAttemptsPerWord?.toFixed(2)}</div>
                                 </div>

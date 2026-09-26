@@ -8,6 +8,7 @@ import {
   incrementStreak,
   resetStreak,
   updatePlayerStats,
+  updatePlayerPlayTime,
   saveMatchHistory
 } from "../services/playerService"
 import Modal from "../components/Modal"
@@ -82,11 +83,11 @@ function GameBoard() {
 
       if (!user) return
 
+      const timeSpent = Date.now() - startTime
+
       if (isWinner) {
         await incrementStreak(user.uid)
 
-        const endTime = Date.now()
-        const timeSpent = endTime - startTime
         const attempts = currentRow + 1
 
         await updatePlayerStats(user.uid, timeSpent, attempts)
@@ -100,12 +101,13 @@ function GameBoard() {
         })
       } else {
         await resetStreak(user.uid)
+        await updatePlayerPlayTime(user.uid, timeSpent)
 
         await saveMatchHistory(user.uid, {
           mode: "classico",
           won: false,
           attempts: 6,
-          timeMs: 0,
+          timeMs: timeSpent,
           abandoned: false
         })
       }
