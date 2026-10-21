@@ -49,7 +49,7 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
 
   return (
     <Modal isOpen={isOpen}>
-      <div className="ranking-card-new">
+      <div className="ranking-card-new ranking-card-runner">
         <button className="ranking-close" onClick={onClose}>×</button>
 
         <h1 className="ranking-title-new">

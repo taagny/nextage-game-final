@@ -1,5 +1,6 @@
 import { doc, getDoc, setDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "./firebase"
+import { getProfileLevel } from "../utils/profileLevel"
 
 export async function ensurePlayerExists(uid, nome, email) {
   const ref = doc(db, "jogadores", uid)
@@ -26,6 +27,7 @@ export async function ensurePlayerExists(uid, nome, email) {
         totalGames: 0,
         totalWins: 0,
         totalTimeMs: 0,
+        totalPlayTimeMs: 0,
         totalAttempts: 0,
         avgTimePerWord: 0,
         avgAttemptsPerWord: 0,
@@ -104,6 +106,7 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
   const totalGames = (stats.totalGames || 0) + 1
   const totalWins = (stats.totalWins || 0) + 1
   const totalTimeMs = (stats.totalTimeMs || 0) + timeMs
+  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
   const totalAttempts = (stats.totalAttempts || 0) + attempts
   const abandonedGames = stats.abandonedGames || 0
 
@@ -124,24 +127,14 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
   const avgTime = totalTimeMs / totalWins
   const avgAttempts = totalAttempts / totalWins
 
-  const wordsPerMinute =
-    totalTimeMs > 0
-      ? totalWins / (totalTimeMs / 60000)
-      : 0
-
-  let profile = "iniciante"
-
-  if (wordsPerMinute >= 20) {
-    profile = "avancado"
-  } else if (wordsPerMinute >= 10) {
-    profile = "medio"
-  }
+  const profile = getProfileLevel(totalWins)
 
   await updateDoc(ref, {
     stats: {
       totalGames,
       totalWins,
       totalTimeMs,
+      totalPlayTimeMs,
       totalAttempts,
       avgTimePerWord: avgTime,
       avgAttemptsPerWord: avgAttempts,
@@ -149,6 +142,20 @@ export async function updatePlayerStats(uid, timeMs, attempts) {
       abandonedGames,
       guessDistribution: updatedDistribution
     }
+  })
+}
+
+export async function updatePlayerPlayTime(uid, timeMs) {
+  const ref = doc(db, "jogadores", uid)
+  const snap = await getDoc(ref)
+
+  if (!snap.exists()) return
+
+  const stats = snap.data().stats || {}
+  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
+
+  await updateDoc(ref, {
+    "stats.totalPlayTimeMs": totalPlayTimeMs
   })
 }
 

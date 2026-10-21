@@ -8,6 +8,7 @@ import {
   incrementStreak,
   resetStreak,
   updatePlayerStats,
+  updatePlayerPlayTime,
   saveMatchHistory
 } from "../services/playerService"
 import Modal from "../components/Modal"
@@ -73,18 +74,20 @@ function GameBoard() {
 
   useEffect(() => {
     async function syncStreak() {
-      if (!user || !isGameOver) return
+      if (!isGameOver) return
 
       setShowVictoryModal(true)
 
       const guessRow = results?.[currentRow]
       const isWinner = guessRow && guessRow.every(s => s === "correct")
 
+      if (!user) return
+
+      const timeSpent = Date.now() - startTime
+
       if (isWinner) {
         await incrementStreak(user.uid)
 
-        const endTime = Date.now()
-        const timeSpent = endTime - startTime
         const attempts = currentRow + 1
 
         await updatePlayerStats(user.uid, timeSpent, attempts)
@@ -98,12 +101,13 @@ function GameBoard() {
         })
       } else {
         await resetStreak(user.uid)
+        await updatePlayerPlayTime(user.uid, timeSpent)
 
         await saveMatchHistory(user.uid, {
           mode: "classico",
           won: false,
           attempts: 6,
-          timeMs: 0,
+          timeMs: timeSpent,
           abandoned: false
         })
       }
@@ -180,7 +184,10 @@ function GameBoard() {
       text += "\n"
     }
 
-    text += `\n🔥 Sequência: ${streak.toLocaleString("pt-BR")}`
+    if (user) {
+      text += `\n🔥 Sequência: ${streak.toLocaleString("pt-BR")}`
+    }
+
     return text
   }
 
@@ -205,22 +212,26 @@ function GameBoard() {
           </button>
 
           <h2 className="streak-title">
-            PARABÉNS!
+            {results?.[currentRow]?.every(status => status === "correct")
+              ? "PARABÉNS!"
+              : "FIM DE JOGO!"}
           </h2>
 
           <p className="victory-word">
             A palavra era: <strong>{secret}</strong>
           </p>
 
-          <div className="streak-highlight-box">
-            <span className="streak-fire">🔥</span>
-            <div className="streak-highlight-info">
-              <span className="streak-highlight-label">SEQUÊNCIA</span>
-              <span className="streak-highlight-number">
-                {streak.toLocaleString("pt-BR")}
-              </span>
+          {user && (
+            <div className="streak-highlight-box">
+              <span className="streak-fire">🔥</span>
+              <div className="streak-highlight-info">
+                <span className="streak-highlight-label">SEQUÊNCIA</span>
+                <span className="streak-highlight-number">
+                  {streak.toLocaleString("pt-BR")}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="victory-mini-grid">
             {(results || [])

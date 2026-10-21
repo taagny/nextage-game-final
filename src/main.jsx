@@ -9,6 +9,8 @@ import "./styles/components.css"
 import "./styles/ranking.css"
 import "./styles/game.css"
 import "./styles/runner.css"
+import "./styles/profile-modal.css"
+import "./styles/info-modal.css"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

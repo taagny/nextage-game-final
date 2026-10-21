@@ -468,6 +468,12 @@
   justify-content: center;
 }
 
+.profile-created-at {
+  margin: -10px 0 0;
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
 .profile-badge {
   background: #0c1022;
   padding: 8px 16px;

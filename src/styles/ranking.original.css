@@ -1,0 +1,79 @@
+.ranking-card-new {
+  background-color: #4a3333;
+  width: 650px;
+  max-width: 95%;
+  height: 75vh;
+  padding: 30px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.ranking-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.ranking-title-new {
+  font-family: 'Creepster', cursive;
+  color: #ff3b3b;
+  font-size: 3rem;
+  text-align: center;
+  line-height: 0.9;
+  margin-bottom: 25px;
+}
+
+.ranking-header-new {
+  display: grid;
+  grid-template-columns: 0.8fr 3fr 1.2fr 1.2fr;
+  background: white;
+  color: #1a1010;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-transform: uppercase;
+  column-gap: 15px;
+  margin-bottom: 20px;
+}
+
+.ranking-list-new {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.ranking-row-new {
+  display: grid;
+  grid-template-columns: 0.8fr 3fr 1.2fr 1.2fr;
+  background: white;
+  color: #1a1010;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  align-items: center;
+  column-gap: 15px;
+}
+
+.ranking-name-new { text-transform: uppercase; }
+.ranking-stat-new { text-align: center; }
+.highlight-blue { color: #3b82f6; font-weight: bold; }
+.ranking-row-self { border: 2px solid #4da3ff; }
+.ranking-user-position { margin-top: 20px; text-align: center; font-weight: bold; color: #4da3ff; }
+.ranking-list-new::-webkit-scrollbar { width: 6px; }
+.ranking-list-new::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+.ranking-name-new { display: flex; align-items: center; gap: 8px; }
+.premium-name { color: #ffd700; font-weight: 700; }
+.premium-badge { font-size: 1.2rem; line-height: 1; display: inline-block; transform: translateY(-2px); }
+.premium-board { background: #151523; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+.premium-board-title { font-size: 1rem; margin-bottom: 10px; }
+.premium-board-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.premium-board-item { background: #0c1022; padding: 6px 12px; border-radius: 8px; font-weight: 600; color: #ffd900fb; }
+.premium-name-runner { color: #ffd700; font-weight: 700; }
