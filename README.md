@@ -1,4 +1,4 @@
-# NEXTAGE — relatório técnico do projeto
+# NEXTAGE — relatório
 
 ## 1. Visão geral
 
