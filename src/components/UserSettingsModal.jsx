@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import Modal from "./Modal"
+import AccountDataSection from "./AccountDataSection"
 import { useAuth } from "../context/AuthContext"
 import { getPlayer, getPublicProfile, getRecentMatches, updateNickname } from "../services/playerService"
 import { getProfileLevel } from "../utils/profileLevel"
@@ -41,6 +42,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     const [profileLoading, setProfileLoading] = useState(false)
     const [savingNickname, setSavingNickname] = useState(false)
     const [nicknameTouched, setNicknameTouched] = useState(false)
+    const [accountBusy, setAccountBusy] = useState(false)
     const [stats, setStats] = useState(null)
     const [recentMatches, setRecentMatches] = useState([])
     const [recentAvgTime, setRecentAvgTime] = useState(0)
@@ -99,7 +101,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     }, [isOpen, user])
 
     async function handleSave() {
-        if (savingNickname || profileLoading) return
+        if (savingNickname || profileLoading || accountBusy) return
         setNicknameTouched(true)
         setProfileError("")
         if (validateNickname(nicknameDraft)) return
@@ -176,6 +178,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                 <div className="profile-tabs">
                     <button
                         className={activeTab === "profile" ? "active" : ""}
+                        disabled={accountBusy}
                         onClick={() => setActiveTab("profile")}
                     >
                         Perfil
@@ -183,6 +186,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
                     <button
                         className={activeTab === "evolution" ? "active" : ""}
+                        disabled={accountBusy}
                         onClick={() => setActiveTab("evolution")}
                     >
                         Evolução
@@ -190,6 +194,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
                     <button
                         className={activeTab === "settings" ? "active" : ""}
+                        disabled={accountBusy}
                         onClick={() => setActiveTab("settings")}
                     >
                         Configurações
@@ -320,7 +325,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                             maxLength={NICKNAME_MAX}
                             pattern="[A-Za-z0-9_-]+"
                             required
-                            disabled={profileLoading || savingNickname}
+                            disabled={profileLoading || savingNickname || accountBusy}
                             aria-invalid={nicknameTouched && Boolean(nicknameError)}
                             aria-describedby="nickname-help nickname-error"
                             className="settings-input-modern"
@@ -337,15 +342,16 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                             <button
                                 className="modal-btn green"
                                 onClick={handleSave}
-                                disabled={profileLoading || savingNickname || Boolean(nicknameError) || nicknameDraft === nickname}
+                                disabled={profileLoading || savingNickname || accountBusy || Boolean(nicknameError) || nicknameDraft === nickname}
                             >
                                 {savingNickname ? "Salvando…" : "Salvar"}
                             </button>
 
-                            <button className="modal-btn red" onClick={onClose}>
+                            <button className="modal-btn red" onClick={onClose} disabled={accountBusy}>
                                 Cancelar
                             </button>
                         </div>
+                        <AccountDataSection user={user} onBusyChange={setAccountBusy} disabled={savingNickname || profileLoading} />
                     </div>
                 )}
 

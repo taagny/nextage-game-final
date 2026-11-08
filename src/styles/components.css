@@ -370,6 +370,12 @@
   font-size: 1.6rem;
 }
 
+.terms-modal { max-height: calc(100dvh - 24px); }
+.terms-modal .terms-content { min-height: 0; }
+.terms-modal .terms-version { color: #ccc; font-size: 0.85rem; }
+.terms-modal .terms-actions { flex-wrap: wrap; }
+.terms-modal button:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .terms-content {
   font-size: 0.9rem;
   line-height: 1.6;

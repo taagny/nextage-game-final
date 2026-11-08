@@ -6,6 +6,7 @@ import { db } from "./firebase"
 import { TERMS_VERSION } from "../utils/constants.js"
 import { defaultNickname, validateNickname } from "../utils/nickname.js"
 import { initialPlayerStats, nextPlayerStats } from "../utils/playerStats.js"
+import { withPlayerWrite } from "./accountLifecycle"
 
 function playerRefs(uid) {
   return {
@@ -16,7 +17,7 @@ function playerRefs(uid) {
 
 export async function ensurePlayerExists(uid, displayName) {
   const { privateRef, publicRef } = playerRefs(uid)
-  return runTransaction(db, async transaction => {
+  return withPlayerWrite(uid, () => runTransaction(db, async transaction => {
     // Todas as leituras precedem as escritas, inclusive na criação parcial.
     const privateSnap = await transaction.get(privateRef)
     const publicSnap = await transaction.get(publicRef)
@@ -39,7 +40,7 @@ export async function ensurePlayerExists(uid, displayName) {
     if (!privateSnap.exists()) transaction.set(privateRef, player)
     if (!publicSnap.exists()) transaction.set(publicRef, publicProfile)
     return { player, publicProfile }
-  })
+  }))
 }
 
 export async function getPlayer(uid) {
@@ -59,20 +60,20 @@ export function subscribeToPublicProfile(uid, onProfile, onError) {
 }
 
 export async function setTermsAccepted(uid) {
-  await updateDoc(doc(db, "jogadores", uid), {
+  return withPlayerWrite(uid, () => updateDoc(doc(db, "jogadores", uid), {
     termsAccepted: true,
     termsAcceptedAt: serverTimestamp(),
     termsVersion: TERMS_VERSION
-  })
+  }))
 }
 
 export async function updateNickname(uid, nickname) {
   const error = validateNickname(nickname)
   if (error) throw new Error(error)
-  await updateDoc(doc(db, "perfisPublicos", uid), {
+  return withPlayerWrite(uid, () => updateDoc(doc(db, "perfisPublicos", uid), {
     apelido: nickname,
     updatedAt: serverTimestamp()
-  })
+  }))
 }
 
 function validateMatch(result) {
@@ -95,7 +96,7 @@ async function registerClassicResult(uid, result, matchId) {
   const matches = collection(privateRef, "partidas")
   // Referência estável entre tentativas da transação; matchId evita reenvios da mesma partida.
   const matchRef = matchId ? doc(matches, matchId) : doc(matches)
-  return runTransaction(db, async transaction => {
+  return withPlayerWrite(uid, () => runTransaction(db, async transaction => {
     const privateSnap = await transaction.get(privateRef)
     const publicSnap = await transaction.get(publicRef)
     const matchSnap = await transaction.get(matchRef)
@@ -125,7 +126,7 @@ async function registerClassicResult(uid, result, matchId) {
     if (!result.abandoned) match.word = result.word
     transaction.set(matchRef, match)
     return { matchId: matchRef.id, recorded: true, sequenciaAtual }
-  })
+  }))
 }
 
 export function registerWin(uid, { word, attempts, timeMs, matchId }) {
@@ -153,7 +154,7 @@ export async function saveRunnerRecord(uid, time, score) {
     throw new Error("Recorde do Runner fora dos limites permitidos.")
   }
   const ref = doc(db, "perfisPublicos", uid)
-  return runTransaction(db, async transaction => {
+  return withPlayerWrite(uid, () => runTransaction(db, async transaction => {
     const snapshot = await transaction.get(ref)
     if (!snapshot.exists()) {
       throw new Error("Perfil indisponível. Entre novamente para continuar.")
@@ -165,7 +166,7 @@ export async function saveRunnerRecord(uid, time, score) {
       updatedAt: serverTimestamp()
     })
     return score
-  })
+  }))
 }
 
 export async function getRecentMatches(uid, count = 10) {

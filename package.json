@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "test:unit": "node --test tests/unit/*.test.js",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-nextage-v2 \"node --test rules-tests/*.test.js\"",
+    "test:auth": "node scripts/run-emulator-tests.mjs auth",
+    "test:rules": "node scripts/run-emulator-tests.mjs firestore",
     "preview": "vite preview",
     "generate:dict": "node scripts/generateDictionary.js",
     "validate:dict": "node scripts/validateDictionary.js"

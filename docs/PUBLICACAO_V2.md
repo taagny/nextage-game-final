@@ -7,8 +7,11 @@ O Codex não publica regras, não executa migração (nem dry-run de dados reais
 
 - Instância confirmada: `(default)`, edição Standard, modo nativo, São Paulo.
 - Ambiente de desenvolvimento usado: Node 24.21.0. Instale um Java compatível com o Firebase CLI para executar o emulador do Firestore.
-- Execute `npm ci`, `npm run lint`, `npm run build`, `npm run test:unit` e `npm run test:rules`.
+- Copie `.env.example` para `.env.local` e configure o contato e os UIDs de desenvolvedor/teste a excluir, sem versionar os valores reais. Configure as mesmas variáveis no ambiente de build da hospedagem. Variáveis `VITE_` são configuração pública incorporada ao frontend, não um local para credenciais administrativas.
+- Execute `npm ci`, `npm run lint`, `npm run build`, `npm run test:unit`, `npm run test:auth` e `npm run test:rules`.
+- Os comandos de emulador passam por `scripts/run-emulator-tests.mjs`, que chama `firebase emulators:exec` com o projeto fictício e um ambiente mínimo. O `DEBUG` herdado e credenciais de serviços não são repassados ao processo filho.
 - `test:rules` usa somente o emulador local e o projeto fictício `demo-nextage-v2`. Não necessita credencial administrativa nem autenticação na CLI.
+- `test:auth` executou com sucesso três testes de senha no Authentication local, sem Java. As etapas do Firestore nessa suíte são simuladas; popup Google, navegador e exclusão completa no banco permanecem pendentes.
 - `npm run test:rules` foi tentado e interrompido com `spawn java ENOENT`: o emulador não iniciou, as regras não foram compiladas e nenhum caso da suíte foi executado. A compilação das regras e os resultados dos testes precisam ser confirmados antes da publicação. O primeiro uso do emulador também pode precisar de rede para baixar seus artefatos.
 - As regras são um protótipo revisado estaticamente. Não comprovam que uma partida aconteceu: resultados são informados pelo cliente. As restrições limitam acesso, esquema e magnitude; cálculo confiável em Cloud Functions fica fora do escopo.
 - O termo atual é a versão `2`. Ao mudar a versão, sincronize `TERMS_VERSION`, a versão aceita nas regras, os testes e o texto do termo.
@@ -130,4 +133,5 @@ O usuário confirmou pelo painel “Aguardando sua primeira implantação” que
 - Cada partida e cada atualização de palavra verifica o incremento privado correspondente. Isso não identifica de forma exclusiva uma ação real nem impede forjar resultados coerentes dentro dos limites. As regras não impõem uma correspondência bijetiva entre todo incremento e todo documento de histórico; o cliente regular usa transações e IDs de partida para evitar duplicações acidentais.
 - Tempo por partida: no máximo 24 horas; contadores: no máximo um bilhão; totais inteiros: no máximo `Number.MAX_SAFE_INTEGER`. Runner: máximo de 10, 30 ou 60 pontos por duração, sem diminuir recordes. São limites de projeto, não comprovação de desempenho.
 - Partidas não aceitam update. A primeira ocorrência de cada palavra é imutável; média usa derrota = 7. Fechar a aba continua sem detecção; não há moderação de apelidos nem histórico do Runner.
-- Antes das exportações de pesquisa, informar os UIDs de desenvolvedor/teste a excluir (Etapa 5). O backup pessoal completo será substituído pela exportação pseudonimizada na mesma etapa.
+- As exportações de pesquisa exigem a lista `VITE_EXCLUDED_FROM_RESEARCH_UIDS`, com UIDs separados por vírgula, e usam códigos SHA-256 com prefixo `P_` e oito dígitos hexadecimais. Se houver colisão de códigos, a operação é interrompida para revisão. O backup administrativo completo com identificadores foi removido.
+- A exportação pessoal completa inclui o próprio perfil público e seu apelido. A rotina e as limitações da exclusão estão em `docs/DADOS_E_CONTA_V2.md`.
