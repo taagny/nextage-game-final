@@ -13,12 +13,9 @@ import TermsModal from "./TermsModal"
 
 function Header() {
 
-  const { user, nickname, gameInProgress, gameMatchId, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
+  const { user, isAdmin, nickname, gameInProgress, gameMatchId, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-
-  const DEV_UID = "Pfi5xF95YCTi3KB52l2zEwFpQ6d2"
-  const isDev = user?.uid === DEV_UID
 
   const [openAuth, setOpenAuth] = useState(false)
   const [openMenu, setOpenMenu] = useState(false)
@@ -96,7 +93,7 @@ function Header() {
             Runner
           </NavLink>
 
-          {isDev && (
+          {isAdmin && (
             <button className="dev-btn" onClick={() => setOpenDev(true)}>
               ⚙️
             </button>

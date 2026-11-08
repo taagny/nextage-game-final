@@ -3,11 +3,13 @@ import { onAuthStateChanged, signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
 import { ensurePlayerExists, setTermsAccepted, subscribeToPublicProfile } from "../services/playerService"
 import { TERMS_VERSION } from "../utils/constants"
+import { getAdminStatus } from "../services/authService"
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [gameInProgress, setGameInProgress] = useState(false)
   const [gameMatchId, setGameMatchId] = useState(null)
@@ -26,6 +28,7 @@ export function AuthProvider({ children }) {
       unsubscribeProfile = undefined
       setLoading(true)
       setUser(null)
+      setIsAdmin(false)
       setNickname("")
       setPublicProfile(null)
       setGameInProgress(false)
@@ -35,11 +38,13 @@ export function AuthProvider({ children }) {
       try {
         if (!currentUser) return
         // As rotas só são liberadas após a criação dos dois documentos.
-        const { player, publicProfile } = await ensurePlayerExists(
-          currentUser.uid, currentUser.displayName
-        )
+        const [{ player, publicProfile }, adminStatus] = await Promise.all([
+          ensurePlayerExists(currentUser.uid, currentUser.displayName),
+          getAdminStatus(currentUser)
+        ])
         if (!active || currentSession !== session) return
         setNickname(publicProfile.apelido)
+        setIsAdmin(adminStatus)
         setPublicProfile(publicProfile)
         unsubscribeProfile = subscribeToPublicProfile(currentUser.uid, profile => {
           if (!active || currentSession !== session) return
@@ -86,6 +91,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        isAdmin,
         nickname,
         publicProfile,
         setNickname,

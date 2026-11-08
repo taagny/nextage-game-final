@@ -1,0 +1,39 @@
+{
+  "score": 3,
+  "summary": "Avaliação estática provisória: esquema fechado, propriedade por UID e administração via claim. Execução e compilação no emulador pendentes por ausência de Java; não é uma certificação de segurança.",
+  "findings": [
+    {
+      "check": "Validação dinâmica",
+      "severity": "moderate",
+      "issue": "Os testes de regras estão escritos, mas ainda precisam ser executados com Java e o emulador. A nota é apenas uma avaliação estática provisória.",
+      "recommendation": "Executar npm run test:rules antes de publicar e revisar qualquer falha. Não publicar somente com base na inspeção estática."
+    },
+    {
+      "check": "Contadores e replay de ações",
+      "severity": "minor",
+      "issue": "As regras restringem incrementos e exigem coerência entre documentos, mas não comprovam uma partida real nem garantem correspondência exclusiva de todo contador com um histórico. Clientes modificados podem declarar resultados dentro dos limites.",
+      "recommendation": "Manter a limitação explícita; cálculo de resultados no servidor é trabalho futuro fora do escopo."
+    }
+  ],
+  "staticChecks": {
+    "authoritySource": "request.auth.token.admin; campos gravados pelo cliente não concedem privilégio",
+    "publicPrivateSeparation": "ranking público separado; documento privado e partidas restritos a dono/admin; palavras ao dono",
+    "createUpdateValidators": "validadores completos usados em create e update",
+    "schemaAndTypes": "campos obrigatórios e fechados, mapas fechados, tipos e limites numéricos/strings",
+    "immutableFields": "createdAt, countersFixedAt e primeira ocorrência de palavra protegidos; partidas sem update",
+    "counterTransitions": "incrementos unitários e coerência privada/pública por getAfter, preservando semântica histórica",
+    "deletion": "dono/admin podem excluir; limpeza de subcoleções órfãs é permitida ao dono",
+    "queryCompatibility": "rankings públicos, contagens e leitura administrativa; consultas privadas continuam restritas",
+    "defaultDeny": "coleções não usadas e caminhos não declarados negados"
+  },
+  "attackCoverage": [
+    "listagem pública de dados privados", "leitura e escrita por terceiro", "admin escrevendo documento alheio",
+    "criação não zerada", "salto de sequência", "incremento isolado de estatísticas", "recorde diminuindo ou acima do limite",
+    "campo extra e autoatribuição de admin", "apelido grande, caracteres proibidos e tipo incorreto",
+    "alteração de timestamps imutáveis", "campos obrigatórios ausentes", "timestamp de partida forjado",
+    "histórico sem transação e tentativa de update", "tempo/tentativas fora dos limites", "primeira palavra alterada",
+    "salto de vezesVista e média inválida", "palavra em caminho inválido", "subcoleção sem pai",
+    "coleções não utilizadas", "rankings com mais de 100 perfis e empates"
+  ],
+  "executionStatus": "npm run test:rules tentado: spawn java ENOENT. Emulador não iniciou; zero casos executados e regras não compiladas. Requer Java compatível no PATH. Testes em rules-tests/firestore.test.js."
+}
