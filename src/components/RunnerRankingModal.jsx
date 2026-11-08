@@ -14,7 +14,7 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
     async function loadRanking() {
       if (!time) return
 
-      const snapshot = await getDocs(collection(db, "jogadores"))
+      const snapshot = await getDocs(collection(db, "perfisPublicos"))
 
       const list = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -77,7 +77,7 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
               <span
                 className="ranking-name-new"
               >
-                {player.nome}
+                {player.apelido}
                 
               </span>
 

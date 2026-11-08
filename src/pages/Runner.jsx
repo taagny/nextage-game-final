@@ -143,6 +143,7 @@ function Runner() {
   useEffect(() => {
     if (!finished || !user) return
     saveRunnerRecord(user.uid, String(selectedTime), score)
+      .catch(error => console.error("Não foi possível salvar o recorde do Runner.", error))
   }, [finished])
 
   useEffect(() => {

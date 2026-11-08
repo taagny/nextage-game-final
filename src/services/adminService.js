@@ -3,11 +3,17 @@ import { db } from "./firebase"
 import { getProfileLevel } from "../utils/profileLevel"
 
 export async function getGlobalStats() {
-  const snapshot = await getDocs(collection(db, "jogadores"))
+  const [snapshot, profilesSnapshot] = await Promise.all([
+    getDocs(collection(db, "jogadores")),
+    getDocs(collection(db, "perfisPublicos"))
+  ])
+  const profiles = new Map(profilesSnapshot.docs.map(profile => [profile.id, profile.data()]))
 
   let totalPlayers = snapshot.size
   let totalGames = 0
   let totalWins = 0
+  let totalLosses = 0
+  let abandonedGames = 0
   let totalTime = 0
   let totalAttempts = 0
 
@@ -29,6 +35,8 @@ export async function getGlobalStats() {
 
     totalGames += stats.totalGames || 0
     totalWins += stats.totalWins || 0
+    totalLosses += stats.totalLosses || 0
+    abandonedGames += stats.abandonedGames || 0
     totalTime += stats.totalTimeMs || 0
     totalAttempts += stats.totalAttempts || 0
 
@@ -40,7 +48,7 @@ export async function getGlobalStats() {
 
     if (stats.avgAttemptsPerWord && stats.avgTimePerWord) {
       ranking.push({
-        nome: data.nome || "Jogador",
+        apelido: profiles.get(docSnap.id)?.apelido || "Jogador",
         avgAttempts: stats.avgAttemptsPerWord,
         avgTime: stats.avgTimePerWord / 1000
       })
@@ -60,6 +68,8 @@ export async function getGlobalStats() {
     totalPlayers,
     totalGames,
     totalWins,
+    totalLosses,
+    abandonedGames,
     avgGlobalTime: totalWins ? totalTime / totalWins / 1000 : 0,
     avgGlobalAttempts: totalWins ? totalAttempts / totalWins : 0,
     globalDistribution,
@@ -70,7 +80,7 @@ export async function getGlobalStats() {
 export async function exportSummaryCSV() {
   const snapshot = await getDocs(collection(db, "jogadores"))
 
-  let csv = "participant_id;total_games;total_wins;avg_time_seconds;avg_attempts;profile\n"
+  let csv = "participant_id;total_games;total_wins;total_losses;abandoned_games;avg_time_seconds;avg_attempts;level;counters_valid_since\n"
 
   let counter = 1
 
@@ -82,11 +92,14 @@ export async function exportSummaryCSV() {
 
     const totalGames = stats.totalGames || 0
     const totalWins = stats.totalWins || 0
+    const totalLosses = stats.totalLosses || 0
+    const abandonedGames = stats.abandonedGames || 0
     const avgTime = (stats.avgTimePerWord || 0) / 1000
     const avgAttempts = stats.avgAttemptsPerWord || 0
     const profile = getProfileLevel(totalWins)
+    const countersValidSince = stats.countersFixedAt?.toDate?.().toISOString?.() || ""
 
-    csv += `${participantId};${totalGames};${totalWins};${avgTime.toFixed(2)};${avgAttempts.toFixed(2)};${profile}\n`
+    csv += `${participantId};${totalGames};${totalWins};${totalLosses};${abandonedGames};${avgTime.toFixed(2)};${avgAttempts.toFixed(2)};${profile};${countersValidSince}\n`
 
     counter++
   })
@@ -97,12 +110,13 @@ export async function exportSummaryCSV() {
 export async function exportMatchesCSV() {
   const snapshot = await getDocs(collection(db, "jogadores"))
 
-  let csv = "participant_id;attempts;time_seconds;won;match_date\n"
+  let csv = "participant_id;attempts;time_seconds;won;abandoned;word;match_date;counters_valid_since\n"
 
   let counter = 1
 
   for (const docSnap of snapshot.docs) {
     const participantId = `P${String(counter).padStart(3, "0")}`
+    const countersValidSince = docSnap.data().stats?.countersFixedAt?.toDate?.().toISOString?.() || ""
 
     const matchesSnap = await getDocs(
       collection(db, "jogadores", docSnap.id, "partidas")
@@ -116,7 +130,7 @@ export async function exportMatchesCSV() {
       const won = m.won || false
       const date = m.createdAt?.toDate?.().toISOString?.() || ""
 
-      csv += `${participantId};${attempts};${timeSeconds.toFixed(2)};${won};${date}\n`
+      csv += `${participantId};${attempts};${timeSeconds.toFixed(2)};${won};${m.abandoned === true};${m.word || ""};${date};${countersValidSince}\n`
     })
 
     counter++

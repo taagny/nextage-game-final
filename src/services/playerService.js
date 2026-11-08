@@ -1,162 +1,173 @@
-import { doc, getDoc, setDoc, updateDoc, increment, collection, addDoc, serverTimestamp } from "firebase/firestore"
+import {
+  collection, doc, getDoc, getDocs, limit, orderBy, query,
+  runTransaction, serverTimestamp, updateDoc
+} from "firebase/firestore"
 import { db } from "./firebase"
+import { TERMS_VERSION } from "../utils/constants.js"
+import { defaultNickname, validateNickname } from "../utils/nickname.js"
+import { initialPlayerStats, nextPlayerStats } from "../utils/playerStats.js"
 
-export async function ensurePlayerExists(uid, nome, email) {
-  const ref = doc(db, "jogadores", uid)
-  const snap = await getDoc(ref)
+function playerRefs(uid) {
+  return {
+    privateRef: doc(db, "jogadores", uid),
+    publicRef: doc(db, "perfisPublicos", uid)
+  }
+}
 
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      nome: nome || "Jogador",
-      email: email || "",
-      sequenciaAtual: 0,
-      vitorias: 0,
-      tentativas: 0,
-      jogos: 0,
+export async function ensurePlayerExists(uid, displayName) {
+  const { privateRef, publicRef } = playerRefs(uid)
+  return runTransaction(db, async transaction => {
+    // Todas as leituras precedem as escritas, inclusive na criação parcial.
+    const privateSnap = await transaction.get(privateRef)
+    const publicSnap = await transaction.get(publicRef)
+    const player = privateSnap.exists() ? privateSnap.data() : {
+      schemaVersion: 2,
       termsAccepted: false,
       termsAcceptedAt: null,
-      runnerScores: {
-        "10": 0,
-        "30": 0,
-        "60": 0
-      },
-      stats: {
-        totalGames: 0,
-        totalWins: 0,
-        totalTimeMs: 0,
-        totalPlayTimeMs: 0,
-        totalAttempts: 0,
-        avgTimePerWord: 0,
-        avgAttemptsPerWord: 0,
-        abandonedGames: 0,
-        guessDistribution: {
-          1: 0,
-          2: 0,
-          3: 0,
-          4: 0,
-          5: 0,
-          6: 0
-        }
-      }
-    })
-  }
+      termsVersion: TERMS_VERSION,
+      createdAt: serverTimestamp(),
+      stats: initialPlayerStats(serverTimestamp())
+    }
+    const publicProfile = publicSnap.exists() ? publicSnap.data() : {
+      apelido: defaultNickname(displayName),
+      sequenciaAtual: 0,
+      sequenciasPerdidas: 0,
+      runnerScores: { "10": 0, "30": 0, "60": 0 },
+      updatedAt: serverTimestamp()
+    }
+    // Não migra nem sobrescreve documentos existentes no login.
+    if (!privateSnap.exists()) transaction.set(privateRef, player)
+    if (!publicSnap.exists()) transaction.set(publicRef, publicProfile)
+    return { player, publicProfile }
+  })
 }
 
 export async function getPlayer(uid) {
-  const ref = doc(db, "jogadores", uid)
-  const snap = await getDoc(ref)
-  if (!snap.exists()) return null
-  return snap.data()
+  const snapshot = await getDoc(doc(db, "jogadores", uid))
+  return snapshot.exists() ? snapshot.data() : null
 }
 
-export async function incrementStreak(uid) {
-  const ref = doc(db, "jogadores", uid)
-  await updateDoc(ref, {
-    sequenciaAtual: increment(1),
-    vitorias: increment(1)
+export async function getPublicProfile(uid) {
+  const snapshot = await getDoc(doc(db, "perfisPublicos", uid))
+  return snapshot.exists() ? snapshot.data() : null
+}
+
+export async function setTermsAccepted(uid) {
+  await updateDoc(doc(db, "jogadores", uid), {
+    termsAccepted: true,
+    termsAcceptedAt: serverTimestamp(),
+    termsVersion: TERMS_VERSION
   })
 }
 
-export async function resetStreak(uid) {
-  const ref = doc(db, "jogadores", uid)
-  await updateDoc(ref, {
-    sequenciaAtual: 0,
-    tentativas: increment(1)
+export async function updateNickname(uid, nickname) {
+  const error = validateNickname(nickname)
+  if (error) throw new Error(error)
+  await updateDoc(doc(db, "perfisPublicos", uid), {
+    apelido: nickname,
+    updatedAt: serverTimestamp()
   })
+}
+
+function validateMatch(result) {
+  if (!Number.isSafeInteger(result.timeMs) || result.timeMs < 0) {
+    throw new Error("Tempo da partida inválido.")
+  }
+  if (!result.abandoned && !/^[A-Z]{5}$/.test(result.word ?? "")) {
+    throw new Error("Palavra da partida inválida.")
+  }
+  if (!Number.isInteger(result.attempts) ||
+      result.attempts < 0 || result.attempts > 6 ||
+      (!result.abandoned && result.attempts < 1)) {
+    throw new Error("Número de tentativas inválido.")
+  }
+}
+
+async function registerClassicResult(uid, result, matchId) {
+  validateMatch(result)
+  const { privateRef, publicRef } = playerRefs(uid)
+  const matches = collection(privateRef, "partidas")
+  // Referência estável entre tentativas da transação; matchId evita reenvios da mesma partida.
+  const matchRef = matchId ? doc(matches, matchId) : doc(matches)
+  return runTransaction(db, async transaction => {
+    const privateSnap = await transaction.get(privateRef)
+    const publicSnap = await transaction.get(publicRef)
+    const matchSnap = await transaction.get(matchRef)
+    if (!privateSnap.exists() || !publicSnap.exists()) {
+      throw new Error("Perfil indisponível. Entre novamente para continuar.")
+    }
+    if (matchSnap.exists()) return { matchId: matchRef.id, recorded: false }
+
+    const stats = nextPlayerStats(privateSnap.data().stats, result, serverTimestamp())
+    const profile = publicSnap.data()
+    const sequenciaAtual = result.won ? profile.sequenciaAtual + 1 : 0
+    const sequenciasPerdidas = profile.sequenciasPerdidas + Number(!result.won)
+    transaction.update(privateRef, { stats })
+    transaction.update(publicRef, {
+      sequenciaAtual,
+      sequenciasPerdidas,
+      updatedAt: serverTimestamp()
+    })
+    const match = {
+      mode: "classico",
+      won: result.won,
+      attempts: result.attempts,
+      timeMs: result.timeMs,
+      abandoned: result.abandoned,
+      createdAt: serverTimestamp()
+    }
+    if (!result.abandoned) match.word = result.word
+    transaction.set(matchRef, match)
+    return { matchId: matchRef.id, recorded: true, sequenciaAtual }
+  })
+}
+
+export function registerWin(uid, { word, attempts, timeMs, matchId }) {
+  return registerClassicResult(uid, {
+    word, attempts, timeMs, won: true, abandoned: false
+  }, matchId)
+}
+
+export function registerLoss(uid, { word, timeMs, matchId }) {
+  return registerClassicResult(uid, {
+    word, timeMs, attempts: 6, won: false, abandoned: false
+  }, matchId)
+}
+
+export function registerAbandon(uid, { timeMs = 0, matchId } = {}) {
+  return registerClassicResult(uid, {
+    timeMs, attempts: 0, won: false, abandoned: true
+  }, matchId)
 }
 
 export async function saveRunnerRecord(uid, time, score) {
-  const ref = doc(db, "jogadores", uid)
-  const snap = await getDoc(ref)
-
-  if (!snap.exists()) return
-
-  const data = snap.data()
-  const runnerScores = data.runnerScores || {
-    "10": 0,
-    "30": 0,
-    "60": 0
+  const duration = String(time)
+  if (!["10", "30", "60"].includes(duration) ||
+      !Number.isInteger(score) || score < 0 || score > Number(duration)) {
+    throw new Error("Recorde do Runner fora dos limites permitidos.")
   }
-
-  const currentBest = runnerScores[time] || 0
-
-  if (score > currentBest) {
-    await updateDoc(ref, {
-      runnerScores: {
-        ...runnerScores,
-        [time]: score
-      }
-    })
-  }
-}
-
-export async function updatePlayerStats(uid, timeMs, attempts) {
-  const ref = doc(db, "jogadores", uid)
-  const snap = await getDoc(ref)
-
-  if (!snap.exists()) return
-
-  const data = snap.data()
-  const stats = data.stats || {}
-
-  const totalGames = (stats.totalGames || 0) + 1
-  const totalWins = (stats.totalWins || 0) + 1
-  const totalTimeMs = (stats.totalTimeMs || 0) + timeMs
-  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
-  const totalAttempts = (stats.totalAttempts || 0) + attempts
-  const abandonedGames = stats.abandonedGames || 0
-
-  const currentDistribution = stats.guessDistribution || {
-    1: 0,
-    2: 0,
-    3: 0,
-    4: 0,
-    5: 0,
-    6: 0
-  }
-
-  const updatedDistribution = {
-    ...currentDistribution,
-    [attempts]: (currentDistribution[attempts] || 0) + 1
-  }
-
-  const avgTime = totalTimeMs / totalWins
-  const avgAttempts = totalAttempts / totalWins
-
-  await updateDoc(ref, {
-    stats: {
-      totalGames,
-      totalWins,
-      totalTimeMs,
-      totalPlayTimeMs,
-      totalAttempts,
-      avgTimePerWord: avgTime,
-      avgAttemptsPerWord: avgAttempts,
-      abandonedGames,
-      guessDistribution: updatedDistribution
+  const ref = doc(db, "perfisPublicos", uid)
+  return runTransaction(db, async transaction => {
+    const snapshot = await transaction.get(ref)
+    if (!snapshot.exists()) {
+      throw new Error("Perfil indisponível. Entre novamente para continuar.")
     }
+    const currentBest = snapshot.data().runnerScores[duration]
+    if (score <= currentBest) return currentBest
+    transaction.update(ref, {
+      runnerScores: { ...snapshot.data().runnerScores, [duration]: score },
+      updatedAt: serverTimestamp()
+    })
+    return score
   })
 }
 
-export async function updatePlayerPlayTime(uid, timeMs) {
-  const ref = doc(db, "jogadores", uid)
-  const snap = await getDoc(ref)
-
-  if (!snap.exists()) return
-
-  const stats = snap.data().stats || {}
-  const totalPlayTimeMs = (stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0) + timeMs
-
-  await updateDoc(ref, {
-    "stats.totalPlayTimeMs": totalPlayTimeMs
-  })
-}
-
-export async function saveMatchHistory(uid, data) {
-  const ref = collection(db, "jogadores", uid, "partidas")
-
-  await addDoc(ref, {
-    ...data,
-    createdAt: serverTimestamp()
-  })
+export async function getRecentMatches(uid, count = 10) {
+  const matches = query(
+    collection(db, "jogadores", uid, "partidas"),
+    orderBy("createdAt", "desc"),
+    limit(count)
+  )
+  const snapshot = await getDocs(matches)
+  return snapshot.docs.map(match => ({ id: match.id, ...match.data() }))
 }

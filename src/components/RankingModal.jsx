@@ -13,7 +13,7 @@ function RankingModal({ isOpen, onClose }) {
   useEffect(() => {
     async function loadRanking() {
       const q = query(
-        collection(db, "jogadores"),
+        collection(db, "perfisPublicos"),
         orderBy("sequenciaAtual", "desc")
       )
 
@@ -72,11 +72,11 @@ function RankingModal({ isOpen, onClose }) {
               </span>
 
               <span className="ranking-name-new">
-                {player.nome}
+                {player.apelido}
               </span>
 
               <span className="ranking-stat-new">
-                {(player.tentativas || 0).toLocaleString("pt-BR")}
+                {(player.sequenciasPerdidas || 0).toLocaleString("pt-BR")}
               </span>
 
               <span className="ranking-stat-new highlight-blue">

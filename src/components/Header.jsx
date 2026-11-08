@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
-import { doc, getDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore"
-import { db } from "../services/firebase"
-import { saveMatchHistory } from "../services/playerService"
+import { registerAbandon } from "../services/playerService"
 import AuthModal from "./AuthModal"
 import UserSettingsModal from "./UserSettingsModal"
 import RankingModal from "./RankingModal"
@@ -15,7 +13,7 @@ import TermsModal from "./TermsModal"
 
 function Header() {
 
-  const { user, gameInProgress, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
+  const { user, nickname, gameInProgress, gameMatchId, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -28,28 +26,10 @@ function Header() {
   const [openRanking, setOpenRanking] = useState(false)
   const [openInfo, setOpenInfo] = useState(false)
   const [openDev, setOpenDev] = useState(false)
-  const [userName, setUserName] = useState("")
-
-  useEffect(() => {
-    if (!user) {
-      setUserName("")
-      return
-    }
-
-    const loadUserName = async () => {
-      const ref = doc(db, "jogadores", user.uid)
-      const snap = await getDoc(ref)
-
-      if (!snap.exists()) return
-
-      const data = snap.data()
-      setUserName(data?.nome ?? "")
-    }
-
-    loadUserName()
-  }, [user])
+  const logoutInProgress = useRef(false)
 
   async function handleLogout() {
+    if (logoutInProgress.current) return
     if (gameInProgress && user) {
       const confirmExit = window.confirm(
         "Você está com um jogo em andamento.\n\nSe sair agora sua sequência será zerada e a partida será registrada como abandono.\n\nDeseja continuar?"
@@ -57,26 +37,22 @@ function Header() {
 
       if (!confirmExit) return
 
-      try {
-        const ref = doc(db, "jogadores", user.uid)
-
-        await updateDoc(ref, {
-          sequenciaAtual: 0,
-          "stats.abandonedGames": increment(1)
-        })
-
-        await saveMatchHistory(user.uid, {
-          mode: "classico",
-          won: false,
-          attempts: 0,
-          timeMs: 0,
-          abandoned: true
-        })
-      } catch (err) {}
     }
 
-    await signOut(auth)
-    setOpenMenu(false)
+    logoutInProgress.current = true
+    try {
+      if (gameInProgress && user) {
+        try {
+          await registerAbandon(user.uid, { matchId: gameMatchId })
+        } catch (error) {
+          console.error("Não foi possível registrar o abandono.", error)
+        }
+      }
+      await signOut(auth)
+      setOpenMenu(false)
+    } finally {
+      logoutInProgress.current = false
+    }
   }
 
   function handleTrophyClick() {
@@ -136,9 +112,9 @@ function Header() {
             <div className="user-menu-wrapper">
               <button className="user-btn" onClick={() => setOpenMenu(prev => !prev)}>
                 <span className="user-avatar">
-                  {userName?.charAt?.(0)?.toUpperCase?.() || "?"}
+                  {nickname.charAt(0).toUpperCase() || "?"}
                 </span>
-                <span className="user-name">{userName || "Usuário"}</span>
+                <span className="user-name">{nickname || "Jogador"}</span>
               </button>
 
               {openMenu && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import Modal from "./Modal"
-import { doc, getDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "firebase/firestore"
-import { db } from "../services/firebase"
+import { useAuth } from "../context/AuthContext"
+import { getPlayer, getPublicProfile, getRecentMatches, updateNickname } from "../services/playerService"
 import { getProfileLevel } from "../utils/profileLevel"
 import {
     LineChart,
@@ -32,32 +32,27 @@ function formatPlayTime(timeMs) {
 
 function UserSettingsModal({ isOpen, onClose, user }) {
 
+    const { nickname, setNickname } = useAuth()
     const [activeTab, setActiveTab] = useState("profile")
-    const [name, setName] = useState("")
+    const [nicknameDraft, setNicknameDraft] = useState("")
+    const [profileError, setProfileError] = useState("")
     const [stats, setStats] = useState(null)
     const [recentMatches, setRecentMatches] = useState([])
     const [recentAvgTime, setRecentAvgTime] = useState(0)
     const [improvement, setImprovement] = useState(0)
 
     useEffect(() => {
+        let active = true
         async function loadUser() {
             if (!user) return
-
-            const ref = doc(db, "jogadores", user.uid)
-            const snap = await getDoc(ref)
-
-            if (snap.exists()) {
-                const data = snap.data()
-                setName(data.nome || "")
-                setStats(data.stats || null)
-            }
-
-            const matchesRef = collection(db, "jogadores", user.uid, "partidas")
-            const q = query(matchesRef, orderBy("createdAt", "desc"), limit(10))
-            const querySnap = await getDocs(q)
-
-            const matches = querySnap.docs
-                .map(doc => doc.data())
+            setProfileError("")
+            const [player, profile, recent] = await Promise.all([
+                getPlayer(user.uid), getPublicProfile(user.uid), getRecentMatches(user.uid)
+            ])
+            if (!active) return
+            setNicknameDraft(profile?.apelido || "")
+            setStats(player?.stats || null)
+            const matches = recent
                 .filter(m => m.mode === "classico" && !m.abandoned)
                 .reverse()
 
@@ -87,13 +82,23 @@ function UserSettingsModal({ isOpen, onClose, user }) {
             }
         }
 
-        if (isOpen) loadUser()
+        if (isOpen) loadUser().catch(error => {
+            console.error("Não foi possível carregar o perfil.", error)
+            if (active) setProfileError("Não foi possível carregar os dados do perfil.")
+        })
+        return () => { active = false }
     }, [isOpen, user])
 
     async function handleSave() {
-        const ref = doc(db, "jogadores", user.uid)
-        await updateDoc(ref, { nome: name })
-        onClose()
+        setProfileError("")
+        try {
+            await updateNickname(user.uid, nicknameDraft)
+            setNickname(nicknameDraft)
+            onClose()
+        } catch (error) {
+            console.error("Não foi possível salvar o apelido.", error)
+            setProfileError(error.message)
+        }
     }
 
     const creationTime = user?.metadata?.creationTime
@@ -104,7 +109,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
     const chartData = recentMatches.map((m, index) => ({
         partida: index + 1,
-        tentativas: m.attempts
+        attempts: m.attempts
     }))
 
     function renderDistribution() {
@@ -149,6 +154,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     return (
         <Modal isOpen={isOpen}>
             <div className="modal-card profile-modal">
+                {profileError && <p role="alert">{profileError}</p>}
 
                 <div className="profile-tabs">
                     <button
@@ -176,7 +182,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                 {activeTab === "profile" && (stats || formattedCreationDate) && (
                     <div className="profile-content">
 
-                        <h2>{name}</h2>
+                        <h2>{nickname}</h2>
 
                         {formattedCreationDate && (
                             <p className="profile-created-at">
@@ -254,7 +260,8 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                             <Tooltip />
                                             <Line
                                                 type="monotone"
-                                                dataKey="tentativas"
+                                                dataKey="attempts"
+                                                name="Tentativas"
                                                 stroke="#ff3b3b"
                                                 strokeWidth={3}
                                                 dot={{ r: 5 }}
@@ -281,13 +288,13 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                 {activeTab === "settings" && (
                     <div className="settings-section">
                         <label className="settings-label">
-                            Mude seu nome de perfil:
+                            Mude seu apelido:
                         </label>
 
                         <input
                             type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            value={nicknameDraft}
+                            onChange={(e) => setNicknameDraft(e.target.value)}
                             className="settings-input-modern"
                         />
 

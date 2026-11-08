@@ -1,15 +1,11 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
 import { answers } from "../utils/answers"
 import { useAuth } from "../context/AuthContext"
 import {
-  ensurePlayerExists,
-  getPlayer,
-  incrementStreak,
-  resetStreak,
-  updatePlayerStats,
-  updatePlayerPlayTime,
-  saveMatchHistory
+  getPublicProfile,
+  registerWin,
+  registerLoss
 } from "../services/playerService"
 import Modal from "../components/Modal"
 import Keyboard from "../components/Keyboard"
@@ -17,11 +13,14 @@ import "../styles/game.css"
 
 function GameBoard() {
 
-  const { user, setGameInProgress } = useAuth()
+  const { user, setGameInProgress, setGameMatchId } = useAuth()
   const [gameKey, setGameKey] = useState(0)
   const [copied, setCopied] = useState(false)
   const [startTime, setStartTime] = useState(Date.now())
   const [showVictoryModal, setShowVictoryModal] = useState(false)
+  const [matchId, setMatchId] = useState(() => crypto.randomUUID())
+  const [saveError, setSaveError] = useState("")
+  const processedFinish = useRef(false)
 
   const secret = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * answers.length)
@@ -40,24 +39,24 @@ function GameBoard() {
     currentCol,
     setCurrentCol,
     setIsManualSelection,
-    resetBoard,
     setExternalStreak,
     invalidWord
   } = useWordle(secret)
 
   useEffect(() => {
+    let active = true
     async function loadPlayer() {
       if (!user) return
 
-      await ensurePlayerExists(user.uid, user.displayName, user.email)
-      const data = await getPlayer(user.uid)
+      const data = await getPublicProfile(user.uid)
 
-      if (data && data.sequenciaAtual !== undefined) {
+      if (active && data && data.sequenciaAtual !== undefined) {
         setExternalStreak(data.sequenciaAtual)
       }
     }
 
-    loadPlayer()
+    loadPlayer().catch(error => console.error("Não foi possível carregar a sequência.", error))
+    return () => { active = false }
   }, [user])
 
   useEffect(() => {
@@ -73,9 +72,16 @@ function GameBoard() {
   }, [isGameOver])
 
   useEffect(() => {
+    if (!isGameOver) {
+      processedFinish.current = false
+      return
+    }
+    // Não registra outra partida ao trocar a palavra antes do reset do hook,
+    // repetir o efeito ou entrar na conta depois de terminar como visitante.
+    if (processedFinish.current) return
+    processedFinish.current = true
+    let active = true
     async function syncStreak() {
-      if (!isGameOver) return
-
       setShowVictoryModal(true)
 
       const guessRow = results?.[currentRow]
@@ -85,36 +91,21 @@ function GameBoard() {
 
       const timeSpent = Date.now() - startTime
 
-      if (isWinner) {
-        await incrementStreak(user.uid)
-
-        const attempts = currentRow + 1
-
-        await updatePlayerStats(user.uid, timeSpent, attempts)
-
-        await saveMatchHistory(user.uid, {
-          mode: "classico",
-          won: true,
-          attempts,
-          timeMs: timeSpent,
-          abandoned: false
-        })
-      } else {
-        await resetStreak(user.uid)
-        await updatePlayerPlayTime(user.uid, timeSpent)
-
-        await saveMatchHistory(user.uid, {
-          mode: "classico",
-          won: false,
-          attempts: 6,
-          timeMs: timeSpent,
-          abandoned: false
-        })
-      }
+      const register = isWinner ? registerWin : registerLoss
+      await register(user.uid, {
+        word: secret,
+        attempts: currentRow + 1,
+        timeMs: timeSpent,
+        matchId
+      })
     }
 
-    syncStreak()
-  }, [isGameOver])
+    syncStreak().catch(error => {
+      console.error("Não foi possível salvar a partida.", error)
+      if (active) setSaveError("Não foi possível salvar sua partida. Verifique sua conexão.")
+    })
+    return () => { active = false }
+  }, [isGameOver, currentRow, results, startTime, user, secret, matchId])
 
   useEffect(() => {
     function handleKey(e) {
@@ -137,10 +128,12 @@ function GameBoard() {
 
     if (!isGameOver && hasTypedLetter) {
       setGameInProgress(true)
+      setGameMatchId(matchId)
     } else {
       setGameInProgress(false)
+      setGameMatchId(null)
     }
-  }, [board, isGameOver])
+  }, [board, isGameOver, matchId, setGameInProgress, setGameMatchId])
 
   function handleVirtualKey(key) {
 
@@ -167,6 +160,8 @@ function GameBoard() {
   function handleNewGame() {
     setCopied(false)
     setShowVictoryModal(false)
+    setSaveError("")
+    setMatchId(crypto.randomUUID())
     setGameKey(prev => prev + 1)
     setStartTime(Date.now())
   }
@@ -220,6 +215,7 @@ function GameBoard() {
           <p className="victory-word">
             A palavra era: <strong>{secret}</strong>
           </p>
+          {saveError && <p role="alert">{saveError}</p>}
 
           {user && (
             <div className="streak-highlight-box">

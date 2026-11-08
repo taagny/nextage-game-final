@@ -74,7 +74,7 @@ function DevModal({ isOpen, onClose }) {
                 {stats.top10.map((player, index) => (
                   <div key={index} className="dev-rank-row">
                     <span className="rank-pos">{index + 1}</span>
-                    <span className="rank-name">{player.nome}</span>
+                    <span className="rank-name">{player.apelido}</span>
                     <span className="rank-metric">
                       {player.avgAttempts.toFixed(2)} tent.
                     </span>
