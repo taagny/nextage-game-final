@@ -7,6 +7,7 @@ import { TERMS_VERSION } from "../utils/constants.js"
 import { defaultNickname, validateNickname } from "../utils/nickname.js"
 import { initialPlayerStats, nextPlayerStats } from "../utils/playerStats.js"
 import { withPlayerWrite } from "./accountLifecycle"
+import { nextWordDoc } from "../utils/wordHistory.js"
 
 function playerRefs(uid) {
   return {
@@ -96,6 +97,7 @@ async function registerClassicResult(uid, result, matchId) {
   const matches = collection(privateRef, "partidas")
   // Referência estável entre tentativas da transação; matchId evita reenvios da mesma partida.
   const matchRef = matchId ? doc(matches, matchId) : doc(matches)
+  const wordRef = result.abandoned ? null : doc(privateRef, "palavras", result.word)
   return withPlayerWrite(uid, () => runTransaction(db, async transaction => {
     const privateSnap = await transaction.get(privateRef)
     const publicSnap = await transaction.get(publicRef)
@@ -104,6 +106,12 @@ async function registerClassicResult(uid, result, matchId) {
       throw new Error("Perfil indisponível. Entre novamente para continuar.")
     }
     if (matchSnap.exists()) return { matchId: matchRef.id, recorded: false }
+
+    // Ler a palavra antes das escritas permite preservar a primeira ocorrência
+    // inclusive se outra partida obrigar o Firestore a repetir a transação.
+    const wordSnap = wordRef ? await transaction.get(wordRef) : null
+    const previousWord = wordSnap?.exists() ? wordSnap.data() : null
+    const wordHistory = wordRef ? nextWordDoc(previousWord, result, serverTimestamp()) : null
 
     const stats = nextPlayerStats(privateSnap.data().stats, result, serverTimestamp())
     const profile = publicSnap.data()
@@ -125,7 +133,15 @@ async function registerClassicResult(uid, result, matchId) {
     }
     if (!result.abandoned) match.word = result.word
     transaction.set(matchRef, match)
-    return { matchId: matchRef.id, recorded: true, sequenciaAtual }
+    if (wordRef) transaction.set(wordRef, wordHistory)
+    return {
+      matchId: matchRef.id, recorded: true, sequenciaAtual, wordHistory,
+      firstOccurrence: wordHistory ? {
+        won: wordHistory.primeiraVenceu,
+        attempts: wordHistory.primeiraTentativas,
+        timeMs: wordHistory.primeiraTempoMs
+      } : null
+    }
   }))
 }
 

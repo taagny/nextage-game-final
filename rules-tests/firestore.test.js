@@ -8,6 +8,7 @@ import {
   setDoc, Timestamp, updateDoc, where, writeBatch
 } from "firebase/firestore"
 import { initialPlayerStats, nextPlayerStats } from "../src/utils/playerStats.js"
+import { nextWordDoc } from "../src/utils/wordHistory.js"
 
 // Estes testes limitam formato, permissões e magnitude. Não provam que alguém
 // jogou de fato; um cliente modificado pode declarar partidas dentro dos limites.
@@ -46,6 +47,8 @@ async function record(db, { won = true, abandoned = false, attempts = 3, timeMs 
     const publicRef = doc(db, "perfisPublicos/alice")
     const privateSnap = await transaction.get(privateRef)
     const publicSnap = await transaction.get(publicRef)
+    const wordRef = options.trackWord && !abandoned ? doc(db, "jogadores/alice/palavras/CASAS") : null
+    const wordSnap = wordRef ? await transaction.get(wordRef) : null
     const result = { won, abandoned, attempts, timeMs }
     const stats = nextPlayerStats(privateSnap.data().stats, result, serverTimestamp())
     const profile = publicSnap.data()
@@ -61,6 +64,8 @@ async function record(db, { won = true, abandoned = false, attempts = 3, timeMs 
     })
     if (options.word) {
       transaction.set(doc(db, "jogadores/alice/palavras", options.wordId ?? "CASAS"), options.word)
+    } else if (wordRef) {
+      transaction.set(wordRef, nextWordDoc(wordSnap.exists() ? wordSnap.data() : null, result, serverTimestamp()))
     }
   })
 }
@@ -230,6 +235,25 @@ test("palavras rejeitam id, formato, média, tipo e campos extras inválidos", a
     await assertFails(record(db, {}, { word: { ...firstWordData(), ...change } }))
   }
   await assertFails(setDoc(doc(db, "jogadores/alice/palavras/CASAS"), firstWordData()))
+})
+
+test("helper real preserva a primeira palavra e o melhor tempo em novas ocorrências", async () => {
+  const db = asOwner()
+  for (const [index, result] of [
+    { won: true, attempts: 3, timeMs: 1000 },
+    { won: true, attempts: 3, timeMs: 800 },
+    { won: true, attempts: 3, timeMs: 1200 },
+    { won: false, attempts: 6, timeMs: 1000 }
+  ].entries()) {
+    await assertSucceeds(record(db, result, { id: `helper-${index}`, trackWord: true }))
+  }
+  const word = (await getDoc(doc(db, "jogadores/alice/palavras/CASAS"))).data()
+  assert.equal(word.vezesVista, 4)
+  assert.equal(word.primeiraTempoMs, 1000)
+  assert.equal(word.melhorTempoMs, 800)
+  assert.equal(word.ultimaTentativas, 7)
+  assert.equal(word.totalTentativas, 16)
+  assert.equal(word.mediaTentativas, 4)
 })
 
 test("derrota na primeira ocorrência usa 7; vitória posterior preserva a primeira", async () => {

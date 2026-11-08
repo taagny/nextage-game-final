@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
 import { answers } from "../utils/answers"
 import { useAuth } from "../context/AuthContext"
+import { buildWordFeedback } from "../utils/wordFeedback"
 import {
   getPublicProfile,
   registerWin,
@@ -20,6 +21,7 @@ function GameBoard() {
   const [showVictoryModal, setShowVictoryModal] = useState(false)
   const [matchId, setMatchId] = useState(() => crypto.randomUUID())
   const [saveError, setSaveError] = useState("")
+  const [wordFeedback, setWordFeedback] = useState(null)
   const processedFinish = useRef(false)
 
   const secret = useMemo(() => {
@@ -92,12 +94,13 @@ function GameBoard() {
       const timeSpent = Date.now() - startTime
 
       const register = isWinner ? registerWin : registerLoss
-      await register(user.uid, {
+      const saved = await register(user.uid, {
         word: secret,
         attempts: currentRow + 1,
         timeMs: timeSpent,
         matchId
       })
+      if (active) setWordFeedback(buildWordFeedback(saved.wordHistory))
     }
 
     syncStreak().catch(error => {
@@ -161,6 +164,7 @@ function GameBoard() {
     setCopied(false)
     setShowVictoryModal(false)
     setSaveError("")
+    setWordFeedback(null)
     setMatchId(crypto.randomUUID())
     setGameKey(prev => prev + 1)
     setStartTime(Date.now())
@@ -216,6 +220,7 @@ function GameBoard() {
             A palavra era: <strong>{secret}</strong>
           </p>
           {saveError && <p role="alert">{saveError}</p>}
+          {wordFeedback && <p className="word-feedback" role="status">{wordFeedback.message}</p>}
 
           {user && (
             <div className="streak-highlight-box">

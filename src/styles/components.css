@@ -80,6 +80,8 @@
   color: #ccc;
 }
 
+.word-feedback { color: #c3e0ff; font-size: 0.9rem; line-height: 1.5; }
+
 .streak-highlight-box {
   display: flex;
   align-items: center;

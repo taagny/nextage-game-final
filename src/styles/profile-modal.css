@@ -51,7 +51,7 @@
 
 .profile-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
   background: rgba(0, 0, 0, 0.28);
@@ -264,6 +264,12 @@
 .account-data-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .account-data button:disabled, .profile-tabs button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 .account-delete-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid rgba(255, 74, 85, 0.5); border-radius: 12px; }
+.word-history-pane { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.word-history-pane p { color: var(--pm-muted); font-size: 0.9rem; line-height: 1.5; }
+.word-history-table { width: 100%; border-collapse: collapse; }
+.word-history-table th, .word-history-table td { padding: 10px 8px; border-bottom: 1px solid var(--pm-line); text-align: left; }
+.word-history-table thead th { color: var(--pm-muted); font-size: 0.85rem; }
+.word-history-table tr > :nth-child(n+2) { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 600px) {
   .profile-modal {
@@ -274,7 +280,7 @@
     padding: 19px 16px;
     border-radius: 21px;
   }
-  .profile-tabs { gap: 3px; padding: 4px; }
+  .profile-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 4px; }
   .profile-tabs button { min-height: 44px; padding: 8px 5px; font-size: 0.92rem; }
   .profile-content { gap: 12px; }
   .profile-content h2 { font-size: clamp(2.1rem, 9vw, 2.8rem); }
