@@ -41,7 +41,6 @@ function DevModal({ isOpen, onClose }) {
               <h3>Métricas Globais</h3>
               <div className="dev-metrics">
                 <div>👥 {stats.totalPlayers} jogadores</div>
-                <div>🟢 {stats.onlinePlayers} online</div>
                 <div>🎮 {stats.totalGames} partidas</div>
                 <div>🏆 {stats.totalWins} vitórias</div>
                 <div>⏱ {stats.avgGlobalTime.toFixed(2)}s média tempo</div>

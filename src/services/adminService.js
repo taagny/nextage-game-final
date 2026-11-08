@@ -6,7 +6,6 @@ export async function getGlobalStats() {
   const snapshot = await getDocs(collection(db, "jogadores"))
 
   let totalPlayers = snapshot.size
-  let onlinePlayers = 0
   let totalGames = 0
   let totalWins = 0
   let totalTime = 0
@@ -25,8 +24,6 @@ export async function getGlobalStats() {
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data()
-
-    if (data.online === true) onlinePlayers++
 
     const stats = data.stats || {}
 
@@ -61,7 +58,6 @@ export async function getGlobalStats() {
 
   return {
     totalPlayers,
-    onlinePlayers,
     totalGames,
     totalWins,
     avgGlobalTime: totalWins ? totalTime / totalWins / 1000 : 0,

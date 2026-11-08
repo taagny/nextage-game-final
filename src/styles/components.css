@@ -532,120 +532,20 @@
   justify-content: center;
 }
 
-.premium-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  align-items: center;
-  max-width: 480px;
-}
 
-.premium-title {
-  font-size: 1.8rem;
-}
 
-.premium-empty {
-  font-size: 0.9rem;
-  color: #ccc;
-}
 
-.premium-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #0c1022;
-  padding: 16px;
-  border-radius: 14px;
-  width: 100%;
-  max-height: 220px;
-  overflow-y: auto;
-}
 
-.premium-user {
-  padding: 8px 12px;
-  background: #151523;
-  border-radius: 10px;
-  color: #ffd700;
-  font-weight: 600;
-  text-align: center;
-}
 
-.premium-close-btn {
-  background: #ff3b3b;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
 
-.premium-close-btn:hover {
-  transform: translateY(-2px);
-}
 
-.premium-text {
-  font-size: 0.95rem;
-  color: #ddd;
-  text-align: center;
-}
 
-.premium-highlight {
-  background: #0c1022;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  text-align: center;
-}
 
-.premium-empty {
-  font-size: 0.9rem;
-  color: #ccc;
-}
 
-.premium-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #151523;
-  padding: 14px;
-  border-radius: 12px;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-}
 
-.premium-user {
-  padding: 6px 10px;
-  background: #0c1022;
-  border-radius: 8px;
-  color: #ffd700;
-  font-weight: 600;
-  text-align: center;
-}
 
-.premium-buy-btn {
-  background: linear-gradient(45deg, #ffd700, #ffb700);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: 0.2s ease;
-}
 
-.premium-buy-btn:hover {
-  transform: scale(1.05);
-}
 
-.premium-active {
-  margin-top: 10px;
-  font-weight: 600;
-  color: #ffd700;
-}
 
 /* ================= GUESS DISTRIBUTION ================= */
 

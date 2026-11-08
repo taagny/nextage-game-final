@@ -157,13 +157,6 @@
   grid-template-columns: minmax(42px, .7fr) minmax(0, 3fr) minmax(82px, 1.15fr);
 }
 
-.premium-name { color: #ffd700; font-weight: 800; }
-.premium-badge { display: inline-block; font-size: 1.2rem; line-height: 1; transform: translateY(-2px); }
-.premium-board { margin-bottom: 20px; padding: 15px; background: #151523; border-radius: 12px; text-align: center; }
-.premium-board-title { margin-bottom: 10px; font-size: 1rem; }
-.premium-board-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.premium-board-item { padding: 6px 12px; color: #ffd900fb; background: #0c1022; border-radius: 8px; font-weight: 600; }
-.premium-name-runner { color: #ffd700; font-weight: 700; }
 
 @media (max-width: 560px) {
   .ranking-card-new {

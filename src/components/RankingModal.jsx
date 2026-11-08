@@ -44,8 +44,6 @@ function RankingModal({ isOpen, onClose }) {
     return `# ${index + 1}`
   }
 
-  const premiumPlayers = players.filter(p => p.premium?.active)
-
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new">

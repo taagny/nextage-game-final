@@ -24,3 +24,6 @@ dist-ssr
 
 .env
 .env.*
+
+serviceAccount*.json
+*-adminsdk-*.json
