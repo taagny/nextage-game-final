@@ -3,6 +3,8 @@ import Modal from "./Modal"
 import { useAuth } from "../context/AuthContext"
 import { getPlayer, getPublicProfile, getRecentMatches, updateNickname } from "../services/playerService"
 import { getProfileLevel } from "../utils/profileLevel"
+import { validateNickname } from "../utils/nickname"
+import { NICKNAME_MIN, NICKNAME_MAX } from "../utils/constants"
 import {
     LineChart,
     Line,
@@ -36,6 +38,9 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     const [activeTab, setActiveTab] = useState("profile")
     const [nicknameDraft, setNicknameDraft] = useState("")
     const [profileError, setProfileError] = useState("")
+    const [profileLoading, setProfileLoading] = useState(false)
+    const [savingNickname, setSavingNickname] = useState(false)
+    const [nicknameTouched, setNicknameTouched] = useState(false)
     const [stats, setStats] = useState(null)
     const [recentMatches, setRecentMatches] = useState([])
     const [recentAvgTime, setRecentAvgTime] = useState(0)
@@ -46,6 +51,8 @@ function UserSettingsModal({ isOpen, onClose, user }) {
         async function loadUser() {
             if (!user) return
             setProfileError("")
+            setProfileLoading(true)
+            setNicknameTouched(false)
             const [player, profile, recent] = await Promise.all([
                 getPlayer(user.uid), getPublicProfile(user.uid), getRecentMatches(user.uid)
             ])
@@ -85,21 +92,31 @@ function UserSettingsModal({ isOpen, onClose, user }) {
         if (isOpen) loadUser().catch(error => {
             console.error("Não foi possível carregar o perfil.", error)
             if (active) setProfileError("Não foi possível carregar os dados do perfil.")
+        }).finally(() => {
+            if (active) setProfileLoading(false)
         })
         return () => { active = false }
     }, [isOpen, user])
 
     async function handleSave() {
+        if (savingNickname || profileLoading) return
+        setNicknameTouched(true)
         setProfileError("")
+        if (validateNickname(nicknameDraft)) return
+        setSavingNickname(true)
         try {
             await updateNickname(user.uid, nicknameDraft)
             setNickname(nicknameDraft)
             onClose()
         } catch (error) {
             console.error("Não foi possível salvar o apelido.", error)
-            setProfileError(error.message)
+            setProfileError("Não foi possível salvar o apelido. Tente novamente.")
+        } finally {
+            setSavingNickname(false)
         }
     }
+
+    const nicknameError = validateNickname(nicknameDraft)
 
     const creationTime = user?.metadata?.creationTime
     const creationDate = creationTime ? new Date(creationTime) : null
@@ -193,7 +210,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                         {stats && (
                             <>
                                 <div className="profile-badge">
-                                    Perfil: <strong>{PROFILE_LABELS[getProfileLevel(stats.totalWins)]}</strong>
+                                    Nível de experiência: <strong>{PROFILE_LABELS[getProfileLevel(stats.totalWins)]}</strong>
                                 </div>
 
                                 <div className="profile-metrics">
@@ -287,20 +304,42 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
                 {activeTab === "settings" && (
                     <div className="settings-section">
-                        <label className="settings-label">
-                            Mude seu apelido:
+                        <label className="settings-label" htmlFor="nickname-input">
+                            Apelido público:
                         </label>
 
                         <input
+                            id="nickname-input"
                             type="text"
                             value={nicknameDraft}
-                            onChange={(e) => setNicknameDraft(e.target.value)}
+                            onChange={(e) => {
+                                setNicknameDraft(e.target.value)
+                                setNicknameTouched(true)
+                            }}
+                            minLength={NICKNAME_MIN}
+                            maxLength={NICKNAME_MAX}
+                            pattern="[A-Za-z0-9_-]+"
+                            required
+                            disabled={profileLoading || savingNickname}
+                            aria-invalid={nicknameTouched && Boolean(nicknameError)}
+                            aria-describedby="nickname-help nickname-error"
                             className="settings-input-modern"
                         />
+                        <p id="nickname-help">
+                            De {NICKNAME_MIN} a {NICKNAME_MAX} caracteres: letras sem acento, números, _ e -.
+                            Seu apelido aparece nos rankings públicos.
+                        </p>
+                        <p id="nickname-error" role="alert">
+                            {nicknameTouched ? nicknameError : ""}
+                        </p>
 
                         <div className="settings-actions">
-                            <button className="modal-btn green" onClick={handleSave}>
-                                Salvar
+                            <button
+                                className="modal-btn green"
+                                onClick={handleSave}
+                                disabled={profileLoading || savingNickname || Boolean(nicknameError) || nicknameDraft === nickname}
+                            >
+                                {savingNickname ? "Salvando…" : "Salvar"}
                             </button>
 
                             <button className="modal-btn red" onClick={onClose}>

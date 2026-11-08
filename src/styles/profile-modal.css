@@ -254,6 +254,10 @@
 }
 .profile-modal .settings-input-modern:focus { border-color: var(--pm-red); box-shadow: 0 0 0 3px rgba(255,74,85,.15); outline: none; }
 .profile-modal .settings-actions { flex-wrap: wrap; }
+.profile-modal #nickname-help { color: var(--pm-muted); font-size: 0.85rem; line-height: 1.5; }
+.profile-modal #nickname-error { color: #ff9ba3; font-size: 0.85rem; }
+.profile-modal #nickname-error:empty { display: none; }
+.profile-modal .settings-actions button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 @media (max-width: 600px) {
   .profile-modal {

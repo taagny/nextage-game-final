@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
-import { ensurePlayerExists, setTermsAccepted } from "../services/playerService"
+import { ensurePlayerExists, setTermsAccepted, subscribeToPublicProfile } from "../services/playerService"
 import { TERMS_VERSION } from "../utils/constants"
 
 const AuthContext = createContext()
@@ -13,16 +13,21 @@ export function AuthProvider({ children }) {
   const [gameMatchId, setGameMatchId] = useState(null)
   const [mustAcceptTerms, setMustAcceptTerms] = useState(false)
   const [nickname, setNickname] = useState("")
+  const [publicProfile, setPublicProfile] = useState(null)
   const [profileError, setProfileError] = useState("")
 
   useEffect(() => {
     let active = true
     let session = 0
+    let unsubscribeProfile
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       const currentSession = ++session
+      unsubscribeProfile?.()
+      unsubscribeProfile = undefined
       setLoading(true)
       setUser(null)
       setNickname("")
+      setPublicProfile(null)
       setGameInProgress(false)
       setGameMatchId(null)
       setMustAcceptTerms(false)
@@ -35,6 +40,15 @@ export function AuthProvider({ children }) {
         )
         if (!active || currentSession !== session) return
         setNickname(publicProfile.apelido)
+        setPublicProfile(publicProfile)
+        unsubscribeProfile = subscribeToPublicProfile(currentUser.uid, profile => {
+          if (!active || currentSession !== session) return
+          setPublicProfile(profile)
+          setNickname(profile?.apelido ?? "")
+        }, error => {
+          console.error("Não foi possível acompanhar o perfil público.", error)
+          if (active && currentSession === session) setPublicProfile(null)
+        })
         setMustAcceptTerms(
           player.termsAccepted !== true || player.termsVersion !== TERMS_VERSION
         )
@@ -51,6 +65,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       active = false
+      unsubscribeProfile?.()
       unsubscribe()
     }
   }, [])
@@ -72,6 +87,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         nickname,
+        publicProfile,
         setNickname,
         loading,
         gameInProgress,

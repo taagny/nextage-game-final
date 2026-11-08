@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, limit, orderBy, query,
-  runTransaction, serverTimestamp, updateDoc
+  onSnapshot, runTransaction, serverTimestamp, updateDoc
 } from "firebase/firestore"
 import { db } from "./firebase"
 import { TERMS_VERSION } from "../utils/constants.js"
@@ -50,6 +50,12 @@ export async function getPlayer(uid) {
 export async function getPublicProfile(uid) {
   const snapshot = await getDoc(doc(db, "perfisPublicos", uid))
   return snapshot.exists() ? snapshot.data() : null
+}
+
+export function subscribeToPublicProfile(uid, onProfile, onError) {
+  return onSnapshot(doc(db, "perfisPublicos", uid), snapshot => {
+    onProfile(snapshot.exists() ? snapshot.data() : null)
+  }, onError)
 }
 
 export async function setTermsAccepted(uid) {

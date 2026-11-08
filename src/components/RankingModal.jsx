@@ -1,41 +1,43 @@
-import { useEffect, useState } from "react"
-import { collection, query, orderBy, getDocs } from "firebase/firestore"
-import { db } from "../services/firebase"
+import { useEffect, useEffectEvent, useState } from "react"
+import { getClassicRanking } from "../services/rankingService"
 import Modal from "./Modal"
 import { useAuth } from "../context/AuthContext"
 
 function RankingModal({ isOpen, onClose }) {
   const [players, setPlayers] = useState([])
   const [userPosition, setUserPosition] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const { user } = useAuth()
+  const { user, publicProfile } = useAuth()
+  const uid = user?.uid
+  const score = publicProfile?.sequenciaAtual
+  // Captura o placar atual ao abrir, sem consultar de novo a cada atualização do perfil.
+  const loadCurrentRanking = useEffectEvent(() => getClassicRanking(uid, score))
 
   useEffect(() => {
+    let active = true
     async function loadRanking() {
-      const q = query(
-        collection(db, "perfisPublicos"),
-        orderBy("sequenciaAtual", "desc")
-      )
-
-      const snapshot = await getDocs(q)
-
-      const list = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-
-      const top100 = list.slice(0, 100)
-
-      setPlayers(top100)
-
-      if (user) {
-        const index = list.findIndex(p => p.id === user.uid)
-        setUserPosition(index !== -1 ? index + 1 : null)
+      setLoading(true)
+      setError("")
+      setPlayers([])
+      setUserPosition(null)
+      try {
+        const ranking = await loadCurrentRanking()
+        if (!active) return
+        setPlayers(ranking.players)
+        setUserPosition(ranking.userPosition)
+      } catch (error) {
+        console.error("Não foi possível carregar o ranking Clássico.", error)
+        if (active) setError("Não foi possível carregar o ranking. Tente novamente.")
+      } finally {
+        if (active) setLoading(false)
       }
     }
 
     if (isOpen) loadRanking()
-  }, [isOpen, user])
+    return () => { active = false }
+  }, [isOpen, uid])
 
   function getMedal(index) {
     if (index === 0) return "🏆 1"
@@ -56,11 +58,16 @@ function RankingModal({ isOpen, onClose }) {
         <div className="ranking-header-new">
           <span>TOP</span>
           <span>JOGADOR</span>
-          <span>TENTATIVAS</span>
+          <span title="Sequências perdidas">PERDIDAS</span>
           <span>SEQUENCIAS</span>
         </div>
 
-        <div className="ranking-list-new">
+        <div className="ranking-list-new" aria-busy={loading}>
+          {loading && <p role="status">Carregando ranking…</p>}
+          {error && <p role="alert">{error}</p>}
+          {!loading && !error && players.length === 0 && (
+            <p>Nenhum jogador com sequência positiva no momento.</p>
+          )}
           {players.map((player, index) => (
             <div
               key={player.id}
