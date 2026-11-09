@@ -19,6 +19,7 @@ npm run test:integration
 npm run test:persistence
 npm run test:local
 npm run test:browser
+npm run audit:responsive
 node scripts/measure-v2.mjs
 ```
 
@@ -45,6 +46,8 @@ O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua u
 Verificação atual: lint com zero erros/10 avisos, build aprovado e 66 testes unitários. Passou também o teste do Clássico no Chrome com cadastro, aceite, recargas reais e resultado reenviado sem duplicar a sequência. Há suítes de Authentication e integração; popup Google continua pendente de verificação no navegador.
 
 ## Organização e dados
+
+A [revisão de responsividade](docs/RESPONSIVIDADE.md) cobriu oito tamanhos entre 320 × 568 e 1440 × 900, com 136 verificações finais de páginas e modais. O cabeçalho, teclado e modais foram ajustados; o Clássico usa duas colunas em telas horizontais baixas. Capturas e medições podem ser reproduzidas com `npm run audit:responsive`.
 
 O Clássico agora retoma a mesma palavra e tentativas após recarregar, usando armazenamento local separado por projeto/conta. Resultados pendentes preservam o ID e podem ser reenviados sem duplicar a partida. Veja [continuidade do Clássico](docs/CONTINUIDADE_CLASSICO.md) para ciclo, testes e limites: isso não impede manipulação deliberada do navegador nem sincroniza abas/dispositivos.
 

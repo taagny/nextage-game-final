@@ -15,7 +15,7 @@
   width: min(680px, calc(100vw - 32px));
   max-width: none;
   max-height: min(820px, calc(100dvh - 32px));
-  min-height: 500px;
+  min-height: min(500px, calc(100dvh - 24px));
   padding: 30px;
   justify-content: flex-start;
   text-align: left;

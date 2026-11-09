@@ -1,5 +1,11 @@
 # Alterações do NEXTAGE v2
 
+## Revisão de responsividade
+
+Auditoria real no Chrome em oito tamanhos: 37 dos 120 casos iniciais tinham cortes, sobreposição ou X alargado. Ajustados cabeçalho em grade, navegação, teclado flexível, tamanho do tabuleiro e limites/rolagem dos modais. Clássico horizontal usa tabuleiro e teclado lado a lado. Removida regra genérica que alargava botões de fechar no celular.
+
+A rodada final, com menu, ranking, gráfico e histórico preenchidos, passou em 136 casos segundo os detectores geométricos. Capturas de celular, horizontal e desktop foram inspecionadas. Não altera regras de jogo ou Firebase. Escopo, reprodução e limitações em [RESPONSIVIDADE.md](RESPONSIVIDADE.md).
+
 ## Continuidade do Clássico solicitada após os testes do preview
 
 Recarregar não sorteia outra palavra nem apaga tentativas. O rascunho local preserva tabuleiro, cursor, início e ID da partida, separado por conta/projeto. Vitórias e derrotas concluídas também são restauradas; a gravação usa ID estável e permite tentar novamente após falha, antes de novo jogo. Logout com abandono registrado e exclusão de conta limpam o rascunho.

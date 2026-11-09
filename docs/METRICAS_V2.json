@@ -28,7 +28,7 @@
     }
   },
   "finalLint": {
-    "files": 82,
+    "files": 84,
     "errors": 0,
     "warnings": 10,
     "byRule": {
@@ -272,7 +272,7 @@
     "largestComponents": [
       {
         "file": "src/components/UserSettingsModal.jsx",
-        "lines": 428
+        "lines": 439
       },
       {
         "file": "src/pages/Runner.jsx",

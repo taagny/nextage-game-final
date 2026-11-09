@@ -8,10 +8,13 @@
   height: 100%;
   background: #120909;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 2000;
+  padding: 12px;
+  overflow-y: auto;
 }
+.modal-overlay > * { flex-shrink: 0; margin-block: auto; }
 
 .modal-card {
   background: #1f1f3a;
@@ -20,6 +23,8 @@
   text-align: center;
   width: 420px;
   max-width: 90%;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   animation: modalFade 0.2s ease-out;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
@@ -149,17 +154,24 @@
   display: flex;
   gap: 18px;
   margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .victory-close {
   position: absolute;
-  top: 18px;
-  right: 22px;
+  top: 12px;
+  right: 12px;
   background: none;
   border: none;
   color: white;
   font-size: 22px;
   cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
 }
 
 /* ================= SETTINGS ================= */

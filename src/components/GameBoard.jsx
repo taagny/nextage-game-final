@@ -218,7 +218,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
   }
 
   return (
-    <div className="game-wrapper">
+    <div className="game-wrapper classic-game">
       {storageError && <p role="alert">{storageError}</p>}
 
       <Modal isOpen={showVictoryModal}>

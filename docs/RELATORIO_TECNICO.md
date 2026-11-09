@@ -69,6 +69,7 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | `npm run build` | Aprovado, 651 módulos | Compilação sem navegador |
 | `npm run test:unit` | 66 aprovados | Inclui restauração de partida, isolamento de contas/projetos e tempo preservado |
 | `npm run test:browser` | 1 cenário extenso aprovado no Chrome headless | Visitante e conta fictícia, cadastro/aceite, teclas, recargas reais, vitória/derrota, reenvio de resultado e sequência 1 no ranking |
+| `node scripts/audit-responsive.mjs final` | 136 combinações sem problemas detectados; antes, 37 das 120 combinações tinham ocorrências | 8 tamanhos, 17 cenários, histórico/ranking preenchidos, capturas e limites geométricos no Chrome; escopo em RESPONSIVIDADE.md |
 | `npm run test:auth` | 3 aprovados | Emulador Auth: senha válida/exclusão, senha incorreta, falha simulada na limpeza. Firestore simulado |
 | `npm run test:rules` | 33 aprovados após instalar Java e corrigir o limite de expressões | Regras compiladas no Firestore Standard emulado; permissões, transações, histórico e ranking verificados |
 | `npm run test:integration` | 1 cenário integrado aprovado | Serviços reais com Auth/Firestore locais: cadastro, aceite, senha errada/correta, vitória, idempotência, derrota, rankings Clássico/Runner |
@@ -77,7 +78,7 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | `node --check rules-tests/firestore.test.js` | Aprovado na Etapa 4 | Sintaxe JS, sem compilar regras |
 | `node scripts/measure-v2.mjs` | Aprovado | Métricas reproduzíveis |
 
-Build após continuidade do Clássico: JS 1.016,73 kB (gzip 310,72 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. O teste de navegador agora cobre teclado, cadastro/aceite e continuidade do Clássico; layout responsivo, popup Google, downloads e exclusão completa pela interface continuam sem validação automatizada. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção pelo agente.
+Último build verificado após responsividade: JS 1.016,95 kB (gzip 310,77 kB), CSS 35,95 kB (gzip 7,90 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. O teste de navegador cobre teclado, cadastro/aceite e continuidade do Clássico; a auditoria responsiva cobre oito tamanhos em Chrome com capturas e medições. Safari/iOS, teclado virtual, popup Google, downloads e exclusão completa pela interface continuam sem validação automatizada. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção pelo agente.
 
 Dependências de execução mantidas. A instalação das ferramentas de desenvolvimento informou 32 vulnerabilidades (1 baixa, 19 moderadas, 11 altas, 1 crítica); registro daquela instalação, sem auditoria atual nem atribuição ao pacote servido ao navegador. Sem correção automática fora do escopo.
 
@@ -96,6 +97,8 @@ Dependências de execução mantidas. A instalação das ferramentas de desenvol
 
 ## Ações restantes do responsável
 
+Revisão responsiva: cabeçalho em grade com reorganização móvel, teclado flexível, tabuleiro limitado ao espaço disponível, duas colunas no Clássico horizontal e modais com altura/rolagem seguras. A regra que alargava todos os botões dos modais no celular foi removida. Foram encontradas 37 combinações problemáticas na primeira rodada (120 casos); a final passou em 136 combinações, incluindo menu e ranking preenchidos. Capturas foram inspecionadas e a regressão funcional do Clássico passou após o CSS. Confira [RESPONSIVIDADE.md](RESPONSIVIDADE.md) para método e limitações; ainda é necessário testar em aparelhos físicos e Safari/iOS.
+
 Continuidade solicitada após os testes do preview: Clássico passa a salvar palavra/tabuleiro/cursor/ID/início no navegador por conta e projeto, inclusive resultado pendente. Recarregar retoma em vez de sortear outra palavra. O tempo inclui o intervalo fora da página, limitado a 24 horas; reenvios usam o mesmo ID. O teste real no Chrome também simulou confirmação local perdida após uma vitória já gravada: o reenvio manteve sequência 1. A nova partida preserva a sequência e reinicia o tabuleiro. Isso não impede limpeza/edição do armazenamento nem coordena abas/dispositivos; placares ainda são informados pelo cliente. Veja [CONTINUIDADE_CLASSICO.md](CONTINUIDADE_CLASSICO.md). Nenhuma mudança de regras ou migração é necessária para esse armazenamento local.
 
 Revisão do preview Vercel: o usuário forneceu erro de permissões do ranking e HTTP 403 no Authentication. Consulta somente à configuração pública de Auth, com o Referer do preview, confirmou `API_KEY_HTTP_REFERRER_BLOCKED`. Não houve tentativa de login nem leitura de documentos reais. A chave Web recusa esse endereço; a lista de sites permitidos precisa ser corrigida externamente. Após isso, retestar o ranking para distinguir eventual bloqueio adicional das regras efetivamente publicadas. Configurações remotas, regras e índices de produção não foram alterados. Foram preparados erros mais específicos e configuração Firebase opcional por ambiente, sem misturar projetos em configuração parcial. Passaram 60 testes unitários e o cenário integrado de login/rankings; build e lint permaneceram aprovados. Veja [PREVIEW_VERCEL.md](PREVIEW_VERCEL.md).
@@ -113,7 +116,7 @@ Após a entrega inicial, o teste manual encontrou recusa `permission-denied` na 
 
 ## Métricas detalhadas
 
-Regeneradas após continuidade do Clássico: 82 arquivos analisados, 0 erros e 10 avisos.
+Regeneradas após a revisao responsiva: 84 arquivos analisados, 0 erros e 10 avisos.
 
 ### Complexidade por função (dez maiores)
 
@@ -152,7 +155,7 @@ Os validadores de restauração adicionam decisões; a complexidade mede funçõ
 
 | Arquivo | Antes | Final |
 |---|---:|---:|
-| src/components/UserSettingsModal.jsx | 311 | 428 |
+| src/components/UserSettingsModal.jsx | 311 | 439 |
 | src/pages/Runner.jsx | 349 | 349 |
 | src/components/GameBoard.jsx | 316 | 340 |
 | src/components/AuthModal.jsx | 237 | 217 |
