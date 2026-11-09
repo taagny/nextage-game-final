@@ -49,6 +49,35 @@
 
 .profile-modal > * { position: relative; }
 
+.profile-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-bottom: -10px;
+}
+
+.profile-close {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  background: rgba(20, 9, 9, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.profile-close:hover:not(:disabled) {
+  background: rgba(20, 9, 9, 0.56);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: rotate(90deg);
+}
+.profile-close:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .profile-tabs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

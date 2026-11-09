@@ -199,6 +199,17 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     return (
         <Modal isOpen={isOpen}>
             <div className="modal-card profile-modal">
+                <div className="profile-modal-header">
+                    <button
+                        type="button"
+                        className="profile-close"
+                        aria-label="Fechar configurações do usuário"
+                        onClick={onClose}
+                        disabled={accountBusy}
+                    >
+                        ×
+                    </button>
+                </div>
                 {profileError && <p role="alert">{profileError}</p>}
 
                 <div className="profile-tabs">
