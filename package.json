@@ -14,6 +14,7 @@
     "test:integration": "node scripts/run-emulator-tests.mjs integration",
     "test:persistence": "node scripts/run-emulator-tests.mjs persistence-save && node scripts/run-emulator-tests.mjs persistence-load",
     "test:local": "node --test tests/local/*.test.mjs",
+    "test:browser": "node --test tests/browser/*.test.mjs",
     "preview": "vite preview",
     "generate:dict": "node scripts/generateDictionary.js",
     "validate:dict": "node scripts/validateDictionary.js"

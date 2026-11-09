@@ -1,24 +1,25 @@
 import { useEffect, useRef, useState } from "react"
 import { checkGuess } from "../utils/gameLogic"
 
-export function useWordle(secret) {
+export function useWordle(secret, { initialState, onFinish } = {}) {
 
   const [board, setBoard] = useState(
-    Array(6).fill(null).map(() => Array(5).fill(""))
+    () => initialState?.board.map(row => [...row]) ?? Array(6).fill(null).map(() => Array(5).fill(""))
   )
 
   const [results, setResults] = useState(
-    Array(6).fill(null)
+    () => initialState?.results.map(row => row && [...row]) ?? Array(6).fill(null)
   )
 
-  const [currentRow, setCurrentRow] = useState(0)
-  const [currentCol, setCurrentCol] = useState(0)
-  const [isManualSelection, setIsManualSelection] = useState(false)
-  const [isGameOver, setIsGameOver] = useState(false)
-  const [streak, setStreak] = useState(0)
+  const [currentRow, setCurrentRow] = useState(initialState?.currentRow ?? 0)
+  const [currentCol, setCurrentCol] = useState(initialState?.currentCol ?? 0)
+  const [isManualSelection, setIsManualSelection] = useState(initialState?.isManualSelection ?? false)
+  const [isGameOver, setIsGameOver] = useState(initialState?.isGameOver ?? false)
+  const [streak, setStreak] = useState(initialState?.streak ?? 0)
   const [invalidWord, setInvalidWord] = useState(false)
 
   const dictionaryRef = useRef(null)
+  const previousSecret = useRef(secret)
 
   useEffect(() => {
     fetch("/dictionary.json")
@@ -32,6 +33,10 @@ export function useWordle(secret) {
   }, [])
 
   useEffect(() => {
+    // Preservar a restauração inicial; mudanças posteriores continuam resetando
+    // o Runner como antes. Novo Clássico remonta com outro ID, mesmo se repetir palavra.
+    if (previousSecret.current === secret) return
+    previousSecret.current = secret
     resetBoard()
   }, [secret])
 
@@ -130,12 +135,14 @@ export function useWordle(secret) {
     const isWinner = result.every(r => r === "correct")
 
     if (isWinner) {
+      onFinish?.()
       setIsGameOver(true)
       setStreak(prev => prev + 1)
       return true
     }
 
     if (currentRow === 5) {
+      onFinish?.()
       setIsGameOver(true)
       setStreak(0)
       return false
@@ -173,6 +180,7 @@ export function useWordle(secret) {
     currentCol,
     setCurrentCol,
     setIsManualSelection,
+    isManualSelection,
     resetBoard,
     setExternalStreak,
     invalidWord

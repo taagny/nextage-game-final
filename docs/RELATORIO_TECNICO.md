@@ -14,26 +14,25 @@ Linha de base: commit `13601d6`, anterior à implementação. A análise executa
 | `react-hooks/set-state-in-effect` | 3 | 0 | 0 | 0 |
 | `no-empty` | 1 | 0 | 0 | 0 |
 | `react-refresh/only-export-components` | 1 | 0 | 0 | 0 |
-| `react-hooks/exhaustive-deps` | 0 | 14 | 0 | 11 |
-| **Total** | **14** | **14** | **0** | **11** |
+| `react-hooks/exhaustive-deps` | 0 | 14 | 0 | 10 |
+| **Total** | **14** | **14** | **0** | **10** |
 
 Sem desabilitação genérica de regras. Provider, contexto e hook têm módulos próprios. Validação de campos do modal é derivada dos valores atuais; erros de envio são limpos na edição. A preparação do Runner agenda a transição de zero para início com `setTimeout(0)` no callback, acrescentando uma passagem pelo event loop nessa transição. Interação de navegador ainda não verificada.
 
-Avisos remanescentes, todos `react-hooks/exhaustive-deps`:
+Avisos remanescentes, todos react-hooks/exhaustive-deps:
 
-| Local | Dependências apontadas |
+| Local | Mensagem |
 |---|---|
-| GameBoard:30 | `gameKey` excedente |
-| GameBoard:62 | `setExternalStreak` ausente |
-| Runner:53 | `stop` ausente |
-| Runner:68 | `start` ausente |
-| Runner:104 | `clearCurrentRow`, `incrementScore`, `resetBoard`, `stop` ausentes |
-| Runner:114 | `stop` ausente |
-| Runner:123 | `handleChangeTime` ausente |
-| Runner:129 | `finished`, `selectedTime`, `start` ausentes |
-| Runner:140 | `handleRestart` ausente |
-| Runner:146 | `score`, `selectedTime`, `user` ausentes |
-| Runner:158 | `handleRestart` ausente |
+| src/components/GameBoard.jsx:94 | React Hook useEffect has a missing dependency: 'setExternalStreak'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:53 | React Hook useEffect has a missing dependency: 'stop'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:68 | React Hook useEffect has a missing dependency: 'start'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:104 | React Hook useEffect has missing dependencies: 'clearCurrentRow', 'incrementScore', 'resetBoard', and 'stop'. Either include them or remove the dependency array. |
+| src/pages/Runner.jsx:114 | React Hook useEffect has a missing dependency: 'stop'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:123 | React Hook useEffect has a missing dependency: 'handleChangeTime'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:129 | React Hook useEffect has missing dependencies: 'finished', 'selectedTime', and 'start'. Either include them or remove the dependency array. |
+| src/pages/Runner.jsx:140 | React Hook useEffect has a missing dependency: 'handleRestart'. Either include it or remove the dependency array. |
+| src/pages/Runner.jsx:146 | React Hook useEffect has missing dependencies: 'score', 'selectedTime', and 'user'. Either include them or remove the dependency array. |
+| src/pages/Runner.jsx:158 | React Hook useEffect has a missing dependency: 'handleRestart'. Either include it or remove the dependency array. |
 
 Mantidos para preservar o ciclo dos jogos sem testes de interação. Callbacks recriados pelos hooks podem reinstalar efeitos continuamente. Adicionar seleção/estado final ao efeito do ranking pode iniciar Runner durante preparação; tornar salvamento reativo ao usuário pode salvar em login posterior. São dívida técnica, não evidência de ausência de defeitos. Mensagens completas constam no JSON.
 
@@ -66,9 +65,10 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 
 | Comando | Resultado | Alcance |
 |---|---|---|
-| `npm run lint` | 0 erros, 11 avisos | Análise estática |
-| `npm run build` | Aprovado, 649 módulos | Compilação sem navegador |
-| `npm run test:unit` | 60 aprovados | Níveis, apelidos, pseudônimos, estatísticas, migração, exportações, exclusão, histórico, configuração isolada Firebase e diagnóstico de erros |
+| `npm run lint` | 0 erros, 10 avisos | Análise estática |
+| `npm run build` | Aprovado, 651 módulos | Compilação sem navegador |
+| `npm run test:unit` | 66 aprovados | Inclui restauração de partida, isolamento de contas/projetos e tempo preservado |
+| `npm run test:browser` | 1 cenário extenso aprovado no Chrome headless | Visitante e conta fictícia, cadastro/aceite, teclas, recargas reais, vitória/derrota, reenvio de resultado e sequência 1 no ranking |
 | `npm run test:auth` | 3 aprovados | Emulador Auth: senha válida/exclusão, senha incorreta, falha simulada na limpeza. Firestore simulado |
 | `npm run test:rules` | 33 aprovados após instalar Java e corrigir o limite de expressões | Regras compiladas no Firestore Standard emulado; permissões, transações, histórico e ranking verificados |
 | `npm run test:integration` | 1 cenário integrado aprovado | Serviços reais com Auth/Firestore locais: cadastro, aceite, senha errada/correta, vitória, idempotência, derrota, rankings Clássico/Runner |
@@ -77,7 +77,7 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | `node --check rules-tests/firestore.test.js` | Aprovado na Etapa 4 | Sintaxe JS, sem compilar regras |
 | `node scripts/measure-v2.mjs` | Aprovado | Métricas reproduzíveis |
 
-Build após revisão do preview: JS 1.013,07 kB (gzip 309,27 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. Sem testes de navegador de layout, teclado, popup Google, downloads ou exclusão completa. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção.
+Build após continuidade do Clássico: JS 1.016,73 kB (gzip 310,72 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. O teste de navegador agora cobre teclado, cadastro/aceite e continuidade do Clássico; layout responsivo, popup Google, downloads e exclusão completa pela interface continuam sem validação automatizada. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção pelo agente.
 
 Dependências de execução mantidas. A instalação das ferramentas de desenvolvimento informou 32 vulnerabilidades (1 baixa, 19 moderadas, 11 altas, 1 crítica); registro daquela instalação, sem auditoria atual nem atribuição ao pacote servido ao navegador. Sem correção automática fora do escopo.
 
@@ -90,11 +90,13 @@ Dependências de execução mantidas. A instalação das ferramentas de desenvol
 - Runner mantém recordes, sem histórico. Limites de placar são escolhas de projeto.
 - Exclusão pode ser parcial, sem transação entre Firestore e Auth; bloqueio de gravações é local, sem coordenação entre abas/dispositivos. Não remove backups nem arquivos já baixados.
 - SHA-256 truncado é pseudonimização, não anonimização. Colisões interrompem exportação. JSON pessoal inclui próprio apelido e possíveis campos legados.
-- Repetições raras: 1.501 entradas/1.465 respostas distintas; duplicatas mantidas por decisão do usuário. Dicionário de 5.971 palavras, hooks e CSS original preservados.
+- Repetições raras: 1.501 entradas/1.465 respostas distintas; duplicatas mantidas por decisão do usuário. Dicionário de 5.971 palavras, useRunner e CSS original preservados. A solicitação posterior de continuidade ampliou useWordle com inicialização opcional, sem alterar as seis tentativas/cálculo de cores.
 - Complexidade/tamanho do perfil cresceram com as novas funções; separar seções e testar efeitos são trabalhos futuros. Onze avisos não foram ocultados.
 - Regras passaram nos 33 testes do emulador; índices efetivos e integração no navegador continuam pendentes. Protótipo revisado e testado nesses cenários, sem alegação de segurança comprovada.
 
 ## Ações restantes do responsável
+
+Continuidade solicitada após os testes do preview: Clássico passa a salvar palavra/tabuleiro/cursor/ID/início no navegador por conta e projeto, inclusive resultado pendente. Recarregar retoma em vez de sortear outra palavra. O tempo inclui o intervalo fora da página, limitado a 24 horas; reenvios usam o mesmo ID. O teste real no Chrome também simulou confirmação local perdida após uma vitória já gravada: o reenvio manteve sequência 1. A nova partida preserva a sequência e reinicia o tabuleiro. Isso não impede limpeza/edição do armazenamento nem coordena abas/dispositivos; placares ainda são informados pelo cliente. Veja [CONTINUIDADE_CLASSICO.md](CONTINUIDADE_CLASSICO.md). Nenhuma mudança de regras ou migração é necessária para esse armazenamento local.
 
 Revisão do preview Vercel: o usuário forneceu erro de permissões do ranking e HTTP 403 no Authentication. Consulta somente à configuração pública de Auth, com o Referer do preview, confirmou `API_KEY_HTTP_REFERRER_BLOCKED`. Não houve tentativa de login nem leitura de documentos reais. A chave Web recusa esse endereço; a lista de sites permitidos precisa ser corrigida externamente. Após isso, retestar o ranking para distinguir eventual bloqueio adicional das regras efetivamente publicadas. Configurações remotas, regras e índices de produção não foram alterados. Foram preparados erros mais específicos e configuração Firebase opcional por ambiente, sem misturar projetos em configuração parcial. Passaram 60 testes unitários e o cenário integrado de login/rankings; build e lint permaneceram aprovados. Veja [PREVIEW_VERCEL.md](PREVIEW_VERCEL.md).
 
@@ -111,7 +113,7 @@ Após a entrega inicial, o teste manual encontrou recusa `permission-denied` na 
 
 ## Métricas detalhadas
 
-Medições regeneradas após a revisão do preview: 78 arquivos analisados, 0 erros e 11 avisos. Versões dos pacotes resolvidos no lockfile.
+Regeneradas após continuidade do Clássico: 82 arquivos analisados, 0 erros e 10 avisos.
 
 ### Complexidade por função (dez maiores)
 
@@ -129,22 +131,22 @@ Medições regeneradas após a revisão do preview: 78 arquivos analisados, 0 er
 | src/pages/Runner.jsx:14 | 11 | Function 'Runner' |
 | src/services/adminService.js:26 | 11 | Arrow function |
 | src/pages/Runner.jsx:200 | 9 | Function 'handleVirtualKey' |
-#### Entrega revisada
+#### Entrega atual
 
 | Arquivo/linha | Valor | Função |
 |---|---:|---|
 | src/components/UserSettingsModal.jsx:37 | 41 | Function 'UserSettingsModal' |
+| src/utils/classicSession.js:14 | 33 | Function 'restoreClassicRound' |
 | src/utils/wordHistory.js:3 | 30 | Function 'nextWordDoc' |
 | src/components/AuthModal.jsx:7 | 23 | Function 'AuthModal' |
+| src/components/GameBoard.jsx:35 | 17 | Function 'ClassicRound' |
 | src/components/AccountDataSection.jsx:21 | 16 | Function 'AccountDataSection' |
 | src/components/RunnerRankingModal.jsx:7 | 16 | Function 'RunnerRankingModal' |
 | src/pages/Auth.jsx:6 | 16 | Function 'Auth' |
+| src/hooks/useWordle.js:4 | 12 | Function 'useWordle' |
 | src/pages/Runner.jsx:71 | 12 | Function 'handleKey' |
-| src/services/playerService.js:101 | 12 | Async arrow function |
-| src/context/AuthContext.jsx:23 | 11 | Async arrow function |
-| src/pages/Runner.jsx:14 | 11 | Function 'Runner' |
 
-A maior complexidade continua 41 na entrega. Funções internas são medidas separadamente.
+Os validadores de restauração adicionam decisões; a complexidade mede funções separadamente, sem demonstrar qualidade isoladamente.
 
 ### Maiores componentes/páginas (linhas físicas)
 
@@ -152,9 +154,9 @@ A maior complexidade continua 41 na entrega. Funções internas são medidas sep
 |---|---:|---:|
 | src/components/UserSettingsModal.jsx | 311 | 428 |
 | src/pages/Runner.jsx | 349 | 349 |
-| src/components/GameBoard.jsx | 316 | 317 |
+| src/components/GameBoard.jsx | 316 | 340 |
 | src/components/AuthModal.jsx | 237 | 217 |
-| src/components/Header.jsx | 190 | 161 |
+| src/components/Header.jsx | 190 | 163 |
 | src/components/DevModal.jsx | 117 | 148 |
 | src/pages/Auth.jsx | 128 | 129 |
 | src/components/AccountDataSection.jsx | novo/fora do top 10 | 116 |
@@ -220,21 +222,23 @@ Entradas: src/main.jsx e src/App.jsx.
 - src/hooks/useRunner.js
 - src/hooks/useWordle.js
 
-#### services (8)
+#### services (9)
 
 - src/services/accountLifecycle.js
 - src/services/accountService.js
 - src/services/adminService.js
 - src/services/authService.js
+- src/services/classicSessionService.js
 - src/services/firebase.js
 - src/services/playerService.js
 - src/services/rankingService.js
 - src/services/wordService.js
 
-#### utils (15)
+#### utils (16)
 
 - src/utils/accountDeletion.js
 - src/utils/answers.js
+- src/utils/classicSession.js
 - src/utils/constants.js
 - src/utils/dataExport.js
 - src/utils/download.js
@@ -263,7 +267,7 @@ Entradas: src/main.jsx e src/App.jsx.
 - src/styles/ranking.original.css
 - src/styles/runner.css
 
-Scripts em scripts/, incluindo medida, emuladores, scripts administrativos e helpers. Testes em tests/unit, tests/auth, tests/integration, tests/local e rules-tests. Configurações em firebase.json, firebase.tests.json, firestore.indexes.json, firestore.rules e eslint.config.js.
+Scripts em scripts/. Testes em tests/unit, tests/auth, tests/integration, tests/local, tests/browser e rules-tests. Configurações em firebase.json, firebase.tests.json, firestore.indexes.json, firestore.rules, vite.config.js e eslint.config.js.
 
 ## Apêndice: firestore.rules integral
 

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
-import { answers } from "../utils/answers"
+import { classicElapsedTime, newClassicRound } from "../utils/classicSession.js"
+import { classicScope, loadClassicSession, saveClassicSession } from "../services/classicSessionService.js"
 import { useAuth } from "../context/useAuth"
 import { buildWordFeedback } from "../utils/wordFeedback"
 import {
@@ -13,21 +14,39 @@ import Keyboard from "../components/Keyboard"
 import "../styles/game.css"
 
 function GameBoard() {
+  const { user } = useAuth()
+  return <ClassicSession key={classicScope(user?.uid)} ownerId={user?.uid} />
+}
+
+function ClassicSession({ ownerId }) {
+  const [session, setSession] = useState(() => {
+    const loaded = loadClassicSession(ownerId)
+    return { round: loaded.round ?? newClassicRound(), error: loaded.error }
+  })
+  return <ClassicRound key={session.round.matchId} initialRound={session.round}
+    ownerId={ownerId} storageWarning={session.error}
+    onNewGame={streak => {
+      const round = newClassicRound()
+      round.game.streak = streak
+      setSession({ round, error: session.error })
+    }} />
+}
+
+function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
 
   const { user, setGameInProgress, setGameMatchId } = useAuth()
-  const [gameKey, setGameKey] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [startTime, setStartTime] = useState(Date.now())
-  const [showVictoryModal, setShowVictoryModal] = useState(false)
-  const [matchId, setMatchId] = useState(() => crypto.randomUUID())
+  const startTime = initialRound.startTime
+  const matchId = initialRound.matchId
+  const secret = initialRound.secret
+  const [showVictoryModal, setShowVictoryModal] = useState(initialRound.game.isGameOver)
+  const [finishedAt, setFinishedAt] = useState(initialRound.finishedAt)
+  const [recorded, setRecorded] = useState(initialRound.recorded || !ownerId)
+  const [saveAttempt, setSaveAttempt] = useState(0)
+  const [storageError, setStorageError] = useState(storageWarning)
   const [saveError, setSaveError] = useState("")
   const [wordFeedback, setWordFeedback] = useState(null)
-  const processedFinish = useRef(false)
-
-  const secret = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * answers.length)
-    return answers[randomIndex]
-  }, [gameKey])
+  const finishRequest = useRef(null)
 
   const {
     board,
@@ -41,9 +60,22 @@ function GameBoard() {
     currentCol,
     setCurrentCol,
     setIsManualSelection,
+    isManualSelection,
     setExternalStreak,
     invalidWord
-  } = useWordle(secret)
+  } = useWordle(secret, { initialState: initialRound.game, onFinish: () => {
+    setFinishedAt(Math.max(Date.now(), startTime))
+    setShowVictoryModal(true)
+  } })
+
+  useLayoutEffect(() => {
+    saveClassicSession(ownerId, { version: 1, matchId, secret, startTime, finishedAt, recorded,
+      game: { board, results, currentRow, currentCol, isManualSelection, isGameOver, streak }
+    }).catch(() => setStorageError("Não foi possível salvar a partida neste navegador. Não recarregue a página até concluí-la."))
+  }, [ownerId, matchId, secret, startTime, finishedAt, recorded, board, results, currentRow,
+    currentCol, isManualSelection, isGameOver, streak])
+
+  const restartFinishedRound = useEffectEvent(() => handleNewGame())
 
   useEffect(() => {
     let active = true
@@ -65,7 +97,7 @@ function GameBoard() {
     function handleEnterRestart(e) {
       if (!isGameOver) return
       if (e.key === "Enter") {
-        handleNewGame()
+        restartFinishedRound()
       }
     }
 
@@ -74,41 +106,28 @@ function GameBoard() {
   }, [isGameOver])
 
   useEffect(() => {
-    if (!isGameOver) {
-      processedFinish.current = false
-      return
-    }
-    // Não registra outra partida ao trocar a palavra antes do reset do hook,
-    // repetir o efeito ou entrar na conta depois de terminar como visitante.
-    if (processedFinish.current) return
-    processedFinish.current = true
+    if (!isGameOver || !user || recorded || finishedAt === null) return
     let active = true
-    async function syncStreak() {
-      setShowVictoryModal(true)
-
-      const guessRow = results?.[currentRow]
-      const isWinner = guessRow && guessRow.every(s => s === "correct")
-
-      if (!user) return
-
-      const timeSpent = Date.now() - startTime
-
+    if (!finishRequest.current) {
+      const isWinner = results[currentRow].every(status => status === "correct")
       const register = isWinner ? registerWin : registerLoss
-      const saved = await register(user.uid, {
+      finishRequest.current = register(user.uid, {
         word: secret,
         attempts: currentRow + 1,
-        timeMs: timeSpent,
+        timeMs: classicElapsedTime(startTime, finishedAt),
         matchId
       })
-      if (active) setWordFeedback(buildWordFeedback(saved.wordHistory))
     }
-
-    syncStreak().catch(error => {
+    finishRequest.current.then(saved => {
+      if (!active) return
+      setWordFeedback(buildWordFeedback(saved.wordHistory))
+      setRecorded(true)
+    }).catch(error => {
       console.error("Não foi possível salvar a partida.", error)
       if (active) setSaveError("Não foi possível salvar sua partida. Verifique sua conexão.")
     })
     return () => { active = false }
-  }, [isGameOver, currentRow, results, startTime, user, secret, matchId])
+  }, [isGameOver, currentRow, results, startTime, finishedAt, user, secret, matchId, recorded, saveAttempt])
 
   useEffect(() => {
     function handleKey(e) {
@@ -161,13 +180,14 @@ function GameBoard() {
   }
 
   function handleNewGame() {
-    setCopied(false)
-    setShowVictoryModal(false)
+    if (ownerId && !recorded) return
+    onNewGame(streak)
+  }
+
+  function retrySave() {
+    finishRequest.current = null
     setSaveError("")
-    setWordFeedback(null)
-    setMatchId(crypto.randomUUID())
-    setGameKey(prev => prev + 1)
-    setStartTime(Date.now())
+    setSaveAttempt(attempt => attempt + 1)
   }
 
   function generateShareText() {
@@ -199,6 +219,7 @@ function GameBoard() {
 
   return (
     <div className="game-wrapper">
+      {storageError && <p role="alert">{storageError}</p>}
 
       <Modal isOpen={showVictoryModal}>
         <div className="modal-card streak-modal">
@@ -220,6 +241,8 @@ function GameBoard() {
             A palavra era: <strong>{secret}</strong>
           </p>
           {saveError && <p role="alert">{saveError}</p>}
+          {saveError && <button className="modal-btn red" onClick={retrySave}>Tentar salvar novamente</button>}
+          {ownerId && !recorded && !saveError && <p role="status">Salvando partida…</p>}
           {wordFeedback && <p className="word-feedback" role="status">{wordFeedback.message}</p>}
 
           {user && (
@@ -254,7 +277,7 @@ function GameBoard() {
               {copied ? "COPIADO ✅" : "Compartilhar 🔗"}
             </button>
 
-            <button onClick={handleNewGame} className="modal-btn red">
+            <button onClick={handleNewGame} disabled={Boolean(ownerId && !recorded)} className="modal-btn red">
               Novo Jogo ↺
             </button>
           </div>

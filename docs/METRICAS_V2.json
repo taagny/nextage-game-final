@@ -28,25 +28,19 @@
     }
   },
   "finalLint": {
-    "files": 78,
+    "files": 82,
     "errors": 0,
-    "warnings": 11,
+    "warnings": 10,
     "byRule": {
       "react-hooks/exhaustive-deps": {
         "errors": 0,
-        "warnings": 11
+        "warnings": 10
       }
     },
     "warningsDetail": [
       {
         "file": "src/components/GameBoard.jsx",
-        "line": 30,
-        "rule": "react-hooks/exhaustive-deps",
-        "message": "React Hook useMemo has an unnecessary dependency: 'gameKey'. Either exclude it or remove the dependency array."
-      },
-      {
-        "file": "src/components/GameBoard.jsx",
-        "line": 62,
+        "line": 94,
         "rule": "react-hooks/exhaustive-deps",
         "message": "React Hook useEffect has a missing dependency: 'setExternalStreak'. Either include it or remove the dependency array."
       },
@@ -221,6 +215,12 @@
         "message": "Function 'UserSettingsModal' has a complexity of 41. Maximum allowed is 1."
       },
       {
+        "file": "src/utils/classicSession.js",
+        "line": 14,
+        "value": 33,
+        "message": "Function 'restoreClassicRound' has a complexity of 33. Maximum allowed is 1."
+      },
+      {
         "file": "src/utils/wordHistory.js",
         "line": 3,
         "value": 30,
@@ -231,6 +231,12 @@
         "line": 7,
         "value": 23,
         "message": "Function 'AuthModal' has a complexity of 23. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/GameBoard.jsx",
+        "line": 35,
+        "value": 17,
+        "message": "Function 'ClassicRound' has a complexity of 17. Maximum allowed is 1."
       },
       {
         "file": "src/components/AccountDataSection.jsx",
@@ -251,28 +257,16 @@
         "message": "Function 'Auth' has a complexity of 16. Maximum allowed is 1."
       },
       {
+        "file": "src/hooks/useWordle.js",
+        "line": 4,
+        "value": 12,
+        "message": "Function 'useWordle' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
         "file": "src/pages/Runner.jsx",
         "line": 71,
         "value": 12,
         "message": "Function 'handleKey' has a complexity of 12. Maximum allowed is 1."
-      },
-      {
-        "file": "src/services/playerService.js",
-        "line": 101,
-        "value": 12,
-        "message": "Async arrow function has a complexity of 12. Maximum allowed is 1."
-      },
-      {
-        "file": "src/context/AuthContext.jsx",
-        "line": 23,
-        "value": 11,
-        "message": "Async arrow function has a complexity of 11. Maximum allowed is 1."
-      },
-      {
-        "file": "src/pages/Runner.jsx",
-        "line": 14,
-        "value": 11,
-        "message": "Function 'Runner' has a complexity of 11. Maximum allowed is 1."
       }
     ],
     "largestComponents": [
@@ -286,7 +280,7 @@
       },
       {
         "file": "src/components/GameBoard.jsx",
-        "lines": 317
+        "lines": 340
       },
       {
         "file": "src/components/AuthModal.jsx",
@@ -294,7 +288,7 @@
       },
       {
         "file": "src/components/Header.jsx",
-        "lines": 161
+        "lines": 163
       },
       {
         "file": "src/components/DevModal.jsx",
@@ -384,6 +378,7 @@
       "src/services/accountService.js",
       "src/services/adminService.js",
       "src/services/authService.js",
+      "src/services/classicSessionService.js",
       "src/services/firebase.js",
       "src/services/playerService.js",
       "src/services/rankingService.js",
@@ -392,6 +387,7 @@
     "utils": [
       "src/utils/accountDeletion.js",
       "src/utils/answers.js",
+      "src/utils/classicSession.js",
       "src/utils/constants.js",
       "src/utils/dataExport.js",
       "src/utils/download.js",

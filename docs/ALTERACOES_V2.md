@@ -1,5 +1,11 @@
 # Alterações do NEXTAGE v2
 
+## Continuidade do Clássico solicitada após os testes do preview
+
+Recarregar não sorteia outra palavra nem apaga tentativas. O rascunho local preserva tabuleiro, cursor, início e ID da partida, separado por conta/projeto. Vitórias e derrotas concluídas também são restauradas; a gravação usa ID estável e permite tentar novamente após falha, antes de novo jogo. Logout com abandono registrado e exclusão de conta limpam o rascunho.
+
+Esta solicitação posterior amplia a restrição inicial de não tocar no hook: `useWordle` recebeu inicialização opcional e callback de conclusão, sem mudar a lógica de seis tentativas/cálculo de cores. Chamadas do Runner mantêm os padrões existentes; `useRunner`, respostas, dicionário e CSS original não mudaram. Detalhes e limitações em [CONTINUIDADE_CLASSICO.md](CONTINUIDADE_CLASSICO.md).
+
 ## Revisão posterior: login e ranking no preview Vercel
 
 O preview utiliza o projeto Firebase original quando não há configuração própria; a publicação da branch não atualiza regras ou migrações. Preparadas variáveis opcionais `VITE_FIREBASE_*` para um projeto de teste, com validação de configuração completa e sem herdar bucket/remetente de outro projeto. Nenhuma configuração externa foi alterada.

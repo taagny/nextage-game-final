@@ -7,6 +7,7 @@ import { auth, db } from "./firebase"
 import { beginAccountDeletion, finishAccountDeletion } from "./accountLifecycle"
 import { deleteAccountInOrder, deleteInBatches, reauthenticationMethod } from "../utils/accountDeletion.js"
 import { personalMatchesCSV, serializeTimestamps } from "../utils/dataExport.js"
+import { clearClassicSession } from "./classicSessionService.js"
 
 function requireCurrentUser(uid) {
   if (!auth.currentUser || auth.currentUser.uid !== uid) {
@@ -96,6 +97,7 @@ export async function deleteMyAccount(user, { password } = {}) {
     },
     removeAuth: () => {
       requireCurrentUser(uid)
+      try { clearClassicSession(uid) } catch { console.warn("Não foi possível limpar a partida local desta conta.") }
       return deleteUser(user)
     },
     finish: complete => finishAccountDeletion(uid, complete)

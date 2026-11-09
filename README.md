@@ -18,6 +18,7 @@ npm run test:rules
 npm run test:integration
 npm run test:persistence
 npm run test:local
+npm run test:browser
 node scripts/measure-v2.mjs
 ```
 
@@ -41,9 +42,11 @@ No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executo
 
 O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
-Entrega: lint com zero erros/11 avisos, build aprovado, 55 testes unitários e três de Authentication aprovados. Os testes de Auth simulam dados; não substituem integração Firestore nem popup Google no navegador.
+Verificação atual: lint com zero erros/10 avisos, build aprovado e 66 testes unitários. Passou também o teste do Clássico no Chrome com cadastro, aceite, recargas reais e resultado reenviado sem duplicar a sequência. Há suítes de Authentication e integração; popup Google continua pendente de verificação no navegador.
 
 ## Organização e dados
+
+O Clássico agora retoma a mesma palavra e tentativas após recarregar, usando armazenamento local separado por projeto/conta. Resultados pendentes preservam o ID e podem ser reenviados sem duplicar a partida. Veja [continuidade do Clássico](docs/CONTINUIDADE_CLASSICO.md) para ciclo, testes e limites: isso não impede manipulação deliberada do navegador nem sincroniza abas/dispositivos.
 
 Interface e contexto chamam `src/services`; ESLint impede imports diretos de Auth/Firestore nessas camadas. Hooks ficam em `src/hooks`; cálculos em `src/utils`.
 

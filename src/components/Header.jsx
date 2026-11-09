@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/useAuth"
 import { logout } from "../services/authService"
 import { registerAbandon } from "../services/playerService"
+import { clearClassicSession } from "../services/classicSessionService.js"
 import AuthModal from "./AuthModal"
 import UserSettingsModal from "./UserSettingsModal"
 import RankingModal from "./RankingModal"
@@ -40,6 +41,7 @@ function Header() {
       if (gameInProgress && user) {
         try {
           await registerAbandon(user.uid, { matchId: gameMatchId })
+          clearClassicSession(user.uid)
         } catch (error) {
           console.error("Não foi possível registrar o abandono.", error)
         }
