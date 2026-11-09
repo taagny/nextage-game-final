@@ -8,16 +8,38 @@ Ambiente utilizado: Node 24.21.0. Execute `npm ci`, copie `.env.example` para `.
 
 ```sh
 npm run dev
+npm run dev:local
 npm run lint
 npm run build
 npm run preview
 npm run test:unit
 npm run test:auth
 npm run test:rules
+npm run test:integration
+npm run test:persistence
+npm run test:local
 node scripts/measure-v2.mjs
 ```
 
-Emuladores usam projeto fictício `demo-nextage-v2`. O executor filtra variáveis herdadas. Firestore requer Java compatível com o Firebase CLI e pode baixar artefatos no primeiro uso. Nesta máquina, `test:rules` ficou pendente por falta de Java; compile e teste as regras antes da publicação.
+Emuladores usam projeto fictício `demo-nextage-v2`. O executor filtra variáveis herdadas. Firestore requer Java 21+ e pode baixar artefatos no primeiro uso. Nesta máquina, Microsoft OpenJDK 21 foi instalado e os 33 testes de regras passaram após corrigir a validação da distribuição de tentativas que excedia o limite de expressões.
+
+### Testar a branch antes de publicar
+
+`npm run dev` conecta ao Firebase real. Se as regras v2 ainda não estiverem publicadas, criar/carregar o novo perfil pode falhar com `permission-denied` ao acessar `perfisPublicos`. Isso não é resolvido pelo build nem por reenviar o formulário; a conta no Authentication pode já ter sido criada.
+
+Para desenvolvimento isolado, instale Java compatível com o Firebase CLI (Java 21 ou superior) e pare o servidor anterior com Ctrl+C. Execute **`npm run dev:local`**: ele inicia Authentication em `127.0.0.1:9099`, Firestore em `127.0.0.1:8080` com as regras deste repositório e Vite em **http://127.0.0.1:5173**. Se uma porta estiver ocupada, encerre o processo anterior antes de repetir.
+
+Esse comando usa o modo Vite `emulators`, com projeto fictício `demo-nextage-v2`, sem reutilizar a sessão de produção. Na primeira execução, cadastre uma conta fictícia. Agora o executor importa e exporta contas e dados em `.firebase/emulators-data`, ignorado pelo Git. Para encerrar, pressione Ctrl+C uma vez e aguarde **Export complete** antes de fechar o terminal. Matar processos ou desligar abruptamente pode perder alterações não exportadas. Contas perdidas em reinícios anteriores precisam ser recriadas; não há restauração retroativa.
+
+Se os emuladores não iniciarem, o Vite não é iniciado por esse comando. Não há fallback para o banco real. As variáveis de `.env.local` continuam disponíveis ao Vite. O ranking local contém somente participantes locais com sequência positiva, e não importa os jogadores do site publicado.
+
+`test:integration` usa os serviços reais do aplicativo com Auth e Firestore emulados: cadastro, aceite, erro de senha, novo login, vitória, prevenção de duplicação, derrota e rankings Clássico/Runner. `test:persistence` cria dados fictícios, exporta, encerra os emuladores, inicia nova execução e verifica login, partida e posição restaurados. Usa `.firebase/persistence-test`, sem tocar nos dados do app. Ambos passaram; não substituem testes visuais de navegador.
+
+`dev:local` mantém o Vite no processo do executor e inicia os emuladores com `emulators:start`. Ctrl+C envia um pedido de encerramento por IPC ao CLI, que executa exportação e limpeza, evitando depender da propagação de sinais do Windows. `test:local` verificou dois ciclos reais de início/encerramento/reinício, resposta HTTP e liberação de 8080/9099/5173, acionando o mesmo handler por IPC. Esse teste exige que o app esteja parado; importa/exporta os dados locais existentes, sem apagá-los. O pressionamento físico de Ctrl+C continua sujeito à confirmação manual no terminal.
+
+No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executor procura Java 21+ em `JAVA_HOME` e nas instalações Microsoft OpenJDK em `Program Files`. O ajuste vale somente para o processo filho; não modifica o ambiente global.
+
+O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
 Entrega: lint com zero erros/11 avisos, build aprovado, 55 testes unitários e três de Authentication aprovados. Os testes de Auth simulam dados; não substituem integração Firestore nem popup Google no navegador.
 

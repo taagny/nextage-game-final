@@ -70,11 +70,14 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | `npm run build` | Aprovado, 647 módulos | Compilação sem navegador |
 | `npm run test:unit` | 55 aprovados | Níveis, apelidos, pseudônimos, estatísticas, transformação de migração, exportações, exclusão, histórico/comparação por palavra |
 | `npm run test:auth` | 3 aprovados | Emulador Auth: senha válida/exclusão, senha incorreta, falha simulada na limpeza. Firestore simulado |
-| `npm run test:rules` | Tentado na Etapa 4: `spawn java ENOENT` | Emulador não iniciou; nenhuma regra compilada nem caso executado |
+| `npm run test:rules` | 33 aprovados após instalar Java e corrigir o limite de expressões | Regras compiladas no Firestore Standard emulado; permissões, transações, histórico e ranking verificados |
+| `npm run test:integration` | 1 cenário integrado aprovado | Serviços reais com Auth/Firestore locais: cadastro, aceite, senha errada/correta, vitória, idempotência, derrota, rankings Clássico/Runner |
+| `npm run test:persistence` | Duas execuções aprovadas (gravar/exportar; reiniciar/importar) | Login, partida e ranking restaurados após encerrar ambos os emuladores; sem dados de produção |
+| `npm run test:local` | 1 teste aprovado, dois ciclos reais | Início do app, resposta HTTP, encerramento pelo mesmo handler de Ctrl+C acionado por IPC, exportação e portas 8080/9099/5173 livres em cada ciclo |
 | `node --check rules-tests/firestore.test.js` | Aprovado na Etapa 4 | Sintaxe JS, sem compilar regras |
 | `node scripts/measure-v2.mjs` | Aprovado | Métricas reproduzíveis |
 
-Build: JS 1.010,89 kB (gzip 308,57 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. Sem testes de navegador de layout, teclado, popup Google, downloads ou exclusão completa. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção.
+Build após correção do login: JS 1.010,95 kB (gzip 308,58 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. Sem testes de navegador de layout, teclado, popup Google, downloads ou exclusão completa. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção.
 
 Dependências de execução mantidas. A instalação das ferramentas de desenvolvimento informou 32 vulnerabilidades (1 baixa, 19 moderadas, 11 altas, 1 crítica); registro daquela instalação, sem auditoria atual nem atribuição ao pacote servido ao navegador. Sem correção automática fora do escopo.
 
@@ -89,11 +92,17 @@ Dependências de execução mantidas. A instalação das ferramentas de desenvol
 - SHA-256 truncado é pseudonimização, não anonimização. Colisões interrompem exportação. JSON pessoal inclui próprio apelido e possíveis campos legados.
 - Repetições raras: 1.501 entradas/1.465 respostas distintas; duplicatas mantidas por decisão do usuário. Dicionário de 5.971 palavras, hooks e CSS original preservados.
 - Complexidade/tamanho do perfil cresceram com as novas funções; separar seções e testar efeitos são trabalhos futuros. Onze avisos não foram ocultados.
-- Regras e índices exigem validação dinâmica. Protótipo com revisão estática, sem alegação de segurança comprovada.
+- Regras passaram nos 33 testes do emulador; índices efetivos e integração no navegador continuam pendentes. Protótipo revisado e testado nesses cenários, sem alegação de segurança comprovada.
 
 ## Ações restantes do responsável
 
-1. Instalar Java compatível, executar `test:rules`, revisar resultados e testar integração no navegador antes de publicar.
+O ambiente local também foi corrigido para preservar contas e partidas em `.firebase/emulators-data`, com importação e exportação ao encerrar. O wrapper aguarda o CLI durante Ctrl+C; encerramento forçado pode perder alterações. Teste de persistência confirmou exportação e importação entre duas execuções distintas. Dados já perdidos não são recuperados, e o ranking local não contém os jogadores de produção. O modal agora permite tentar novamente após erro de login e bloqueia envios durante a operação. A interação visual não foi automatizada; o teste integrado valida os serviços reais, e não os cliques no navegador.
+
+O retorno da falha de porta mostrou que apenas esperar o filho encerrar não resolvia a propagação de Ctrl+C no Windows. O pedido agora é enviado por IPC a um preload do CLI; Vite pertence ao executor, que o fecha antes de solicitar exportação e limpeza dos emuladores. Dois ciclos reais de inicialização e encerramento passaram com `test:local`. O teste cobre o handler de encerramento por IPC; não envia eventos de teclado globais do Windows. Quedas abruptas, encerramento forçado e desligamento do sistema continuam fora dessa garantia. Não se encerram processos desconhecidos automaticamente.
+
+Após a entrega inicial, o teste manual encontrou recusa `permission-denied` na leitura do perfil público real, antes da publicação das regras v2. Foi preparado `dev:local`, com projeto fictício e emuladores. Microsoft OpenJDK 21 foi instalado e o executor passou a localizar o JDK mesmo com PATH antigo. A primeira execução dinâmica apresentou 24 testes aprovados e sete falhas: a validação da distribuição excedia 1.000 expressões e rejeitava transações válidas. Foi substituída por comparação das chaves alteradas e incremento somente da faixa correspondente. Os 31 testes originais e dois de regressão passaram: incluem salvar os quatro documentos de uma vitória, consultar a sequência no ranking, todas as seis faixas e rejeitar redistribuição indevida. Os três testes de Auth também passaram nas novas portas isoladas. Lint permanece com 0 erros/11 avisos. As métricas estáticas foram regeneradas após a correção do modal: 74 arquivos analisados, 0 erros e 11 avisos.
+
+1. Reexecutar as suítes antes da publicação e testar a integração completa no navegador. Java e os 33 testes de regras já foram verificados nesta máquina.
 2. Seguir [PUBLICACAO_V2.md](PUBLICACAO_V2.md): backup, cópia, publicação coordenada de regras/app, limpeza e claim; verificar índices e configuração do build.
 3. Medir Lighthouse no endereço publicado, registrar condições e tirar capturas para o artigo.
 4. Revisar avisos e tamanho do pacote em trabalho posterior, com testes de interação.
@@ -118,17 +127,17 @@ Versões abaixo vêm dos pacotes resolvidos no lockfile. Inventário e mediçõe
 | src/pages/Runner.jsx:14 | 11 | Function 'Runner' |
 | src/services/adminService.js:26 | 11 | Arrow function |
 | src/pages/Runner.jsx:200 | 9 | Function 'handleVirtualKey' |
-#### Entrega
+#### Entrega corrigida
 
 | Arquivo/linha | Valor | Função |
 |---|---:|---|
 | src/components/UserSettingsModal.jsx:37 | 41 | Function 'UserSettingsModal' |
 | src/utils/wordHistory.js:3 | 30 | Function 'nextWordDoc' |
-| src/components/AuthModal.jsx:6 | 22 | Function 'AuthModal' |
+| src/components/AuthModal.jsx:6 | 23 | Function 'AuthModal' |
 | src/components/AccountDataSection.jsx:21 | 16 | Function 'AccountDataSection' |
 | src/components/RunnerRankingModal.jsx:6 | 16 | Function 'RunnerRankingModal' |
 | src/pages/Auth.jsx:5 | 16 | Function 'Auth' |
-| src/components/AuthModal.jsx:37 | 12 | Async function 'handleSubmit' |
+| src/components/AuthModal.jsx:38 | 13 | Async function 'handleSubmit' |
 | src/pages/Runner.jsx:71 | 12 | Function 'handleKey' |
 | src/services/playerService.js:101 | 12 | Async arrow function |
 | src/context/AuthContext.jsx:23 | 11 | Async arrow function |
@@ -142,7 +151,7 @@ Maior complexidade: de 22 para 41; não houve redução geral. Funções interna
 | src/components/UserSettingsModal.jsx | 311 | 428 |
 | src/pages/Runner.jsx | 349 | 349 |
 | src/components/GameBoard.jsx | 316 | 317 |
-| src/components/AuthModal.jsx | 237 | 230 |
+| src/components/AuthModal.jsx | 237 | 235 |
 | src/components/Header.jsx | 190 | 161 |
 | src/components/DevModal.jsx | 117 | 148 |
 | src/pages/Auth.jsx | 128 | 127 |
@@ -250,11 +259,11 @@ Entradas: `src/main.jsx` e `src/App.jsx`.
 - `src/styles/ranking.original.css`
 - `src/styles/runner.css`
 
-Scripts: generateDictionary.js, validateDictionary.js, measure-v2.mjs, run-emulator-tests.mjs, migrate-v2.mjs, set-admin-claim.mjs, lib/admin.mjs e lib/migration-v2.mjs em scripts/. Testes em tests/unit, tests/auth e rules-tests; configuração em firebase.json, firestore.indexes.json, firestore.rules e eslint.config.js.
+Scripts: generateDictionary.js, validateDictionary.js, measure-v2.mjs, run-emulator-tests.mjs, migrate-v2.mjs, set-admin-claim.mjs, lib/admin.mjs e lib/migration-v2.mjs em scripts/. Testes em tests/unit, tests/auth, tests/integration, tests/local e rules-tests; configuração em firebase.json, firestore.indexes.json, firestore.rules e eslint.config.js.
 
 ## Apêndice: firestore.rules integral
 
-Cópia final; sincronizar este apêndice ao alterar regras. A inclusão não significa compilação validada.
+Cópia final sincronizada. Regras compiladas no emulador Standard e 33 testes aprovados; isso não garante segurança fora dos cenários cobertos.
 
 ```text
 rules_version = '2';
@@ -291,7 +300,8 @@ service cloud.firestore {
       return value is int && value >= 0 && value <= 86400000;
     }
     function delta(before, after) {
-      return after - before >= 0 && after - before <= 1;
+      let difference = after - before;
+      return difference >= 0 && difference <= 1;
     }
     function playerBefore(uid) {
       return get(/databases/$(database)/documents/jogadores/$(uid)).data;
@@ -345,10 +355,6 @@ service cloud.firestore {
     function distributionSum(data) {
       return data['1'] + data['2'] + data['3'] + data['4'] + data['5'] + data['6'];
     }
-    function distributionAttempts(data) {
-      return data['1'] + 2 * data['2'] + 3 * data['3']
-        + 4 * data['4'] + 5 * data['5'] + 6 * data['6'];
-    }
     function validStats(data) {
       return closed(data, ['totalGames', 'totalWins', 'totalLosses', 'abandonedGames',
           'totalTimeMs', 'totalPlayTimeMs', 'totalAttempts', 'avgTimePerWord',
@@ -391,11 +397,13 @@ service cloud.firestore {
         || (after.termsAccepted && after.termsAcceptedAt == request.time);
     }
     function distributionUpdate(before, after, wins, attempts) {
-      return delta(before['1'], after['1']) && delta(before['2'], after['2'])
-        && delta(before['3'], after['3']) && delta(before['4'], after['4'])
-        && delta(before['5'], after['5']) && delta(before['6'], after['6'])
-        && distributionSum(after) - distributionSum(before) == wins
-        && distributionAttempts(after) - distributionAttempts(before) == attempts;
+      // Uma vitória incrementa somente a faixa de tentativas correspondente.
+      // Evita recalcular somas e pesos das seis faixas e exceder 1000 expressões.
+      let bucket = string(attempts);
+      return (wins == 0 && after == before)
+        || (wins == 1 && attempts >= 1 && attempts <= 6
+          && after.diff(before).affectedKeys().hasOnly([bucket])
+          && after[bucket] == before[bucket] + 1);
     }
     function statsUpdate(before, after) {
       let games = after.totalGames - before.totalGames;

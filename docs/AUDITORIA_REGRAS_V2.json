@@ -1,12 +1,12 @@
 {
   "score": 3,
-  "summary": "Avaliação estática provisória: esquema fechado, propriedade por UID e administração via claim. Execução e compilação no emulador pendentes por ausência de Java; não é uma certificação de segurança.",
+  "summary": "Revisão estática e 33 testes aprovados no Firestore Standard emulado após corrigir validação que excedia 1.000 expressões. Propriedade, claim e esquema preservados. Avaliação limitada aos cenários cobertos, sem certificação de segurança.",
   "findings": [
     {
       "check": "Validação dinâmica",
-      "severity": "moderate",
-      "issue": "Os testes de regras estão escritos, mas ainda precisam ser executados com Java e o emulador. A nota é apenas uma avaliação estática provisória.",
-      "recommendation": "Executar npm run test:rules antes de publicar e revisar qualquer falha. Não publicar somente com base na inspeção estática."
+      "severity": "minor",
+      "issue": "As regras compilaram e os 33 testes passaram. Integração completa de navegador e índices reais permanecem pendentes.",
+      "recommendation": "Reexecutar testes antes de publicar e revisar os fluxos reais, sem ampliar permissões para contornar falhas."
     },
     {
       "check": "Contadores e replay de ações",
@@ -27,13 +27,28 @@
     "defaultDeny": "coleções não usadas e caminhos não declarados negados"
   },
   "attackCoverage": [
-    "listagem pública de dados privados", "leitura e escrita por terceiro", "admin escrevendo documento alheio",
-    "criação não zerada", "salto de sequência", "incremento isolado de estatísticas", "recorde diminuindo ou acima do limite",
-    "campo extra e autoatribuição de admin", "apelido grande, caracteres proibidos e tipo incorreto",
-    "alteração de timestamps imutáveis", "campos obrigatórios ausentes", "timestamp de partida forjado",
-    "histórico sem transação e tentativa de update", "tempo/tentativas fora dos limites", "primeira palavra alterada",
-    "salto de vezesVista e média inválida", "palavra em caminho inválido", "subcoleção sem pai",
-    "coleções não utilizadas", "rankings com mais de 100 perfis e empates"
+    "listagem pública de dados privados",
+    "leitura e escrita por terceiro",
+    "admin escrevendo documento alheio",
+    "criação não zerada",
+    "salto de sequência",
+    "incremento isolado de estatísticas",
+    "recorde diminuindo ou acima do limite",
+    "campo extra e autoatribuição de admin",
+    "apelido grande, caracteres proibidos e tipo incorreto",
+    "alteração de timestamps imutáveis",
+    "campos obrigatórios ausentes",
+    "timestamp de partida forjado",
+    "histórico sem transação e tentativa de update",
+    "tempo/tentativas fora dos limites",
+    "primeira palavra alterada",
+    "salto de vezesVista e média inválida",
+    "palavra em caminho inválido",
+    "subcoleção sem pai",
+    "coleções não utilizadas",
+    "rankings com mais de 100 perfis e empates",
+    "vitória salva e aparece no ranking público",
+    "seis faixas e redistribuição indevida da distribuição de tentativas"
   ],
-  "executionStatus": "npm run test:rules tentado: spawn java ENOENT. Emulador não iniciou; zero casos executados e regras não compiladas. Requer Java compatível no PATH. Testes em rules-tests/firestore.test.js."
+  "executionStatus": "Microsoft OpenJDK 21 instalado. Execução inicial: 24 aprovados, sete falhas por limite de 1.000 expressões. Após simplificar distributionUpdate e adicionar regressões: 33 aprovados, zero falhas; regras compiladas no emulador Standard local. Testes isolados em firebase.tests.json, Firestore 8085 e Auth 9098."
 }

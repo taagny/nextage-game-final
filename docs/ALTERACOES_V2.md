@@ -23,3 +23,29 @@ Implementação local em sete etapas, após análise do commit `13601d6`, na bra
 Lint: de 14 erros/14 avisos para zero erros/11 avisos. Build aprovado com aviso de chunk acima de 500 kB. Passaram 55 testes unitários e três de Authentication local. Suíte e compilação das regras não executaram por falta de Java; testes de navegador e índices de produção pendentes.
 
 Veja [relatório técnico](RELATORIO_TECNICO.md), [métricas](METRICAS_V2.json), [publicação](PUBLICACAO_V2.md) e [dados da conta](DADOS_E_CONTA_V2.md).
+
+## Ajuste posterior: desenvolvimento isolado
+
+O teste manual do usuário encontrou `permission-denied` na leitura de `perfisPublicos` do projeto real, antes da publicação das regras v2. Foi adicionado `npm run dev:local`: inicia Auth/Firestore emulados e Vite no modo `emulators`, usando o projeto fictício `demo-nextage-v2`. O comando normal e o build de produção continuam usando a configuração real. Nenhuma regra de produção foi modificada.
+
+Lint (0 erros/11 avisos), build, 55 testes unitários e três de Auth foram revalidados nessa preparação. O Java ausente impediu inicialmente o teste completo; a execução posterior e a correção estão descritas abaixo.
+
+## Correção posterior: gravação de partidas e ranking vazio
+
+Instalado Microsoft OpenJDK 21 e adicionada localização do JDK no executor para terminais com PATH antigo. A primeira execução da suíte retornou 24 aprovações e sete falhas: distribuição de tentativas excedia o limite de 1.000 expressões. Regras agora validam somente a faixa alterada, com o incremento exato e os mesmos controles de propriedade/esquema. Os 33 testes passaram, incluindo salvar vitória/palavra e consultar sequência no ranking público, validar seis faixas e bloquear alterações indevidas. Três testes de Auth passaram novamente; lint com 0 erros/11 avisos.
+
+Testes usam `firebase.tests.json` e portas próprias para não apagar dados do jogo local. Nenhuma configuração de produção foi alterada. O ranking filtra sequências positivas: com gravações rejeitadas, a mensagem de lista vazia era esperada. Validação de navegador pelo usuário continua necessária.
+
+## Correção posterior: contas perdidas ao reiniciar e repetição de login
+
+O modo local inicialmente descartava contas/partidas ao encerrar, causando login recusado e ranking vazio após reiniciar. `dev:local` agora importa/exporta `.firebase/emulators-data` (ignorado pelo Git); Ctrl+C aguarda o CLI filho terminar a exportação. Encerramento forçado ainda pode perder alterações. Dados perdidos anteriormente não são recuperados.
+
+O modal permite repetir envio após erro de autenticação e bloqueia envios concorrentes durante a operação. O erro anterior não torna campos válidos inválidos permanentemente.
+
+Adicionados `test:integration` e `test:persistence`, sem dependências novas. O primeiro passou com os serviços reais em ambos os emuladores, cobrindo cadastro/aceite, senha errada/correta, vitória, idempotência, derrota e rankings. O segundo confirmou a restauração de conta, partida e ranking após exportar, encerrar e iniciar nova execução. A primeira tentativa deste teste usou `--force`, não suportado pelo CLI instalado; a opção foi removida e a execução completa passou. Lint com 0 erros/11 avisos e build aprovados. Navegador ainda depende de confirmação manual.
+
+## Correção posterior: processo órfão ocupando 8080
+
+A espera passiva por Ctrl+C não bastava no Windows. O executor agora envia o pedido de encerramento por IPC a um preload do CLI, que aciona os handlers de exportação/limpeza sem `kill` abrupto. Vite roda dentro do executor, evitando outro processo de servidor órfão. O app usa `emulators:start`; as suítes continuam usando `emulators:exec`.
+
+Adicionado `test:local`: dois ciclos reais passaram, com resposta HTTP, exportação concluída e portas 8080/9099/5173 livres após cada encerramento. O teste aciona o mesmo handler de Ctrl+C por IPC, sem simular teclado global do Windows. A primeira tentativa detectou um caminho de preload inválido no Windows; corrigido para URL `file:` antes da execução aprovada. O processo órfão já existente foi identificado pelo executável, projeto fictício e caminho das regras, e encerrado individualmente. Não há encerramento automático de processos desconhecidos.

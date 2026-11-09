@@ -28,7 +28,7 @@
     }
   },
   "finalLint": {
-    "files": 67,
+    "files": 74,
     "errors": 0,
     "warnings": 11,
     "byRule": {
@@ -229,8 +229,8 @@
       {
         "file": "src/components/AuthModal.jsx",
         "line": 6,
-        "value": 22,
-        "message": "Function 'AuthModal' has a complexity of 22. Maximum allowed is 1."
+        "value": 23,
+        "message": "Function 'AuthModal' has a complexity of 23. Maximum allowed is 1."
       },
       {
         "file": "src/components/AccountDataSection.jsx",
@@ -252,9 +252,9 @@
       },
       {
         "file": "src/components/AuthModal.jsx",
-        "line": 37,
-        "value": 12,
-        "message": "Async function 'handleSubmit' has a complexity of 12. Maximum allowed is 1."
+        "line": 38,
+        "value": 13,
+        "message": "Async function 'handleSubmit' has a complexity of 13. Maximum allowed is 1."
       },
       {
         "file": "src/pages/Runner.jsx",
@@ -290,7 +290,7 @@
       },
       {
         "file": "src/components/AuthModal.jsx",
-        "lines": 230
+        "lines": 235
       },
       {
         "file": "src/components/Header.jsx",

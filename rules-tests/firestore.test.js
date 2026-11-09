@@ -291,6 +291,36 @@ test("coleções não utilizadas são negadas por padrão, inclusive ao admin", 
   }
 })
 
+test("vitória com palavra salva quatro documentos e aparece no ranking público", async () => {
+  const db = asOwner()
+  await assertSucceeds(record(db, {}, { trackWord: true }))
+  assert.equal((await getDoc(doc(db, "jogadores/alice"))).data().stats.totalWins, 1)
+  assert.equal((await getDoc(doc(db, "jogadores/alice/partidas/partida-a"))).data().won, true)
+  assert.equal((await getDoc(doc(db, "jogadores/alice/palavras/CASAS"))).data().vezesVista, 1)
+  const ranked = query(collection(asVisitor(), "perfisPublicos"), where("sequenciaAtual", ">", 0),
+    orderBy("sequenciaAtual", "desc"), orderBy(documentId(), "desc"), limit(100))
+  const snapshot = await assertSucceeds(getDocs(ranked))
+  assert.deepEqual(snapshot.docs.map(profile => [profile.id, profile.data().sequenciaAtual]), [["alice", 1]])
+})
+
+test("distribuição aceita todas as seis faixas e bloqueia mudanças em outras faixas", async () => {
+  const db = asOwner()
+  for (let attempts = 1; attempts <= 6; attempts++) {
+    await assertSucceeds(record(db, { attempts }, { id: `faixa-${attempts}`, trackWord: true }))
+  }
+  const stats = (await getDoc(doc(db, "jogadores/alice"))).data().stats
+  assert.deepEqual(stats.guessDistribution, { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1 })
+  await assertFails(record(db, { attempts: 3 }, { id: "faixa-errada", stats: {
+    guessDistribution: { ...stats.guessDistribution, 2: 2 }
+  } }))
+  await assertFails(record(db, { attempts: 3 }, { id: "redistribuicao", stats: {
+    guessDistribution: { ...stats.guessDistribution, 1: 2, 3: 0, 5: 2 }
+  } }))
+  await assertFails(record(db, { won: false, attempts: 6 }, { id: "derrota-alterada", stats: {
+    guessDistribution: { ...stats.guessDistribution, 1: 2 }
+  } }))
+})
+
 test("rankings e contagens cobrem 102 perfis, o limite de 100 e empates do Runner", async () => {
   await env.withSecurityRulesDisabled(async context => {
     const db = context.firestore()

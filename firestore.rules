@@ -32,7 +32,8 @@ service cloud.firestore {
       return value is int && value >= 0 && value <= 86400000;
     }
     function delta(before, after) {
-      return after - before >= 0 && after - before <= 1;
+      let difference = after - before;
+      return difference >= 0 && difference <= 1;
     }
     function playerBefore(uid) {
       return get(/databases/$(database)/documents/jogadores/$(uid)).data;
@@ -86,10 +87,6 @@ service cloud.firestore {
     function distributionSum(data) {
       return data['1'] + data['2'] + data['3'] + data['4'] + data['5'] + data['6'];
     }
-    function distributionAttempts(data) {
-      return data['1'] + 2 * data['2'] + 3 * data['3']
-        + 4 * data['4'] + 5 * data['5'] + 6 * data['6'];
-    }
     function validStats(data) {
       return closed(data, ['totalGames', 'totalWins', 'totalLosses', 'abandonedGames',
           'totalTimeMs', 'totalPlayTimeMs', 'totalAttempts', 'avgTimePerWord',
@@ -132,11 +129,13 @@ service cloud.firestore {
         || (after.termsAccepted && after.termsAcceptedAt == request.time);
     }
     function distributionUpdate(before, after, wins, attempts) {
-      return delta(before['1'], after['1']) && delta(before['2'], after['2'])
-        && delta(before['3'], after['3']) && delta(before['4'], after['4'])
-        && delta(before['5'], after['5']) && delta(before['6'], after['6'])
-        && distributionSum(after) - distributionSum(before) == wins
-        && distributionAttempts(after) - distributionAttempts(before) == attempts;
+      // Uma vitória incrementa somente a faixa de tentativas correspondente.
+      // Evita recalcular somas e pesos das seis faixas e exceder 1000 expressões.
+      let bucket = string(attempts);
+      return (wins == 0 && after == before)
+        || (wins == 1 && attempts >= 1 && attempts <= 6
+          && after.diff(before).affectedKeys().hasOnly([bucket])
+          && after[bucket] == before[bucket] + 1);
     }
     function statsUpdate(before, after) {
       let games = after.totalGames - before.totalGames;

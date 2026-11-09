@@ -13,6 +13,7 @@ function AuthModal({ isOpen, onClose }) {
   const [confirmSenha, setConfirmSenha] = useState("")
   const [submissionErrors, setErrors] = useState({})
   const [infoMessage, setInfoMessage] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const fieldErrors = (() => {
     const newErrors = {}
@@ -37,7 +38,9 @@ function AuthModal({ isOpen, onClose }) {
   async function handleSubmit(e) {
     e.preventDefault()
     setInfoMessage("")
-    if (Object.keys(errors).length > 0) return
+    if (isSubmitting || Object.keys(fieldErrors).length > 0) return
+    setErrors({})
+    setIsSubmitting(true)
 
     try {
       if (isLogin) {
@@ -80,6 +83,8 @@ function AuthModal({ isOpen, onClose }) {
       }
 
       setErrors({ firebase: message })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -124,7 +129,7 @@ function AuthModal({ isOpen, onClose }) {
     email &&
     senha &&
     (isLogin || (nome && confirmSenha)) &&
-    Object.keys(errors).length === 0
+    Object.keys(fieldErrors).length === 0 && !isSubmitting
 
   return (
     <Modal isOpen={isOpen}>
