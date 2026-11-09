@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useState } from "react"
 import { getClassicRanking } from "../services/rankingService"
+import { rankingErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
 import { useAuth } from "../context/useAuth"
 
@@ -28,8 +29,8 @@ function RankingModal({ isOpen, onClose }) {
         setPlayers(ranking.players)
         setUserPosition(ranking.userPosition)
       } catch (error) {
-        console.error("Não foi possível carregar o ranking Clássico.", error)
-        if (active) setError("Não foi possível carregar o ranking. Tente novamente.")
+        console.error("Falha no ranking Clássico:", firebaseErrorCode(error))
+        if (active) setError(rankingErrorMessage(error))
       } finally {
         if (active) setLoading(false)
       }

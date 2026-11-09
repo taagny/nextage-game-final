@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app"
 import { connectAuthEmulator, getAuth } from "firebase/auth"
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore"
+import { resolveFirebaseConfig } from "../utils/firebaseConfig.js"
 
 // O modo explícito evita reutilizar a sessão e os dados do projeto real.
 // Builds de produção sempre usam a configuração real, mesmo com --mode emulators.
@@ -19,7 +20,7 @@ const app = initializeApp(useEmulators ? {
     projectId: "demo-nextage-v2",
     apiKey: "fake-api-key",
     authDomain: "localhost"
-} : firebaseConfig)
+} : resolveFirebaseConfig(import.meta.env, firebaseConfig))
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)

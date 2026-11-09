@@ -1,5 +1,13 @@
 # Alterações do NEXTAGE v2
 
+## Revisão posterior: login e ranking no preview Vercel
+
+O preview utiliza o projeto Firebase original quando não há configuração própria; a publicação da branch não atualiza regras ou migrações. Preparadas variáveis opcionais `VITE_FIREBASE_*` para um projeto de teste, com validação de configuração completa e sem herdar bucket/remetente de outro projeto. Nenhuma configuração externa foi alterada.
+
+Centralizadas mensagens de erro e diagnóstico por código, sem imprimir credenciais/respostas brutas. Modal e página de Auth usam o mesmo tratamento; rankings Clássico/Runner distinguem conexão e indisponibilidade. Login Google também bloqueia envios concorrentes. Passaram 60 testes unitários, build, cenário integrado e lint (0 erros/11 avisos).
+
+A recusa do login foi confirmada: consulta pública da configuração do Authentication com o Referer do preview retornou HTTP 403, `API_KEY_HTTP_REFERRER_BLOCKED`. Nenhum login ou acesso a dados reais foi realizado. A lista de sites permitidos da chave precisa ser corrigida externamente; depois, retestar o ranking para verificar eventual bloqueio adicional pelas regras. Nenhuma configuração remota foi alterada e o ambiente publicado não é declarado corrigido. Detalhes em [PREVIEW_VERCEL.md](PREVIEW_VERCEL.md).
+
 Implementação local em sete etapas, após análise do commit `13601d6`, na branch `feature/v2-privacidade`. Sem push, publicação ou migração de dados reais.
 
 1. Removidos premium, métrica online e configuração de Functions ausentes. Constantes centralizadas; nível avançado a partir de 500 vitórias.

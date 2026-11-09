@@ -1,5 +1,6 @@
 import { useState, useEffect, useEffectEvent } from "react"
 import { getRunnerRanking } from "../services/rankingService"
+import { rankingErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
 import { useAuth } from "../context/useAuth"
 
@@ -28,8 +29,8 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
         setPlayers(ranking.players)
         setUserPosition(ranking.userPosition)
       } catch (error) {
-        console.error("Não foi possível carregar o ranking Runner.", error)
-        if (active) setError("Não foi possível carregar o ranking. Tente novamente.")
+        console.error("Falha no ranking Runner:", firebaseErrorCode(error))
+        if (active) setError(rankingErrorMessage(error))
       } finally {
         if (active) setLoading(false)
       }

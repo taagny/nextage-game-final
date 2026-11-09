@@ -28,7 +28,7 @@
     }
   },
   "finalLint": {
-    "files": 74,
+    "files": 78,
     "errors": 0,
     "warnings": 11,
     "byRule": {
@@ -228,7 +228,7 @@
       },
       {
         "file": "src/components/AuthModal.jsx",
-        "line": 6,
+        "line": 7,
         "value": 23,
         "message": "Function 'AuthModal' has a complexity of 23. Maximum allowed is 1."
       },
@@ -240,21 +240,15 @@
       },
       {
         "file": "src/components/RunnerRankingModal.jsx",
-        "line": 6,
+        "line": 7,
         "value": 16,
         "message": "Function 'RunnerRankingModal' has a complexity of 16. Maximum allowed is 1."
       },
       {
         "file": "src/pages/Auth.jsx",
-        "line": 5,
+        "line": 6,
         "value": 16,
         "message": "Function 'Auth' has a complexity of 16. Maximum allowed is 1."
-      },
-      {
-        "file": "src/components/AuthModal.jsx",
-        "line": 38,
-        "value": 13,
-        "message": "Async function 'handleSubmit' has a complexity of 13. Maximum allowed is 1."
       },
       {
         "file": "src/pages/Runner.jsx",
@@ -273,6 +267,12 @@
         "line": 23,
         "value": 11,
         "message": "Async arrow function has a complexity of 11. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 14,
+        "value": 11,
+        "message": "Function 'Runner' has a complexity of 11. Maximum allowed is 1."
       }
     ],
     "largestComponents": [
@@ -290,7 +290,7 @@
       },
       {
         "file": "src/components/AuthModal.jsx",
-        "lines": 235
+        "lines": 217
       },
       {
         "file": "src/components/Header.jsx",
@@ -302,19 +302,19 @@
       },
       {
         "file": "src/pages/Auth.jsx",
-        "lines": 127
+        "lines": 129
       },
       {
         "file": "src/components/AccountDataSection.jsx",
         "lines": 116
       },
       {
-        "file": "src/components/InfoModal.jsx",
-        "lines": 106
+        "file": "src/components/RankingModal.jsx",
+        "lines": 107
       },
       {
-        "file": "src/components/RankingModal.jsx",
-        "lines": 106
+        "file": "src/components/RunnerRankingModal.jsx",
+        "lines": 107
       }
     ]
   },
@@ -395,6 +395,8 @@
       "src/utils/constants.js",
       "src/utils/dataExport.js",
       "src/utils/download.js",
+      "src/utils/firebaseConfig.js",
+      "src/utils/firebaseErrors.js",
       "src/utils/gameLogic.js",
       "src/utils/nickname.js",
       "src/utils/playerStats.js",

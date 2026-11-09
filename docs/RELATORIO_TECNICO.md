@@ -67,8 +67,8 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | Comando | Resultado | Alcance |
 |---|---|---|
 | `npm run lint` | 0 erros, 11 avisos | Análise estática |
-| `npm run build` | Aprovado, 647 módulos | Compilação sem navegador |
-| `npm run test:unit` | 55 aprovados | Níveis, apelidos, pseudônimos, estatísticas, transformação de migração, exportações, exclusão, histórico/comparação por palavra |
+| `npm run build` | Aprovado, 649 módulos | Compilação sem navegador |
+| `npm run test:unit` | 60 aprovados | Níveis, apelidos, pseudônimos, estatísticas, migração, exportações, exclusão, histórico, configuração isolada Firebase e diagnóstico de erros |
 | `npm run test:auth` | 3 aprovados | Emulador Auth: senha válida/exclusão, senha incorreta, falha simulada na limpeza. Firestore simulado |
 | `npm run test:rules` | 33 aprovados após instalar Java e corrigir o limite de expressões | Regras compiladas no Firestore Standard emulado; permissões, transações, histórico e ranking verificados |
 | `npm run test:integration` | 1 cenário integrado aprovado | Serviços reais com Auth/Firestore locais: cadastro, aceite, senha errada/correta, vitória, idempotência, derrota, rankings Clássico/Runner |
@@ -77,7 +77,7 @@ Regras validam esquema, tipos, tamanhos, timestamps, propriedade e alterações 
 | `node --check rules-tests/firestore.test.js` | Aprovado na Etapa 4 | Sintaxe JS, sem compilar regras |
 | `node scripts/measure-v2.mjs` | Aprovado | Métricas reproduzíveis |
 
-Build após correção do login: JS 1.010,95 kB (gzip 308,58 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. Sem testes de navegador de layout, teclado, popup Google, downloads ou exclusão completa. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção.
+Build após revisão do preview: JS 1.013,07 kB (gzip 309,27 kB), CSS 32,99 kB (gzip 7,31 kB). Aviso de chunk acima de 500 kB. Sem Lighthouse: tamanho comprimido não equivale a tempo medido de carregamento. Sem testes de navegador de layout, teclado, popup Google, downloads ou exclusão completa. Scripts administrativos, migração e dry-run de dados reais não executados. Sem publicação, push ou mudança de produção.
 
 Dependências de execução mantidas. A instalação das ferramentas de desenvolvimento informou 32 vulnerabilidades (1 baixa, 19 moderadas, 11 altas, 1 crítica); registro daquela instalação, sem auditoria atual nem atribuição ao pacote servido ao navegador. Sem correção automática fora do escopo.
 
@@ -96,6 +96,8 @@ Dependências de execução mantidas. A instalação das ferramentas de desenvol
 
 ## Ações restantes do responsável
 
+Revisão do preview Vercel: o usuário forneceu erro de permissões do ranking e HTTP 403 no Authentication. Consulta somente à configuração pública de Auth, com o Referer do preview, confirmou `API_KEY_HTTP_REFERRER_BLOCKED`. Não houve tentativa de login nem leitura de documentos reais. A chave Web recusa esse endereço; a lista de sites permitidos precisa ser corrigida externamente. Após isso, retestar o ranking para distinguir eventual bloqueio adicional das regras efetivamente publicadas. Configurações remotas, regras e índices de produção não foram alterados. Foram preparados erros mais específicos e configuração Firebase opcional por ambiente, sem misturar projetos em configuração parcial. Passaram 60 testes unitários e o cenário integrado de login/rankings; build e lint permaneceram aprovados. Veja [PREVIEW_VERCEL.md](PREVIEW_VERCEL.md).
+
 O ambiente local também foi corrigido para preservar contas e partidas em `.firebase/emulators-data`, com importação e exportação ao encerrar. O wrapper aguarda o CLI durante Ctrl+C; encerramento forçado pode perder alterações. Teste de persistência confirmou exportação e importação entre duas execuções distintas. Dados já perdidos não são recuperados, e o ranking local não contém os jogadores de produção. O modal agora permite tentar novamente após erro de login e bloqueia envios durante a operação. A interação visual não foi automatizada; o teste integrado valida os serviços reais, e não os cliques no navegador.
 
 O retorno da falha de porta mostrou que apenas esperar o filho encerrar não resolvia a propagação de Ctrl+C no Windows. O pedido agora é enviado por IPC a um preload do CLI; Vite pertence ao executor, que o fecha antes de solicitar exportação e limpeza dos emuladores. Dois ciclos reais de inicialização e encerramento passaram com `test:local`. O teste cobre o handler de encerramento por IPC; não envia eventos de teclado globais do Windows. Quedas abruptas, encerramento forçado e desligamento do sistema continuam fora dessa garantia. Não se encerram processos desconhecidos automaticamente.
@@ -109,7 +111,7 @@ Após a entrega inicial, o teste manual encontrou recusa `permission-denied` na 
 
 ## Métricas detalhadas
 
-Versões abaixo vêm dos pacotes resolvidos no lockfile. Inventário e medições são extraídos de `METRICAS_V2.json`.
+Medições regeneradas após a revisão do preview: 78 arquivos analisados, 0 erros e 11 avisos. Versões dos pacotes resolvidos no lockfile.
 
 ### Complexidade por função (dez maiores)
 
@@ -127,22 +129,22 @@ Versões abaixo vêm dos pacotes resolvidos no lockfile. Inventário e mediçõe
 | src/pages/Runner.jsx:14 | 11 | Function 'Runner' |
 | src/services/adminService.js:26 | 11 | Arrow function |
 | src/pages/Runner.jsx:200 | 9 | Function 'handleVirtualKey' |
-#### Entrega corrigida
+#### Entrega revisada
 
 | Arquivo/linha | Valor | Função |
 |---|---:|---|
 | src/components/UserSettingsModal.jsx:37 | 41 | Function 'UserSettingsModal' |
 | src/utils/wordHistory.js:3 | 30 | Function 'nextWordDoc' |
-| src/components/AuthModal.jsx:6 | 23 | Function 'AuthModal' |
+| src/components/AuthModal.jsx:7 | 23 | Function 'AuthModal' |
 | src/components/AccountDataSection.jsx:21 | 16 | Function 'AccountDataSection' |
-| src/components/RunnerRankingModal.jsx:6 | 16 | Function 'RunnerRankingModal' |
-| src/pages/Auth.jsx:5 | 16 | Function 'Auth' |
-| src/components/AuthModal.jsx:38 | 13 | Async function 'handleSubmit' |
+| src/components/RunnerRankingModal.jsx:7 | 16 | Function 'RunnerRankingModal' |
+| src/pages/Auth.jsx:6 | 16 | Function 'Auth' |
 | src/pages/Runner.jsx:71 | 12 | Function 'handleKey' |
 | src/services/playerService.js:101 | 12 | Async arrow function |
 | src/context/AuthContext.jsx:23 | 11 | Async arrow function |
+| src/pages/Runner.jsx:14 | 11 | Function 'Runner' |
 
-Maior complexidade: de 22 para 41; não houve redução geral. Funções internas são medidas separadamente.
+A maior complexidade continua 41 na entrega. Funções internas são medidas separadamente.
 
 ### Maiores componentes/páginas (linhas físicas)
 
@@ -151,13 +153,13 @@ Maior complexidade: de 22 para 41; não houve redução geral. Funções interna
 | src/components/UserSettingsModal.jsx | 311 | 428 |
 | src/pages/Runner.jsx | 349 | 349 |
 | src/components/GameBoard.jsx | 316 | 317 |
-| src/components/AuthModal.jsx | 237 | 235 |
+| src/components/AuthModal.jsx | 237 | 217 |
 | src/components/Header.jsx | 190 | 161 |
 | src/components/DevModal.jsx | 117 | 148 |
-| src/pages/Auth.jsx | 128 | 127 |
+| src/pages/Auth.jsx | 128 | 129 |
 | src/components/AccountDataSection.jsx | novo/fora do top 10 | 116 |
-| src/components/InfoModal.jsx | 106 | 106 |
-| src/components/RankingModal.jsx | 101 | 106 |
+| src/components/RankingModal.jsx | 101 | 107 |
+| src/components/RunnerRankingModal.jsx | novo/fora do top 10 | 107 |
 
 ### Versões resolvidas
 
@@ -183,83 +185,85 @@ Maior complexidade: de 22 para 41; não houve redução geral. Funções interna
 
 ### Arquivos por camada
 
-Entradas: `src/main.jsx` e `src/App.jsx`.
+Entradas: src/main.jsx e src/App.jsx.
 
 #### components (13)
 
-- `src/components/AccountDataSection.jsx`
-- `src/components/AuthModal.jsx`
-- `src/components/DevModal.jsx`
-- `src/components/GameBoard.jsx`
-- `src/components/Header.jsx`
-- `src/components/InfoModal.jsx`
-- `src/components/Keyboard.jsx`
-- `src/components/Layout.jsx`
-- `src/components/Modal.jsx`
-- `src/components/RankingModal.jsx`
-- `src/components/RunnerRankingModal.jsx`
-- `src/components/TermsModal.jsx`
-- `src/components/UserSettingsModal.jsx`
+- src/components/AccountDataSection.jsx
+- src/components/AuthModal.jsx
+- src/components/DevModal.jsx
+- src/components/GameBoard.jsx
+- src/components/Header.jsx
+- src/components/InfoModal.jsx
+- src/components/Keyboard.jsx
+- src/components/Layout.jsx
+- src/components/Modal.jsx
+- src/components/RankingModal.jsx
+- src/components/RunnerRankingModal.jsx
+- src/components/TermsModal.jsx
+- src/components/UserSettingsModal.jsx
 
 #### pages (3)
 
-- `src/pages/Auth.jsx`
-- `src/pages/Home.jsx`
-- `src/pages/Runner.jsx`
+- src/pages/Auth.jsx
+- src/pages/Home.jsx
+- src/pages/Runner.jsx
 
 #### context (3)
 
-- `src/context/AuthContext.jsx`
-- `src/context/authContextValue.js`
-- `src/context/useAuth.js`
+- src/context/AuthContext.jsx
+- src/context/authContextValue.js
+- src/context/useAuth.js
 
 #### hooks (2)
 
-- `src/hooks/useRunner.js`
-- `src/hooks/useWordle.js`
+- src/hooks/useRunner.js
+- src/hooks/useWordle.js
 
 #### services (8)
 
-- `src/services/accountLifecycle.js`
-- `src/services/accountService.js`
-- `src/services/adminService.js`
-- `src/services/authService.js`
-- `src/services/firebase.js`
-- `src/services/playerService.js`
-- `src/services/rankingService.js`
-- `src/services/wordService.js`
+- src/services/accountLifecycle.js
+- src/services/accountService.js
+- src/services/adminService.js
+- src/services/authService.js
+- src/services/firebase.js
+- src/services/playerService.js
+- src/services/rankingService.js
+- src/services/wordService.js
 
-#### utils (13)
+#### utils (15)
 
-- `src/utils/accountDeletion.js`
-- `src/utils/answers.js`
-- `src/utils/constants.js`
-- `src/utils/dataExport.js`
-- `src/utils/download.js`
-- `src/utils/gameLogic.js`
-- `src/utils/nickname.js`
-- `src/utils/playerStats.js`
-- `src/utils/profileLevel.js`
-- `src/utils/pseudonym.js`
-- `src/utils/researchExport.js`
-- `src/utils/wordFeedback.js`
-- `src/utils/wordHistory.js`
+- src/utils/accountDeletion.js
+- src/utils/answers.js
+- src/utils/constants.js
+- src/utils/dataExport.js
+- src/utils/download.js
+- src/utils/firebaseConfig.js
+- src/utils/firebaseErrors.js
+- src/utils/gameLogic.js
+- src/utils/nickname.js
+- src/utils/playerStats.js
+- src/utils/profileLevel.js
+- src/utils/pseudonym.js
+- src/utils/researchExport.js
+- src/utils/wordFeedback.js
+- src/utils/wordHistory.js
 
 #### styles (11)
 
-- `src/styles/auth.css`
-- `src/styles/base.css`
-- `src/styles/components.css`
-- `src/styles/game.css`
-- `src/styles/info-modal.css`
-- `src/styles/layout.css`
-- `src/styles/profile-modal.css`
-- `src/styles/profile-modal.original.css`
-- `src/styles/ranking.css`
-- `src/styles/ranking.original.css`
-- `src/styles/runner.css`
+- src/styles/auth.css
+- src/styles/base.css
+- src/styles/components.css
+- src/styles/game.css
+- src/styles/info-modal.css
+- src/styles/layout.css
+- src/styles/profile-modal.css
+- src/styles/profile-modal.original.css
+- src/styles/ranking.css
+- src/styles/ranking.original.css
+- src/styles/runner.css
 
-Scripts: generateDictionary.js, validateDictionary.js, measure-v2.mjs, run-emulator-tests.mjs, migrate-v2.mjs, set-admin-claim.mjs, lib/admin.mjs e lib/migration-v2.mjs em scripts/. Testes em tests/unit, tests/auth, tests/integration, tests/local e rules-tests; configuração em firebase.json, firestore.indexes.json, firestore.rules e eslint.config.js.
+Scripts em scripts/, incluindo medida, emuladores, scripts administrativos e helpers. Testes em tests/unit, tests/auth, tests/integration, tests/local e rules-tests. Configurações em firebase.json, firebase.tests.json, firestore.indexes.json, firestore.rules e eslint.config.js.
 
 ## Apêndice: firestore.rules integral
 

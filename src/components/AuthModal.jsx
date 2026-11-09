@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { registerWithPassword, loginWithPassword, loginWithGoogle, requestPasswordReset } from "../services/authService"
+import { authErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
 import "../styles/auth.css"
 
@@ -56,45 +57,26 @@ function AuthModal({ isOpen, onClose }) {
 
       handleClose()
     } catch (error) {
-      let message = "Erro inesperado. Tente novamente."
-
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/wrong-password"
-      ) {
-        message = "Email ou senha incorretos."
-      }
-
-      if (error.code === "auth/email-already-in-use") {
-        message = "Este email já está cadastrado."
-      }
-
-      if (error.code === "auth/invalid-email") {
-        message = "Email inválido."
-      }
-
-      if (error.code === "auth/weak-password") {
-        message = "Senha muito fraca. Use pelo menos 6 caracteres."
-      }
-
-      if (error.code === "auth/too-many-requests") {
-        message = "Muitas tentativas. Tente novamente mais tarde."
-      }
-
-      setErrors({ firebase: message })
+      console.error("Falha na autenticação:", firebaseErrorCode(error))
+      setErrors({ firebase: authErrorMessage(error) })
     } finally {
       setIsSubmitting(false)
     }
   }
 
   async function handleGoogle() {
+    if (isSubmitting) return
     setInfoMessage("")
+    setErrors({})
+    setIsSubmitting(true)
     try {
       await loginWithGoogle()
       handleClose()
-    } catch {
-      setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
+    } catch (error) {
+      console.error("Falha na autenticação Google:", firebaseErrorCode(error))
+      setErrors({ firebase: authErrorMessage(error) })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

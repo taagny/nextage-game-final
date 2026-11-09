@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { registerWithPassword, loginWithPassword } from "../services/authService"
+import { authErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import "../styles/auth.css"
 
 function Auth() {
@@ -52,7 +53,8 @@ function Auth() {
         await registerWithPassword(email, senha)
       }
     } catch (error) {
-      setErrors({ firebase: error.message })
+      console.error("Falha na autenticação:", firebaseErrorCode(error))
+      setErrors({ firebase: authErrorMessage(error) })
     }
   }
 

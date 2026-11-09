@@ -66,6 +66,8 @@ Pesquisa exige claim `admin: true` e lista de exclusão configurada. Exportaçõ
 
 ## Regras e publicação
 
+Para falhas no preview hospedado da branch, veja [login e ranking na Vercel](docs/PREVIEW_VERCEL.md). O preview usa o Firebase real por padrão e não publica regras/migrações. É possível configurar outro projeto com as variáveis `VITE_FIREBASE_*` do `.env.example`, restritas ao ambiente Preview da Vercel. Configuração parcial é recusada para não misturar projetos.
+
 `firestore.rules`, `firestore.indexes.json` e `firebase.json` versionam configuração. Regras são protótipo sujeito à suíte e revisão: resultados do cliente podem ser forjados dentro dos limites.
 
 O [roteiro](docs/PUBLICACAO_V2.md) descreve backup, cópia de perfis, publicação coordenada de regras/app, limpeza e claim. **Nenhuma publicação, migração ou mudança de produção foi executada.**
