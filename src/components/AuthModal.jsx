@@ -1,12 +1,5 @@
-import { useState, useEffect } from "react"
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail
-} from "firebase/auth"
-import { auth } from "../services/firebase"
+import { useState } from "react"
+import { registerWithPassword, loginWithPassword, loginWithGoogle, requestPasswordReset } from "../services/authService"
 import Modal from "./Modal"
 import "../styles/auth.css"
 
@@ -18,10 +11,10 @@ function AuthModal({ isOpen, onClose }) {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [confirmSenha, setConfirmSenha] = useState("")
-  const [errors, setErrors] = useState({})
+  const [submissionErrors, setErrors] = useState({})
   const [infoMessage, setInfoMessage] = useState("")
 
-  useEffect(() => {
+  const fieldErrors = (() => {
     const newErrors = {}
     const emailRegex = /^\S+@\S+\.\S+$/
 
@@ -37,8 +30,9 @@ function AuthModal({ isOpen, onClose }) {
       newErrors.confirmSenha = "As senhas não coincidem"
     }
 
-    setErrors(newErrors)
-  }, [email, senha, confirmSenha, isLogin])
+    return newErrors
+  })()
+  const errors = { ...submissionErrors, ...fieldErrors }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -47,14 +41,14 @@ function AuthModal({ isOpen, onClose }) {
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, senha)
+        await loginWithPassword(email, senha)
       } else {
         if (!nome.trim()) {
           setErrors(prev => ({ ...prev, nome: "Digite seu nome" }))
           return
         }
 
-        await createUserWithEmailAndPassword(auth, email, senha)
+        await registerWithPassword(email, senha)
       }
 
       handleClose()
@@ -91,11 +85,10 @@ function AuthModal({ isOpen, onClose }) {
 
   async function handleGoogle() {
     setInfoMessage("")
-    const provider = new GoogleAuthProvider()
     try {
-      await signInWithPopup(auth, provider)
+      await loginWithGoogle()
       handleClose()
-    } catch (error) {
+    } catch {
       setErrors({ firebase: "Erro ao entrar com Google. Tente novamente." })
     }
   }
@@ -110,9 +103,9 @@ function AuthModal({ isOpen, onClose }) {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email)
+      await requestPasswordReset(email)
       setInfoMessage("Se o email estiver cadastrado, você receberá as instruções de recuperação.")
-    } catch (error) {
+    } catch {
       setInfoMessage("Se o email estiver cadastrado, você receberá as instruções de recuperação.")
     }
   }
@@ -149,7 +142,7 @@ function AuthModal({ isOpen, onClose }) {
                 type="text"
                 placeholder="Nome"
                 value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                onChange={(e) => { setNome(e.target.value); setErrors({}) }}
                 className={errors.nome ? "error-input" : ""}
               />
               {errors.nome && <span className="error">{errors.nome}</span>}
@@ -160,7 +153,7 @@ function AuthModal({ isOpen, onClose }) {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setErrors({}) }}
             className={errors.email ? "error-input" : ""}
           />
           {errors.email && <span className="error">{errors.email}</span>}
@@ -169,7 +162,7 @@ function AuthModal({ isOpen, onClose }) {
             type="password"
             placeholder="Senha"
             value={senha}
-            onChange={(e) => setSenha(e.target.value)}
+            onChange={(e) => { setSenha(e.target.value); setErrors({}) }}
             className={errors.senha ? "error-input" : ""}
           />
           {errors.senha && <span className="error">{errors.senha}</span>}
@@ -180,7 +173,7 @@ function AuthModal({ isOpen, onClose }) {
                 type="password"
                 placeholder="Confirmar senha"
                 value={confirmSenha}
-                onChange={(e) => setConfirmSenha(e.target.value)}
+                onChange={(e) => { setConfirmSenha(e.target.value); setErrors({}) }}
                 className={errors.confirmSenha ? "error-input" : ""}
               />
               {errors.confirmSenha && <span className="error">{errors.confirmSenha}</span>}

@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 
 function Modal({ children, isOpen }) {
   if (!isOpen) return null

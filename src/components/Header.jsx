@@ -1,8 +1,7 @@
 import { useRef, useState } from "react"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { signOut } from "firebase/auth"
-import { auth } from "../services/firebase"
+import { useAuth } from "../context/useAuth"
+import { logout } from "../services/authService"
 import { registerAbandon } from "../services/playerService"
 import AuthModal from "./AuthModal"
 import UserSettingsModal from "./UserSettingsModal"
@@ -45,7 +44,7 @@ function Header() {
           console.error("Não foi possível registrar o abandono.", error)
         }
       }
-      await signOut(auth)
+      await logout()
       setOpenMenu(false)
     } finally {
       logoutInProgress.current = false

@@ -1,0 +1,421 @@
+{
+  "baselineCommit": "13601d6",
+  "baselineLint": {
+    "files": 32,
+    "errors": 14,
+    "warnings": 14,
+    "byRule": {
+      "no-unused-vars": {
+        "errors": 9,
+        "warnings": 0
+      },
+      "react-hooks/set-state-in-effect": {
+        "errors": 3,
+        "warnings": 0
+      },
+      "no-empty": {
+        "errors": 1,
+        "warnings": 0
+      },
+      "react-refresh/only-export-components": {
+        "errors": 1,
+        "warnings": 0
+      },
+      "react-hooks/exhaustive-deps": {
+        "errors": 0,
+        "warnings": 14
+      }
+    }
+  },
+  "finalLint": {
+    "files": 67,
+    "errors": 0,
+    "warnings": 11,
+    "byRule": {
+      "react-hooks/exhaustive-deps": {
+        "errors": 0,
+        "warnings": 11
+      }
+    },
+    "warningsDetail": [
+      {
+        "file": "src/components/GameBoard.jsx",
+        "line": 30,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useMemo has an unnecessary dependency: 'gameKey'. Either exclude it or remove the dependency array."
+      },
+      {
+        "file": "src/components/GameBoard.jsx",
+        "line": 62,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'setExternalStreak'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 53,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'stop'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 68,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'start'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 104,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has missing dependencies: 'clearCurrentRow', 'incrementScore', 'resetBoard', and 'stop'. Either include them or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 114,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'stop'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 123,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'handleChangeTime'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 129,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has missing dependencies: 'finished', 'selectedTime', and 'start'. Either include them or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 140,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'handleRestart'. Either include it or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 146,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has missing dependencies: 'score', 'selectedTime', and 'user'. Either include them or remove the dependency array."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 158,
+        "rule": "react-hooks/exhaustive-deps",
+        "message": "React Hook useEffect has a missing dependency: 'handleRestart'. Either include it or remove the dependency array."
+      }
+    ]
+  },
+  "baseline": {
+    "complexity": [
+      {
+        "file": "src/components/AuthModal.jsx",
+        "line": 13,
+        "value": 22,
+        "message": "Function 'AuthModal' has a complexity of 22. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/UserSettingsModal.jsx",
+        "line": 33,
+        "value": 21,
+        "message": "Function 'UserSettingsModal' has a complexity of 21. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Auth.jsx",
+        "line": 6,
+        "value": 16,
+        "message": "Function 'Auth' has a complexity of 16. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/Header.jsx",
+        "line": 17,
+        "value": 15,
+        "message": "Function 'Header' has a complexity of 15. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/AuthModal.jsx",
+        "line": 43,
+        "value": 12,
+        "message": "Async function 'handleSubmit' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 72,
+        "value": 12,
+        "message": "Function 'handleKey' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/services/playerService.js",
+        "line": 97,
+        "value": 12,
+        "message": "Async function 'updatePlayerStats' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 14,
+        "value": 11,
+        "message": "Function 'Runner' has a complexity of 11. Maximum allowed is 1."
+      },
+      {
+        "file": "src/services/adminService.js",
+        "line": 26,
+        "value": 11,
+        "message": "Arrow function has a complexity of 11. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 200,
+        "value": 9,
+        "message": "Function 'handleVirtualKey' has a complexity of 9. Maximum allowed is 1."
+      }
+    ],
+    "largestComponents": [
+      {
+        "file": "src/pages/Runner.jsx",
+        "lines": 349
+      },
+      {
+        "file": "src/components/GameBoard.jsx",
+        "lines": 316
+      },
+      {
+        "file": "src/components/UserSettingsModal.jsx",
+        "lines": 311
+      },
+      {
+        "file": "src/components/AuthModal.jsx",
+        "lines": 237
+      },
+      {
+        "file": "src/components/Header.jsx",
+        "lines": 190
+      },
+      {
+        "file": "src/pages/Auth.jsx",
+        "lines": 128
+      },
+      {
+        "file": "src/components/DevModal.jsx",
+        "lines": 117
+      },
+      {
+        "file": "src/components/InfoModal.jsx",
+        "lines": 106
+      },
+      {
+        "file": "src/components/PremiumModal.jsx",
+        "lines": 101
+      },
+      {
+        "file": "src/components/RankingModal.jsx",
+        "lines": 101
+      }
+    ]
+  },
+  "final": {
+    "complexity": [
+      {
+        "file": "src/components/UserSettingsModal.jsx",
+        "line": 37,
+        "value": 41,
+        "message": "Function 'UserSettingsModal' has a complexity of 41. Maximum allowed is 1."
+      },
+      {
+        "file": "src/utils/wordHistory.js",
+        "line": 3,
+        "value": 30,
+        "message": "Function 'nextWordDoc' has a complexity of 30. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/AuthModal.jsx",
+        "line": 6,
+        "value": 22,
+        "message": "Function 'AuthModal' has a complexity of 22. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/AccountDataSection.jsx",
+        "line": 21,
+        "value": 16,
+        "message": "Function 'AccountDataSection' has a complexity of 16. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/RunnerRankingModal.jsx",
+        "line": 6,
+        "value": 16,
+        "message": "Function 'RunnerRankingModal' has a complexity of 16. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Auth.jsx",
+        "line": 5,
+        "value": 16,
+        "message": "Function 'Auth' has a complexity of 16. Maximum allowed is 1."
+      },
+      {
+        "file": "src/components/AuthModal.jsx",
+        "line": 37,
+        "value": 12,
+        "message": "Async function 'handleSubmit' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "line": 71,
+        "value": 12,
+        "message": "Function 'handleKey' has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/services/playerService.js",
+        "line": 101,
+        "value": 12,
+        "message": "Async arrow function has a complexity of 12. Maximum allowed is 1."
+      },
+      {
+        "file": "src/context/AuthContext.jsx",
+        "line": 23,
+        "value": 11,
+        "message": "Async arrow function has a complexity of 11. Maximum allowed is 1."
+      }
+    ],
+    "largestComponents": [
+      {
+        "file": "src/components/UserSettingsModal.jsx",
+        "lines": 428
+      },
+      {
+        "file": "src/pages/Runner.jsx",
+        "lines": 349
+      },
+      {
+        "file": "src/components/GameBoard.jsx",
+        "lines": 317
+      },
+      {
+        "file": "src/components/AuthModal.jsx",
+        "lines": 230
+      },
+      {
+        "file": "src/components/Header.jsx",
+        "lines": 161
+      },
+      {
+        "file": "src/components/DevModal.jsx",
+        "lines": 148
+      },
+      {
+        "file": "src/pages/Auth.jsx",
+        "lines": 127
+      },
+      {
+        "file": "src/components/AccountDataSection.jsx",
+        "lines": 116
+      },
+      {
+        "file": "src/components/InfoModal.jsx",
+        "lines": 106
+      },
+      {
+        "file": "src/components/RankingModal.jsx",
+        "lines": 106
+      }
+    ]
+  },
+  "firestoreInterfaceImports": {
+    "baseline": [
+      "src/components/Header.jsx",
+      "src/components/PremiumModal.jsx",
+      "src/components/RankingModal.jsx",
+      "src/components/RunnerRankingModal.jsx",
+      "src/components/UserSettingsModal.jsx",
+      "src/context/AuthContext.jsx",
+      "src/pages/PremiumSuccess.jsx"
+    ],
+    "final": []
+  },
+  "libraries": {
+    "@eslint/js": "10.0.1",
+    "@firebase/rules-unit-testing": "5.0.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "eslint": "10.2.1",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.2",
+    "firebase": "12.12.1",
+    "firebase-admin": "14.5.0",
+    "firebase-tools": "15.35.0",
+    "globals": "17.5.0",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "react-router-dom": "7.14.2",
+    "recharts": "3.8.1",
+    "vite": "8.0.10"
+  },
+  "layers": {
+    "components": [
+      "src/components/AccountDataSection.jsx",
+      "src/components/AuthModal.jsx",
+      "src/components/DevModal.jsx",
+      "src/components/GameBoard.jsx",
+      "src/components/Header.jsx",
+      "src/components/InfoModal.jsx",
+      "src/components/Keyboard.jsx",
+      "src/components/Layout.jsx",
+      "src/components/Modal.jsx",
+      "src/components/RankingModal.jsx",
+      "src/components/RunnerRankingModal.jsx",
+      "src/components/TermsModal.jsx",
+      "src/components/UserSettingsModal.jsx"
+    ],
+    "pages": [
+      "src/pages/Auth.jsx",
+      "src/pages/Home.jsx",
+      "src/pages/Runner.jsx"
+    ],
+    "context": [
+      "src/context/AuthContext.jsx",
+      "src/context/authContextValue.js",
+      "src/context/useAuth.js"
+    ],
+    "hooks": [
+      "src/hooks/useRunner.js",
+      "src/hooks/useWordle.js"
+    ],
+    "services": [
+      "src/services/accountLifecycle.js",
+      "src/services/accountService.js",
+      "src/services/adminService.js",
+      "src/services/authService.js",
+      "src/services/firebase.js",
+      "src/services/playerService.js",
+      "src/services/rankingService.js",
+      "src/services/wordService.js"
+    ],
+    "utils": [
+      "src/utils/accountDeletion.js",
+      "src/utils/answers.js",
+      "src/utils/constants.js",
+      "src/utils/dataExport.js",
+      "src/utils/download.js",
+      "src/utils/gameLogic.js",
+      "src/utils/nickname.js",
+      "src/utils/playerStats.js",
+      "src/utils/profileLevel.js",
+      "src/utils/pseudonym.js",
+      "src/utils/researchExport.js",
+      "src/utils/wordFeedback.js",
+      "src/utils/wordHistory.js"
+    ],
+    "styles": [
+      "src/styles/auth.css",
+      "src/styles/base.css",
+      "src/styles/components.css",
+      "src/styles/game.css",
+      "src/styles/info-modal.css",
+      "src/styles/layout.css",
+      "src/styles/profile-modal.css",
+      "src/styles/profile-modal.original.css",
+      "src/styles/ranking.css",
+      "src/styles/ranking.original.css",
+      "src/styles/runner.css"
+    ]
+  }
+}

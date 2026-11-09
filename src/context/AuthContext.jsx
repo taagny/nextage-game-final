@@ -1,11 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react"
-import { onAuthStateChanged, signOut } from "firebase/auth"
-import { auth } from "../services/firebase"
+import { useEffect, useState } from "react"
 import { ensurePlayerExists, setTermsAccepted, subscribeToPublicProfile } from "../services/playerService"
 import { TERMS_VERSION } from "../utils/constants"
-import { getAdminStatus } from "../services/authService"
+import { getAdminStatus, observeAuthState, logout } from "../services/authService"
 
-const AuthContext = createContext()
+import { AuthContext } from "./authContextValue"
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -22,7 +20,7 @@ export function AuthProvider({ children }) {
     let active = true
     let session = 0
     let unsubscribeProfile
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = observeAuthState(async (currentUser) => {
       const currentSession = ++session
       unsubscribeProfile?.()
       unsubscribeProfile = undefined
@@ -83,7 +81,7 @@ export function AuthProvider({ children }) {
   }
 
   async function rejectTerms() {
-    await signOut(auth)
+    await logout()
     setMustAcceptTerms(false)
   }
 
@@ -113,8 +111,4 @@ export function AuthProvider({ children }) {
       ) : children)}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
 }

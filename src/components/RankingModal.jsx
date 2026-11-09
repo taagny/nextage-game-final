@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useState } from "react"
 import { getClassicRanking } from "../services/rankingService"
 import Modal from "./Modal"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 
 function RankingModal({ isOpen, onClose }) {
   const [players, setPlayers] = useState([])

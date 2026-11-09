@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import Modal from "./Modal"
 import AccountDataSection from "./AccountDataSection"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 import { getPlayer, getPublicProfile, getRecentMatches, updateNickname } from "../services/playerService"
 import { getHardestWords } from "../services/wordService"
 import { getProfileLevel } from "../utils/profileLevel"

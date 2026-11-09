@@ -7,7 +7,7 @@ import RunnerRankingModal from "../components/RunnerRankingModal"
 import Modal from "../components/Modal"
 import Keyboard from "../components/Keyboard"
 import { saveRunnerRecord } from "../services/playerService"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 import "../styles/game.css"
 import "../styles/runner.css"
 
@@ -55,15 +55,14 @@ function Runner() {
   useEffect(() => {
     if (prepTime === null) return
 
-    if (prepTime <= 0) {
-      setPrepTime(null)
-      start()
-      return
-    }
-
     const timer = setTimeout(() => {
-      setPrepTime(prev => prev - 1)
-    }, 1000)
+      if (prepTime <= 0) {
+        setPrepTime(null)
+        start()
+      } else {
+        setPrepTime(prev => prev - 1)
+      }
+    }, prepTime <= 0 ? 0 : 1000)
 
     return () => clearTimeout(timer)
   }, [prepTime])

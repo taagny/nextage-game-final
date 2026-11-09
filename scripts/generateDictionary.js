@@ -3,7 +3,6 @@ import fs from "fs"
 const INPUT_PATH = "./scripts/raw-words.txt"
 const OUTPUT_PATH = "./public/dictionary.json"
 
-const WORD_LENGTH = 5
 const FORMAT_MODE = "minified"
 
 // ✅ Remove acento

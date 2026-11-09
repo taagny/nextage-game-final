@@ -1,7 +1,7 @@
 import { useState, useEffect, useEffectEvent } from "react"
 import { getRunnerRanking } from "../services/rankingService"
 import Modal from "./Modal"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 
 function RunnerRankingModal({ isOpen, onClose, time }) {
   const [players, setPlayers] = useState([])

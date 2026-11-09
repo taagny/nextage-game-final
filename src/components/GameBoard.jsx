@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
 import { answers } from "../utils/answers"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 import { buildWordFeedback } from "../utils/wordFeedback"
 import {
   getPublicProfile,

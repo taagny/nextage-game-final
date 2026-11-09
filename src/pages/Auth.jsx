@@ -1,6 +1,5 @@
 import { useState } from "react"
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../services/firebase"
+import { registerWithPassword, loginWithPassword } from "../services/authService"
 import "../styles/auth.css"
 
 function Auth() {
@@ -48,9 +47,9 @@ function Auth() {
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, senha)
+        await loginWithPassword(email, senha)
       } else {
-        await createUserWithEmailAndPassword(auth, email, senha)
+        await registerWithPassword(email, senha)
       }
     } catch (error) {
       setErrors({ firebase: error.message })

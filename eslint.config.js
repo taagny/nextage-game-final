@@ -19,6 +19,15 @@ export default defineConfig([
     },
   },
   {
+    files: ['src/{components,pages,context}/**/*.{js,jsx}'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        paths: ['firebase/firestore', 'firebase/auth'],
+        patterns: ['firebase/firestore/**', 'firebase/auth/**', 'firebase/compat/**', '**/services/firebase', '**/services/firebase.js'],
+      }],
+    },
+  },
+  {
     files: ['scripts/**/*.mjs', 'rules-tests/**/*.js', 'tests/**/*.mjs'],
     languageOptions: { globals: globals.node },
   },
