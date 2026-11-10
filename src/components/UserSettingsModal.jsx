@@ -357,31 +357,31 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                             data={chartData}
                                             margin={{ top: 20, right: 14, left: 0, bottom: 10 }}
                                         >
-                                            <CartesianGrid vertical={false} stroke="#e3dfd7" />
+                                            <CartesianGrid vertical={false} stroke="#323447" />
                                             <XAxis
                                                 dataKey="partida"
-                                                stroke="#d6d1c8"
-                                                tick={{ fill: "#747169", fontSize: 12 }}
+                                                stroke="#55586e"
+                                                tick={{ fill: "#b1b3c2", fontSize: 12 }}
                                                 tickLine={false}
                                             />
                                             <YAxis
                                                 domain={[1, 6]}
                                                 ticks={[1, 2, 3, 4, 5, 6]}
-                                                stroke="#d6d1c8"
-                                                tick={{ fill: "#747169", fontSize: 12 }}
+                                                stroke="#55586e"
+                                                tick={{ fill: "#b1b3c2", fontSize: 12 }}
                                                 tickLine={false}
                                                 axisLine={false}
                                                 width={35}
                                             />
-                                            <Tooltip contentStyle={{ background: "#faf9f6", border: "1px solid #d6d1c8", borderRadius: 6, color: "#252520" }}
+                                            <Tooltip contentStyle={{ background: "#11121f", border: "1px solid #55586e", borderRadius: 6, color: "#f4f4f8" }}
                                                 labelFormatter={value => `Partida ${value}`} />
                                             <Line
                                                 type="monotone"
                                                 dataKey="attempts"
                                                 name="Tentativas"
-                                                stroke="#ad4033"
+                                                stroke="#ff7881"
                                                 strokeWidth={2}
-                                                dot={{ r: 3, strokeWidth: 2, fill: "#faf9f6" }}
+                                                dot={{ r: 3, strokeWidth: 2, fill: "#181926" }}
                                                 isAnimationActive={false}
                                             />
                                         </LineChart>
