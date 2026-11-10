@@ -197,7 +197,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     }
 
     return (
-        <Modal isOpen={isOpen}>
+        <Modal isOpen={isOpen} onClose={onClose} closeDisabled={accountBusy}>
             <div className="modal-card profile-modal">
                 <div className="profile-modal-header">
                     <button
