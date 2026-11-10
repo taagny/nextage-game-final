@@ -29,3 +29,7 @@ dist-ssr
 
 serviceAccount*.json
 *-adminsdk-*.json
+
+# Documentacao e artigos mantidos somente no computador local
+/docs/
+/entregas/
