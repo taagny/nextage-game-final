@@ -76,9 +76,6 @@ export default function AccountDataSection({ user, onBusyChange, disabled = fals
           {action === "csv" ? "Gerando CSV…" : "Exportar partidas (CSV)"}
         </button>
       </div>
-      <section className="account-danger-zone" aria-labelledby="account-danger-title">
-      <h3 id="account-danger-title">Excluir conta</h3>
-      <p>A exclusão da conta e dos dados registrados é permanente.</p>
       <button type="button" className="modal-btn red" disabled={unavailable} onClick={() => {
         setConfirming(true)
         setError("")
@@ -112,7 +109,6 @@ export default function AccountDataSection({ user, onBusyChange, disabled = fals
           </div>
         </div>
       )}
-      </section>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
     </section>

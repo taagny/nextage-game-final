@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import Modal from "./Modal"
 import AccountDataSection from "./AccountDataSection"
 import { useAuth } from "../context/useAuth"
@@ -18,17 +18,10 @@ import {
 } from "recharts"
 
 const PROFILE_LABELS = {
-    iniciante: "Iniciante",
-    medio: "Médio",
-    avancado: "Avançado"
+    iniciante: "INICIANTE",
+    medio: "MÉDIO",
+    avancado: "AVANÇADO"
 }
-
-const PROFILE_TABS = [
-    { id: "profile", label: "Perfil" },
-    { id: "evolution", label: "Evolução" },
-    { id: "words", label: "Palavras" },
-    { id: "settings", label: "Configurações" }
-]
 
 function formatPlayTime(timeMs) {
     const totalSeconds = Math.floor(timeMs / 1000)
@@ -59,52 +52,6 @@ function UserSettingsModal({ isOpen, onClose, user }) {
     const [hardestWords, setHardestWords] = useState([])
     const [wordsLoading, setWordsLoading] = useState(false)
     const [wordsError, setWordsError] = useState("")
-    const modalRef = useRef(null)
-
-    useEffect(() => {
-        if (!isOpen) return
-        const previousFocus = document.activeElement
-        modalRef.current?.querySelector(".profile-close")?.focus()
-        return () => {
-            if (previousFocus?.isConnected) previousFocus.focus()
-        }
-    }, [isOpen])
-
-    useEffect(() => {
-        if (!isOpen) return
-        function handleKey(event) {
-            if (event.key === "Escape" && !accountBusy) {
-                event.preventDefault()
-                onClose()
-            }
-            if (event.key !== "Tab") return
-            const elements = [...modalRef.current.querySelectorAll(
-                'button:not(:disabled), input:not(:disabled), [tabindex="0"]'
-            )].filter(element => element.getClientRects().length)
-            const first = elements[0], last = elements.at(-1)
-            if (!first) return
-            if (event.shiftKey && (document.activeElement === first || !modalRef.current.contains(document.activeElement))) {
-                event.preventDefault()
-                last.focus()
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault()
-                first.focus()
-            }
-        }
-        document.addEventListener("keydown", handleKey)
-        return () => document.removeEventListener("keydown", handleKey)
-    }, [isOpen, onClose, accountBusy])
-
-    function handleTabKey(event) {
-        const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"]
-        if (accountBusy || !keys.includes(event.key)) return
-        event.preventDefault()
-        const current = PROFILE_TABS.findIndex(tab => tab.id === activeTab)
-        const next = event.key === "Home" ? 0 : event.key === "End" ? PROFILE_TABS.length - 1
-            : (current + (["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1) + PROFILE_TABS.length) % PROFILE_TABS.length
-        setActiveTab(PROFILE_TABS[next].id)
-        modalRef.current.querySelector(`#profile-tab-${PROFILE_TABS[next].id}`)?.focus()
-    }
 
     useEffect(() => {
         let active = true
@@ -219,10 +166,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
         return (
             <div className="guess-distribution">
-                <div className="profile-section-heading">
-                    <h3>Distribuição de acertos</h3>
-                    <span>Por número de tentativas</span>
-                </div>
+                <h3>Histórico de Acertos</h3>
 
                 {Object.keys(distribution)
                     .sort((a, b) => Number(a) - Number(b))
@@ -254,14 +198,8 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
     return (
         <Modal isOpen={isOpen}>
-            <section className="modal-card profile-modal" ref={modalRef}
-                role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
-                <header className="profile-modal-header">
-                    <div>
-                        <span className="profile-brand">NEXTAGE</span>
-                        <h2 id="profile-modal-title">Sua conta</h2>
-                        <p>Um lugar para acompanhar seu jogo.</p>
-                    </div>
+            <div className="modal-card profile-modal">
+                <div className="profile-modal-header">
                     <button
                         type="button"
                         className="profile-close"
@@ -271,59 +209,81 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                     >
                         ×
                     </button>
-                </header>
-                <div className="profile-modal-body">
-
-                <div className="profile-tabs" role="tablist" aria-label="Seções da conta" onKeyDown={handleTabKey}>
-                    {PROFILE_TABS.map(tab => (
-                        <button key={tab.id} type="button" role="tab" id={`profile-tab-${tab.id}`}
-                            aria-selected={activeTab === tab.id}
-                            aria-controls={activeTab === tab.id ? `profile-panel-${tab.id}` : undefined}
-                            tabIndex={activeTab === tab.id ? 0 : -1}
-                            className={activeTab === tab.id ? "active" : ""}
-                            disabled={accountBusy} onClick={() => setActiveTab(tab.id)}>
-                            {tab.label}
-                        </button>
-                    ))}
                 </div>
-                <div className="profile-panel" role="tabpanel" id={`profile-panel-${activeTab}`}
-                    aria-labelledby={`profile-tab-${activeTab}`} tabIndex={0}>
-                {profileError && <p className="profile-notice" role="alert">{profileError}</p>}
-                {profileLoading && <p className="profile-status" role="status">Carregando seu perfil…</p>}
+                {profileError && <p role="alert">{profileError}</p>}
+
+                <div className="profile-tabs">
+                    <button
+                        className={activeTab === "profile" ? "active" : ""}
+                        disabled={accountBusy}
+                        onClick={() => setActiveTab("profile")}
+                    >
+                        Perfil
+                    </button>
+
+                    <button
+                        className={activeTab === "evolution" ? "active" : ""}
+                        disabled={accountBusy}
+                        onClick={() => setActiveTab("evolution")}
+                    >
+                        Evolução
+                    </button>
+
+                    <button
+                        className={activeTab === "words" ? "active" : ""}
+                        disabled={accountBusy}
+                        onClick={() => setActiveTab("words")}
+                    >
+                        Palavras
+                    </button>
+
+                    <button
+                        className={activeTab === "settings" ? "active" : ""}
+                        disabled={accountBusy}
+                        onClick={() => setActiveTab("settings")}
+                    >
+                        Configurações
+                    </button>
+                </div>
 
                 {activeTab === "profile" && (stats || formattedCreationDate) && (
                     <div className="profile-content">
 
-                        <div className="profile-identity">
-                            <span className="profile-kicker">Seu perfil</span>
-                            <h3>{nickname}</h3>
+                        <h2>{nickname}</h2>
 
                         {formattedCreationDate && (
                             <p className="profile-created-at">
-                                Membro desde {formattedCreationDate}
+                                Conta criada em: {formattedCreationDate}
                             </p>
                         )}
-                        </div>
 
                         {stats && (
                             <>
                                 <div className="profile-badge">
-                                    <span className="profile-level-dot" aria-hidden="true" />
-                                    Nível <strong>{PROFILE_LABELS[getProfileLevel(stats.totalWins)]}</strong>
+                                    Nível de experiência: <strong>{PROFILE_LABELS[getProfileLevel(stats.totalWins)]}</strong>
                                 </div>
 
-                                <div className="profile-summary">
-                                    <div className="profile-score">
-                                        <span className="profile-kicker">Vitórias no Clássico</span>
-                                        <strong>{(stats.totalWins ?? 0).toLocaleString("pt-BR")}</strong>
-                                        <span>Uma palavra de cada vez.</span>
+                                <div className="profile-metrics">
+                                    <div className="profile-metric">
+                                        <svg className="profile-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8m-4-4v4m-5-17h10v5a5 5 0 0 1-10 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4" /></svg>
+                                        <span className="profile-metric-copy"><span className="profile-metric-label">Vitórias</span><strong className="profile-metric-value">{stats.totalWins}</strong></span>
                                     </div>
-                                    <dl className="profile-metrics">
-                                        <div><dt>Partidas</dt><dd>{(stats.totalGames ?? 0).toLocaleString("pt-BR")}</dd></div>
-                                        <div><dt>Tempo em jogo</dt><dd>{formatPlayTime(stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0)}</dd></div>
-                                        <div><dt>Tempo médio por vitória</dt><dd>{(stats.avgTimePerWord / 1000).toFixed(1)} <small>s</small></dd></div>
-                                        <div><dt>Média de tentativas</dt><dd>{stats.avgAttemptsPerWord?.toFixed(2)}</dd></div>
-                                    </dl>
+                                    <div className="profile-metric">
+                                        <svg className="profile-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2" /><path d="M8 4v16m8-16v16M3.5 9h4.5m8 0h4.5m-17 6h4.5m8 0h4.5" /></svg>
+                                        <span className="profile-metric-copy"><span className="profile-metric-label">Partidas</span><strong className="profile-metric-value">{stats.totalGames}</strong></span>
+                                    </div>
+                                    <div className="profile-metric profile-metric-total-time">
+                                        <svg className="profile-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>
+                                        <span className="profile-metric-copy"><span className="profile-metric-label">Tempo total em jogo</span><strong className="profile-metric-value">{formatPlayTime(stats.totalPlayTimeMs ?? stats.totalTimeMs ?? 0)}</strong></span>
+                                    </div>
+                                    <div className="profile-metric">
+                                        <svg className="profile-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l-3 2m3-2 4 2" /></svg>
+                                        <span className="profile-metric-copy"><span className="profile-metric-label">Tempo médio</span><strong className="profile-metric-value">{(stats.avgTimePerWord / 1000).toFixed(1)}<small> s</small></strong></span>
+                                    </div>
+                                    <div className="profile-metric">
+                                        <svg className="profile-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></svg>
+                                        <span className="profile-metric-copy"><span className="profile-metric-label">Média de tentativas</span><strong className="profile-metric-value">{stats.avgAttemptsPerWord?.toFixed(2)}</strong></span>
+                                    </div>
                                 </div>
 
                                 {renderDistribution()}
@@ -342,12 +302,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                 {activeTab === "evolution" && (
                     <div className="evolution-section">
 
-                        <div className="profile-section-intro">
-                            <span className="profile-kicker">Seu desempenho</span>
-                            <h3>Evolução recente</h3>
-                            <p>Tentativas nas últimas {recentMatches.length} partidas concluídas do Clássico.</p>
-                        </div>
-                        {recentMatches.length === 0 && <p className="profile-empty">Conclua partidas do modo Clássico para acompanhar sua evolução.</p>}
+                        <h3>Evolução Recente (Últimas {recentMatches.length})</h3>
 
                         {recentMatches.length > 0 && (
                             <>
@@ -355,34 +310,28 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                     <ResponsiveContainer width="100%" height={260}>
                                         <LineChart
                                             data={chartData}
-                                            margin={{ top: 20, right: 14, left: 0, bottom: 10 }}
+                                            margin={{ top: 20, right: 20, left: 20, bottom: 10 }}
                                         >
-                                            <CartesianGrid vertical={false} stroke="#323447" />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3c" />
                                             <XAxis
                                                 dataKey="partida"
-                                                stroke="#55586e"
-                                                tick={{ fill: "#b1b3c2", fontSize: 12 }}
-                                                tickLine={false}
+                                                stroke="#ccc"
+                                                tick={{ fill: "#ccc" }}
                                             />
                                             <YAxis
                                                 domain={[1, 6]}
-                                                ticks={[1, 2, 3, 4, 5, 6]}
-                                                stroke="#55586e"
-                                                tick={{ fill: "#b1b3c2", fontSize: 12 }}
-                                                tickLine={false}
-                                                axisLine={false}
+                                                stroke="#ccc"
+                                                tick={{ fill: "#ccc" }}
                                                 width={35}
                                             />
-                                            <Tooltip contentStyle={{ background: "#11121f", border: "1px solid #55586e", borderRadius: 6, color: "#f4f4f8" }}
-                                                labelFormatter={value => `Partida ${value}`} />
+                                            <Tooltip />
                                             <Line
                                                 type="monotone"
                                                 dataKey="attempts"
                                                 name="Tentativas"
-                                                stroke="#ff7881"
-                                                strokeWidth={2}
-                                                dot={{ r: 3, strokeWidth: 2, fill: "#181926" }}
-                                                isAnimationActive={false}
+                                                stroke="#ff3b3b"
+                                                strokeWidth={3}
+                                                dot={{ r: 5 }}
                                             />
                                         </LineChart>
                                     </ResponsiveContainer>
@@ -392,7 +341,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                     <div>Tempo médio recente: {recentAvgTime.toFixed(1)}s</div>
                                     <div>
                                         Melhoria:{" "}
-                                        <strong>
+                                        <strong style={{ color: improvement >= 0 ? "#4CAF50" : "#ff3b3b" }}>
                                             {improvement.toFixed(1)}%
                                         </strong>
                                     </div>
@@ -405,10 +354,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
                 {activeTab === "words" && (
                     <section className="word-history-pane" aria-labelledby="word-history-title" aria-busy={wordsLoading}>
-                        <div className="profile-section-intro">
-                            <span className="profile-kicker">Seu repertório</span>
-                            <h3 id="word-history-title">Histórico de palavras</h3>
-                        </div>
+                        <h3 id="word-history-title">Maior média de tentativas</h3>
                         <p>Até 10 palavras das suas partidas concluídas no modo Clássico. Derrotas contam como 7 tentativas nesta média.</p>
                         {wordsLoading && <p role="status">Carregando palavras…</p>}
                         {wordsError && <p role="alert">{wordsError}</p>}
@@ -439,11 +385,6 @@ function UserSettingsModal({ isOpen, onClose, user }) {
 
                 {activeTab === "settings" && (
                     <div className="settings-section">
-                        <div className="profile-section-intro">
-                            <span className="profile-kicker">Preferências</span>
-                            <h3>Identidade pública</h3>
-                            <p>Escolha como você aparece para os outros jogadores.</p>
-                        </div>
                         <label className="settings-label" htmlFor="nickname-input">
                             Apelido público:
                         </label>
@@ -479,10 +420,10 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                                 onClick={handleSave}
                                 disabled={profileLoading || savingNickname || accountBusy || Boolean(nicknameError) || nicknameDraft === nickname}
                             >
-                                {savingNickname ? "Salvando…" : "Salvar apelido"}
+                                {savingNickname ? "Salvando…" : "Salvar"}
                             </button>
 
-                            <button className="modal-btn" onClick={onClose} disabled={accountBusy}>
+                            <button className="modal-btn red" onClick={onClose} disabled={accountBusy}>
                                 Cancelar
                             </button>
                         </div>
@@ -490,9 +431,7 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                     </div>
                 )}
 
-                </div>
-                </div>
-            </section>
+            </div>
         </Modal>
     )
 }
