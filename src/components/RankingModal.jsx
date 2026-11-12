@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useState } from "react"
 import { getClassicRanking } from "../services/rankingService"
 import { rankingErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
+import RankingRow from "./RankingRow"
 import { useAuth } from "../context/useAuth"
 
 function RankingModal({ isOpen, onClose }) {
@@ -40,13 +41,6 @@ function RankingModal({ isOpen, onClose }) {
     return () => { active = false }
   }, [isOpen, uid])
 
-  function getMedal(index) {
-    if (index === 0) return "🏆 1"
-    if (index === 1) return "🥈 2"
-    if (index === 2) return "🥉 3"
-    return `# ${index + 1}`
-  }
-
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new">
@@ -59,7 +53,7 @@ function RankingModal({ isOpen, onClose }) {
         <div className="ranking-header-new">
           <span>TOP</span>
           <span>JOGADOR</span>
-          <span title="Sequências perdidas">PERDIDAS</span>
+          <span title="Derrotas no modo Clássico">DERROTAS</span>
           <span>SEQUENCIAS</span>
         </div>
 
@@ -70,33 +64,14 @@ function RankingModal({ isOpen, onClose }) {
             <p>Nenhum jogador com sequência positiva no momento.</p>
           )}
           {players.map((player, index) => (
-            <div
-              key={player.id}
-              className={`ranking-row-new ${user && player.id === user.uid ? "ranking-row-self" : ""
-                }`}
-            >
-              <span className="ranking-top">
-                {getMedal(index)}
-              </span>
-
-              <span className="ranking-name-new">
-                {player.apelido}
-              </span>
-
-              <span className="ranking-stat-new">
-                {(player.sequenciasPerdidas || 0).toLocaleString("pt-BR")}
-              </span>
-
-              <span className="ranking-stat-new highlight-blue">
-                {(player.sequenciaAtual || 0).toLocaleString("pt-BR")}
-              </span>
-            </div>
+            <RankingRow key={player.id} player={player} position={index + 1} isSelf={player.id === uid} />
           ))}
         </div>
 
-        {userPosition && userPosition > 100 && (
-          <div className="ranking-user-position">
-            Sua posição: #{userPosition}
+        {!loading && !error && user && publicProfile && !players.some(player => player.id === uid) && (
+          <div className="ranking-user-summary">
+            <p className="ranking-user-caption">Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}</p>
+            <RankingRow player={publicProfile} position={userPosition} isSelf />
           </div>
         )}
       </div>

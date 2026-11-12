@@ -2,6 +2,7 @@ import { useState, useEffect, useEffectEvent } from "react"
 import { getRunnerRanking } from "../services/rankingService"
 import { rankingErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
+import RankingRow from "./RankingRow"
 import { useAuth } from "../context/useAuth"
 
 function RunnerRankingModal({ isOpen, onClose, time }) {
@@ -40,13 +41,6 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
     return () => { active = false }
   }, [isOpen, time, uid])
 
-  function getMedal(index) {
-    if (index === 0) return "🏆 1"
-    if (index === 1) return "🥈 2"
-    if (index === 2) return "🥉 3"
-    return `# ${index + 1}`
-  }
-
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new ranking-card-runner">
@@ -70,33 +64,14 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
             <p>Nenhum jogador com pontuação positiva nessa duração.</p>
           )}
           {players.map((player, index) => (
-            <div
-              key={player.id}
-              className={`ranking-row-new ${
-                user && player.id === user.uid ? "ranking-row-self" : ""
-              }`}
-            >
-              <span className="ranking-top">
-                {getMedal(index)}
-              </span>
-
-              <span
-                className="ranking-name-new"
-              >
-                {player.apelido}
-                
-              </span>
-
-              <span className="ranking-stat-new highlight-blue">
-                {(player.runnerScores?.[time] || 0).toLocaleString("pt-BR")}
-              </span>
-            </div>
+            <RankingRow key={player.id} player={player} position={index + 1} isSelf={player.id === uid} time={time} />
           ))}
         </div>
 
-        {userPosition && userPosition > 100 && (
-          <div className="ranking-user-position">
-            Sua posição: #{userPosition}
+        {!loading && !error && time && user && publicProfile && !players.some(player => player.id === uid) && (
+          <div className="ranking-user-summary">
+            <p className="ranking-user-caption">Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}</p>
+            <RankingRow player={publicProfile} position={userPosition} isSelf time={time} />
           </div>
         )}
       </div>
