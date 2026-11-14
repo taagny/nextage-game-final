@@ -1,7 +1,11 @@
 import { useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { deleteMyAccount, exportMyDataJSON, exportMyMatchesCSV } from "../services/accountService"
 import { reauthenticationMethod } from "../utils/accountDeletion"
 import { downloadFile } from "../utils/download"
+import { useAuth } from "../context/useAuth"
+import { hasResearchConsent } from "../utils/researchConsent"
+import TermsModal from "./TermsModal"
 
 function accountError(error) {
   const messages = {
@@ -25,6 +29,9 @@ export default function AccountDataSection({ user, onBusyChange, disabled = fals
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [reviewResearch, setReviewResearch] = useState(false)
+  const { researchPlayer, changeResearchConsent } = useAuth()
+  const researchActive = hasResearchConsent(researchPlayer)
   const busy = useRef(false)
   const method = reauthenticationMethod(user)
   const canDelete = confirmation === "EXCLUIR" && method && (method !== "password" || password.length > 0)
@@ -39,10 +46,15 @@ export default function AccountDataSection({ user, onBusyChange, disabled = fals
     onBusyChange(true)
     try {
       await operation()
-      if (name !== "delete") setMessage("Arquivo gerado para download.")
+      if (name === "research") {
+        setMessage("Participação atualizada. Sua conta e seu progresso foram mantidos.")
+        setReviewResearch(false)
+      } else if (name !== "delete") setMessage("Arquivo gerado para download.")
+      return true
     } catch (error) {
       console.error("Falha na operação da conta.", error?.code ?? error?.name)
       setError(accountError(error))
+      return false
     } finally {
       setPassword("")
       setAction("")
@@ -60,6 +72,28 @@ export default function AccountDataSection({ user, onBusyChange, disabled = fals
 
   return (
     <section className="account-data" aria-labelledby="account-data-title">
+      <section className="account-research" aria-labelledby="account-research-title">
+        <h3 id="account-research-title">Participação na pesquisa</h3>
+        <p>{!researchPlayer ? "Não foi possível consultar sua participação. Tente novamente mais tarde."
+          : researchActive ? "Ativa. Seus dados podem integrar as exportações acadêmicas."
+            : "Não autorizada. Seus dados ficam fora das exportações acadêmicas."}</p>
+        <p>Essa escolha não altera sua conta, histórico ou ranking. Revogar impede novas exportações; para arquivos já exportados, contate o responsável informado no termo.</p>
+        <button type="button" className="modal-btn" disabled={unavailable || !researchPlayer}
+          onClick={() => {
+            if (researchActive) execute("research", () => changeResearchConsent(false))
+            else { setReviewResearch(true); onBusyChange(true) }
+          }}>
+          {action === "research" ? "Atualizando…" : researchActive ? "Revogar participação" : "Ler termo e participar"}
+        </button>
+        {reviewResearch && createPortal(<TermsModal isOpen researchOnly
+          onAccept={async () => {
+            if (!await execute("research", () => changeResearchConsent(true))) {
+              onBusyChange(true)
+              throw new Error("Não foi possível atualizar a participação.")
+            }
+          }}
+          onReject={() => { setReviewResearch(false); onBusyChange(false) }} />, document.body)}
+      </section>
       <h3 id="account-data-title">Meus dados</h3>
       <p>Exporte os dados registrados na plataforma em JSON ou o histórico de partidas em CSV.</p>
       <div className="account-data-actions">

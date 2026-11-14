@@ -1,5 +1,6 @@
 import { getProfileLevel } from "./profileLevel.js"
 import { timestampISO } from "./dataExport.js"
+import { hasResearchConsent } from "./researchConsent.js"
 
 export const SUMMARY_COLUMNS = [
   "participant_id", "total_games", "total_wins", "total_losses", "abandoned_games",
@@ -32,7 +33,7 @@ function participant(code) {
 
 export function excludeResearchAccounts(players, excludedUIDs) {
   const excluded = new Set(excludedUIDs)
-  return players.filter(player => !excluded.has(player.uid))
+  return players.filter(player => !excluded.has(player.uid) && hasResearchConsent(player.data))
 }
 
 export function researchSummary(code, player) {

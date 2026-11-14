@@ -290,6 +290,7 @@
 .profile-modal .settings-section { min-height: 0; overflow-y: auto; justify-content: flex-start; }
 .account-data { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--pm-line); }
 .account-data p { font-size: 0.9rem; line-height: 1.5; }
+.account-research { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--pm-line); }
 .account-data-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .account-data button:disabled, .profile-tabs button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 .account-delete-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid rgba(255, 74, 85, 0.5); border-radius: 12px; }

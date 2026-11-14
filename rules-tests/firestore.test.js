@@ -28,7 +28,7 @@ const asVisitor = () => env.unauthenticatedContext().firestore()
 
 function playerData(timestamp, accepted = false) {
   return { schemaVersion: 2, termsAccepted: accepted, termsAcceptedAt: accepted ? timestamp : null,
-    termsVersion: "2", createdAt: timestamp, stats: initialPlayerStats(timestamp) }
+    termsVersion: "3", createdAt: timestamp, stats: initialPlayerStats(timestamp) }
 }
 function publicData(timestamp) {
   return { apelido: "Jogador", sequenciaAtual: 0, sequenciasPerdidas: 0,
@@ -183,13 +183,54 @@ test("apelido válido pode mudar sem modificar placares", async () => {
 test("consentimento aceita timestamp do servidor; createdAt, countersFixedAt e campos extras são protegidos", async () => {
   const db = asOwner()
   const ref = doc(db, "jogadores/alice")
-  await assertSucceeds(updateDoc(ref, { termsAccepted: true, termsAcceptedAt: serverTimestamp(), termsVersion: "2" }))
+  await assertSucceeds(updateDoc(ref, { termsAccepted: true, termsAcceptedAt: serverTimestamp(), termsVersion: "3" }))
   await assertFails(updateDoc(ref, { termsAcceptedAt: Timestamp.fromMillis(0) }))
   await assertFails(updateDoc(ref, { createdAt: serverTimestamp() }))
   await assertFails(updateDoc(ref, { "stats.countersFixedAt": serverTimestamp() }))
   await assertFails(updateDoc(ref, { email: "dado-extra" }))
   await assertFails(updateDoc(ref, { admin: true }))
   await assertFails(updateDoc(ref, { stats: { totalGames: 0 } }))
+})
+
+test("pesquisa pode ser autorizada, revogada e retomada sem alterar conta ou impedir partidas", async () => {
+  const db = asOwner(), ref = doc(db, "jogadores/alice")
+  const before = (await getDoc(ref)).data()
+  for (const accepted of [true, false, true, false]) {
+    await assertSucceeds(updateDoc(ref, { researchConsent: { accepted, version: "1", updatedAt: serverTimestamp() } }))
+    const after = (await getDoc(ref)).data()
+    assert.equal(after.researchConsent.accepted, accepted)
+    assert.equal(after.termsAccepted, true)
+    assert.deepEqual(after.stats, before.stats)
+  }
+  await assertSucceeds(record(db))
+  await assertSucceeds(updateDoc(doc(db, "perfisPublicos/alice"), { "runnerScores.10": 3, updatedAt: serverTimestamp() }))
+  await assertFails(updateDoc(doc(asOther(), "jogadores/alice"), { researchConsent: { accepted: true, version: "1", updatedAt: serverTimestamp() } }))
+  await assertFails(updateDoc(doc(asAdmin(), "jogadores/alice"), { researchConsent: { accepted: true, version: "1", updatedAt: serverTimestamp() } }))
+})
+
+test("pesquisa nega valores, versões, timestamps, remoção e campos extras indevidos", async () => {
+  const db = asOwner(), ref = doc(db, "jogadores/alice")
+  for (const change of [
+    { accepted: "sim", version: "1", updatedAt: serverTimestamp() },
+    { accepted: true, version: "0", updatedAt: serverTimestamp() },
+    { accepted: true, version: "1", updatedAt: past },
+    { accepted: true, version: "1" },
+    { accepted: true, version: "1", updatedAt: serverTimestamp(), admin: true }
+  ]) await assertFails(updateDoc(ref, { researchConsent: change }))
+  await assertSucceeds(updateDoc(ref, { researchConsent: { accepted: false, version: "1", updatedAt: serverTimestamp() } }))
+  await assertFails(updateDoc(ref, { researchConsent: null }))
+  const player = playerData(serverTimestamp())
+  await assertFails(setDoc(doc(asOther(), "jogadores/bob"), { ...player, researchConsent: { accepted: true, version: "1", updatedAt: serverTimestamp() } }))
+})
+
+test("conta antiga exige novos termos, sem converter aceite antigo em pesquisa", async () => {
+  await env.withSecurityRulesDisabled(context => updateDoc(doc(context.firestore(), "jogadores/alice"), { termsVersion: "2" }))
+  const db = asOwner(), ref = doc(db, "jogadores/alice")
+  await assertFails(record(db))
+  await assertFails(updateDoc(ref, { researchConsent: { accepted: true, version: "1", updatedAt: serverTimestamp() } }))
+  await assertSucceeds(updateDoc(ref, { termsAccepted: true, termsAcceptedAt: serverTimestamp(), termsVersion: "3", researchConsent: { accepted: false, version: "1", updatedAt: serverTimestamp() } }))
+  await assertSucceeds(record(db))
+  await assertFails(updateDoc(ref, { termsVersion: "2", termsAcceptedAt: serverTimestamp() }))
 })
 
 test("partidas exigem transação coerente, palavra válida, timestamp atual e não aceitam update", async () => {

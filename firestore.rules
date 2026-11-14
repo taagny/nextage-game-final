@@ -43,7 +43,7 @@ service cloud.firestore {
     }
     function accepted(uid) {
       let player = playerAfter(uid);
-      return player.termsAccepted == true && player.termsVersion == '2';
+      return player.termsAccepted == true && player.termsVersion == '3';
     }
     function runner(scores) {
       return closed(scores, ['10', '30', '60'])
@@ -112,21 +112,37 @@ service cloud.firestore {
         && data.countersFixedAt == request.time;
     }
     function validPlayer(data) {
-      return closed(data, ['schemaVersion', 'termsAccepted', 'termsAcceptedAt',
+      return data.keys().hasAll(['schemaVersion', 'termsAccepted', 'termsAcceptedAt',
           'termsVersion', 'createdAt', 'stats'])
+        && data.keys().hasOnly(['schemaVersion', 'termsAccepted', 'termsAcceptedAt',
+          'termsVersion', 'createdAt', 'stats', 'researchConsent'])
         && data.schemaVersion is int && data.schemaVersion == 2 && data.termsAccepted is bool
-        && data.termsVersion == '2'
+        && data.termsVersion in ['2', '3']
+        && (!('researchConsent' in data) || validResearchConsent(data.researchConsent))
         && ((data.termsAccepted && data.termsAcceptedAt is timestamp
             && data.termsAcceptedAt <= request.time)
           || (!data.termsAccepted && data.termsAcceptedAt == null))
         && data.createdAt is timestamp && data.createdAt <= request.time
         && validStats(data.stats);
     }
+    function validResearchConsent(data) {
+      return closed(data, ['accepted', 'version', 'updatedAt'])
+        && data.accepted is bool && data.version == '1'
+        && data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+    function researchConsentUpdate(before, after) {
+      let previous = before.get('researchConsent', null);
+      let next = after.get('researchConsent', null);
+      return next == previous
+        || (next != null && after.termsAccepted && after.termsVersion == '3'
+          && next.updatedAt == request.time);
+    }
     function validConsent(before, after) {
       return (after.termsAccepted == before.termsAccepted
           && after.termsAcceptedAt == before.termsAcceptedAt
           && after.termsVersion == before.termsVersion)
-        || (after.termsAccepted && after.termsAcceptedAt == request.time);
+        || (after.termsAccepted && after.termsVersion == '3'
+          && after.termsAcceptedAt == request.time);
     }
     function distributionUpdate(before, after, wins, attempts) {
       // Uma vitória incrementa somente a faixa de tentativas correspondente.
@@ -258,10 +274,14 @@ service cloud.firestore {
       allow read: if owner(uid) || admin();
       allow create: if owner(uid) && validPlayer(request.resource.data)
         && request.resource.data.createdAt == request.time
-        && request.resource.data.termsAccepted == false && zeroStats(request.resource.data.stats);
+        && request.resource.data.termsAccepted == false && zeroStats(request.resource.data.stats)
+        && (!('researchConsent' in request.resource.data)
+          || (!request.resource.data.researchConsent.accepted
+            && request.resource.data.researchConsent.updatedAt == request.time));
       allow update: if owner(uid) && validPlayer(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && validConsent(resource.data, request.resource.data)
+        && researchConsentUpdate(resource.data, request.resource.data)
         && statsUpdate(resource.data.stats, request.resource.data.stats)
         && profileAfterMatch(uid, resource.data.stats, request.resource.data.stats);
       allow delete: if owner(uid) || admin();

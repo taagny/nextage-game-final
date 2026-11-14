@@ -141,6 +141,7 @@ test("Chrome retoma visitante/conta, preserva vitória/derrota e não duplica se
     await evaluate("document.querySelector('.auth-card button[type=submit]').click()")
     await until(() => evaluate("!!document.querySelector('.terms-btn.accept')"))
     accountCreated = true
+    assert.equal(await evaluate("document.querySelector('.terms-research-choice input').checked"), false)
     await evaluate("document.querySelector('.terms-btn.accept').click()")
     await until(() => evaluate("!document.querySelector('.terms-modal')"))
     storageKey = await evaluate("Object.keys(localStorage).find(k=>k.startsWith('nextage:classic:v1:demo-nextage-v2:user:'))")
@@ -171,6 +172,29 @@ test("Chrome retoma visitante/conta, preserva vitória/derrota e não duplica se
     await key("Enter")
     await until(async () => (await snapshot()).matchId !== owned.matchId)
     assert.equal((await snapshot()).game.streak, 1)
+    const openSettings = async () => {
+      await evaluate("document.querySelector('.user-btn').click()")
+      await until(() => evaluate("!!document.querySelector('.user-dropdown button')"))
+      await evaluate("document.querySelector('.user-dropdown button').click()")
+      await until(() => evaluate("!!document.querySelector('.profile-tabs')"))
+      await evaluate("[...document.querySelectorAll('.profile-tabs button')].find(e=>e.textContent.trim()==='Configurações').click()")
+      await until(() => evaluate("!!document.querySelector('.account-research button') && !document.querySelector('.account-research button').disabled"))
+    }
+    await openSettings()
+    assert.ok(await evaluate("document.querySelector('.account-research').textContent.includes('Não autorizada')"))
+    await evaluate("document.querySelector('.account-research button').click()")
+    await until(() => evaluate("!!document.querySelector('.terms-btn.accept')"))
+    assert.ok(await evaluate("document.querySelector('.terms-modal').textContent.includes('histórico')"))
+    await evaluate("document.querySelector('.terms-btn.accept').click()")
+    await until(() => evaluate("!document.querySelector('.terms-modal') && document.querySelector('.account-research button').textContent==='Revogar participação'"))
+    await evaluate("document.querySelector('.account-research button').click()")
+    await until(() => evaluate("document.querySelector('.account-research').textContent.includes('Não autorizada') && !document.querySelector('.account-research button').disabled"))
+    await reload()
+    assert.ok(await evaluate("!!document.querySelector('.user-btn') && !document.querySelector('.terms-modal')"))
+    assert.equal((await snapshot()).game.streak, 1)
+    await openSettings()
+    assert.ok(await evaluate("document.querySelector('.account-research').textContent.includes('Não autorizada')"))
+    await evaluate("document.querySelector('.profile-close').click()")
   } finally {
     if (client) {
       client.send("Browser.close").catch(() => {})

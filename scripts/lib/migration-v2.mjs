@@ -6,7 +6,7 @@ export const LEGACY_FIELDS = [
   "email", "nome", "premium", "online", "lastActive", "jogoAberto", "jogos",
   "vitorias", "tentativas", "sequenciaAtual", "runnerScores"
 ]
-const PRIVATE_FIELDS = ["schemaVersion", "termsAccepted", "termsAcceptedAt", "termsVersion", "createdAt", "stats"]
+const PRIVATE_FIELDS = ["schemaVersion", "termsAccepted", "termsAcceptedAt", "termsVersion", "createdAt", "stats", "researchConsent"]
 
 function onlyKnown(data, keys, label) {
   if (!data || typeof data !== "object" || Array.isArray(data) ||
@@ -64,6 +64,14 @@ export function buildPrivateDocument(legacy, { now, createdAt }) {
     throw new Error("Data de criação ausente: é necessário obtê-la no Firebase Authentication.")
   }
   const resetTerms = legacy.schemaVersion !== 2 || legacy.termsVersion !== TERMS_VERSION
+  const consent = legacy.researchConsent
+  if (consent !== undefined) {
+    onlyKnown(consent, ["accepted", "version", "updatedAt"], "researchConsent")
+    if (typeof consent.accepted !== "boolean" || consent.version !== "1" ||
+        typeof consent.updatedAt?.toMillis !== "function" || !Number.isFinite(consent.updatedAt.toMillis())) {
+      throw new Error("Autorização de pesquisa inválida; revise antes de aplicar.")
+    }
+  }
   if (typeof stats.countersFixedAt?.toMillis !== "function" ||
       !Number.isFinite(stats.countersFixedAt.toMillis()) ||
       (!resetTerms && legacy.termsAccepted === true &&
@@ -76,6 +84,7 @@ export function buildPrivateDocument(legacy, { now, createdAt }) {
     termsAcceptedAt: resetTerms || legacy.termsAccepted !== true ? null : legacy.termsAcceptedAt,
     termsVersion: TERMS_VERSION,
     createdAt: creation,
-    stats
+    stats,
+    ...(consent === undefined ? {} : { researchConsent: { ...consent } })
   }
 }

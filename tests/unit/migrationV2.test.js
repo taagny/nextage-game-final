@@ -43,7 +43,7 @@ test("cleanup remove os campos legados e marca a semântica nova sem recalcular 
   assert.equal(cleaned.termsAccepted, false)
   assert.equal(cleaned.termsAcceptedAt, null)
   assert.equal(cleaned.schemaVersion, 2)
-  assert.equal(cleaned.termsVersion, "2")
+  assert.equal(cleaned.termsVersion, "3")
 })
 
 test("cleanup repetido é idempotente e preserva um novo aceite válido", () => {
@@ -59,4 +59,15 @@ test("cleanup recusa campos desconhecidos, datas ausentes e totais inconsistente
   assert.throws(() => buildPrivateDocument({}, { now }), /Data de criação/)
   assert.throws(() => buildPrivateDocument({ stats: { totalGames: 1, totalWins: 2 } }, { now, createdAt }), /inconsistentes/)
   assert.throws(() => buildPrivateDocument({ stats: { totalTimeMs: -1 } }, { now, createdAt }), /inválido/)
+})
+
+test("cleanup preserva autorização ou revogação explícita e não cria participação para contas antigas", () => {
+  const cleaned = buildPrivateDocument({}, { now, createdAt })
+  assert.equal(Object.hasOwn(cleaned, "researchConsent"), false)
+  for (const accepted of [true, false]) {
+    cleaned.researchConsent = { accepted, version: "1", updatedAt: now }
+    assert.deepEqual(buildPrivateDocument(cleaned, { now, createdAt }).researchConsent, cleaned.researchConsent)
+  }
+  cleaned.researchConsent.accepted = "sim"
+  assert.throws(() => buildPrivateDocument(cleaned, { now, createdAt }), /pesquisa inválida/)
 })

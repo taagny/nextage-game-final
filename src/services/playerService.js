@@ -3,7 +3,7 @@ import {
   onSnapshot, runTransaction, serverTimestamp, updateDoc
 } from "firebase/firestore"
 import { db } from "./firebase"
-import { TERMS_VERSION } from "../utils/constants.js"
+import { RESEARCH_CONSENT_VERSION, TERMS_VERSION } from "../utils/constants.js"
 import { defaultNickname, validateNickname } from "../utils/nickname.js"
 import { initialPlayerStats, nextPlayerStats } from "../utils/playerStats.js"
 import { withPlayerWrite } from "./accountLifecycle"
@@ -60,11 +60,29 @@ export function subscribeToPublicProfile(uid, onProfile, onError) {
   }, onError)
 }
 
-export async function setTermsAccepted(uid) {
+export function subscribeToPlayer(uid, onPlayer, onError) {
+  return onSnapshot(doc(db, "jogadores", uid), snapshot => {
+    onPlayer(snapshot.exists() ? snapshot.data() : null)
+  }, onError)
+}
+
+function researchDecision(accepted) {
+  if (typeof accepted !== "boolean") throw new TypeError("Decisão de pesquisa inválida.")
+  return { accepted, version: RESEARCH_CONSENT_VERSION, updatedAt: serverTimestamp() }
+}
+
+export async function setTermsAccepted(uid, participateInResearch = false) {
   return withPlayerWrite(uid, () => updateDoc(doc(db, "jogadores", uid), {
     termsAccepted: true,
     termsAcceptedAt: serverTimestamp(),
-    termsVersion: TERMS_VERSION
+    termsVersion: TERMS_VERSION,
+    researchConsent: researchDecision(participateInResearch)
+  }))
+}
+
+export async function setResearchConsent(uid, accepted) {
+  return withPlayerWrite(uid, () => updateDoc(doc(db, "jogadores", uid), {
+    researchConsent: researchDecision(accepted)
   }))
 }
 

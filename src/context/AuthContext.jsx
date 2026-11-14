@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { ensurePlayerExists, setTermsAccepted, subscribeToPublicProfile } from "../services/playerService"
+import { ensurePlayerExists, setTermsAccepted, setResearchConsent, subscribeToPlayer, subscribeToPublicProfile } from "../services/playerService"
 import { TERMS_VERSION } from "../utils/constants"
 import { getAdminStatus, observeAuthState, logout } from "../services/authService"
 
@@ -15,15 +15,20 @@ export function AuthProvider({ children }) {
   const [nickname, setNickname] = useState("")
   const [publicProfile, setPublicProfile] = useState(null)
   const [profileError, setProfileError] = useState("")
+  const [researchPlayer, setResearchPlayer] = useState(null)
 
   useEffect(() => {
     let active = true
     let session = 0
     let unsubscribeProfile
+    let unsubscribePlayer
     const unsubscribe = observeAuthState(async (currentUser) => {
       const currentSession = ++session
       unsubscribeProfile?.()
       unsubscribeProfile = undefined
+      unsubscribePlayer?.()
+      unsubscribePlayer = undefined
+      setResearchPlayer(null)
       setLoading(true)
       setUser(null)
       setIsAdmin(false)
@@ -44,6 +49,15 @@ export function AuthProvider({ children }) {
         setNickname(publicProfile.apelido)
         setIsAdmin(adminStatus)
         setPublicProfile(publicProfile)
+        setResearchPlayer(player)
+        unsubscribePlayer = subscribeToPlayer(currentUser.uid, nextPlayer => {
+          if (!active || currentSession !== session) return
+          setResearchPlayer(nextPlayer)
+          setMustAcceptTerms(!nextPlayer?.termsAccepted || nextPlayer.termsVersion !== TERMS_VERSION)
+        }, error => {
+          console.error("Não foi possível acompanhar a participação na pesquisa.", error?.code)
+          if (active && currentSession === session) setResearchPlayer(null)
+        })
         unsubscribeProfile = subscribeToPublicProfile(currentUser.uid, profile => {
           if (!active || currentSession !== session) return
           setPublicProfile(profile)
@@ -69,15 +83,21 @@ export function AuthProvider({ children }) {
     return () => {
       active = false
       unsubscribeProfile?.()
+      unsubscribePlayer?.()
       unsubscribe()
     }
   }, [])
 
-  async function acceptTerms() {
+  async function acceptTerms(participateInResearch = false) {
     if (!user) return
 
-    await setTermsAccepted(user.uid)
+    await setTermsAccepted(user.uid, participateInResearch)
     setMustAcceptTerms(false)
+  }
+
+  async function changeResearchConsent(accepted) {
+    if (!user) throw new Error("Entre na conta para alterar a participação.")
+    await setResearchConsent(user.uid, accepted)
   }
 
   async function rejectTerms() {
@@ -100,7 +120,9 @@ export function AuthProvider({ children }) {
         setGameMatchId,
         mustAcceptTerms,
         acceptTerms,
-        rejectTerms
+        rejectTerms,
+        researchPlayer,
+        changeResearchConsent
       }}
     >
       {!loading && (profileError ? (

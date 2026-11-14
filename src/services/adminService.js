@@ -5,6 +5,7 @@ import { EXCLUDED_FROM_RESEARCH_UIDS } from "../utils/constants.js"
 import { pseudonymizeUid } from "../utils/pseudonym.js"
 import { downloadFile } from "../utils/download.js"
 import { toCSV } from "../utils/dataExport.js"
+import { hasResearchConsent } from "../utils/researchConsent.js"
 import {
   excludeResearchAccounts, MATCH_COLUMNS, researchMatch, researchRunnerScores,
   researchSummary, SUMMARY_COLUMNS
@@ -32,6 +33,16 @@ async function participants() {
     throw new Error("Dois participantes receberam o mesmo código. A exportação foi interrompida para revisão.")
   }
   return records
+}
+
+async function verifyResearchParticipation(records) {
+  // Revalidar depois das consultas longas: uma revogação durante a coleta
+  // interrompe o arquivo, em vez de reutilizar a autorização da primeira leitura.
+  const current = await Promise.all(records.map(record => getDoc(doc(db, "jogadores", record.uid))))
+  if (current.some((snapshot, index) => !hasResearchConsent(snapshot.data()) ||
+    !snapshot.data().researchConsent.updatedAt.isEqual(records[index].data.researchConsent.updatedAt))) {
+    throw new Error("Uma participação mudou durante a consulta. Gere novamente os dados da pesquisa.")
+  }
 }
 
 export async function getGlobalStats() {
@@ -66,11 +77,13 @@ export async function getGlobalStats() {
   result.top10 = ranking.slice(0, 10)
   result.avgGlobalTime = result.totalWins ? totalTime / result.totalWins / 1000 : 0
   result.avgGlobalAttempts = result.totalWins ? totalAttempts / result.totalWins : 0
+  await verifyResearchParticipation(records)
   return result
 }
 
 export async function exportSummaryCSV() {
   const records = await participants()
+  await verifyResearchParticipation(records)
   downloadFile(
     toCSV(SUMMARY_COLUMNS, records.map(record => record.summary)),
     "nextage_pesquisa_resumo.csv", "text/csv;charset=utf-8"
@@ -86,6 +99,7 @@ export async function exportMatchesCSV() {
       researchMatch(record.code, document.data(), record.data.stats?.countersFixedAt)
     ))
   }
+  await verifyResearchParticipation(records)
   downloadFile(toCSV(MATCH_COLUMNS, rows), "nextage_pesquisa_partidas.csv", "text/csv;charset=utf-8")
 }
 
@@ -106,6 +120,7 @@ export async function exportResearchJSON() {
       )
     })
   }
+  await verifyResearchParticipation(records)
   downloadFile(JSON.stringify({
     schemaVersion: 2, exportedAt: new Date().toISOString(), participants: dataset
   }, null, 2), "nextage_pesquisa.json", "application/json;charset=utf-8")

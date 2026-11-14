@@ -34,9 +34,20 @@ test("pesquisa usa campos permitidos e exclui identificadores, inclusive legados
 })
 
 test("exclusão da pesquisa remove desenvolvedor e teste antes de montar o conjunto", () => {
-  const players = ["dev-fixture", "test-fixture", "participante-fixture"].map(uid => ({ uid, data: {} }))
+  const players = ["dev-fixture", "test-fixture", "participante-fixture"].map(uid => ({ uid, data: {
+    termsAccepted: true, termsVersion: "3", researchConsent: { accepted: true, version: "1", updatedAt: timestamp }
+  } }))
   assert.deepEqual(excludeResearchAccounts(players, ["dev-fixture", "test-fixture"]).map(player => player.uid), ["participante-fixture"])
   assert.equal(players.length, 3)
+})
+
+test("exportação exclui contas antigas, recusas, revogações e versões antigas", () => {
+  const active = { termsAccepted: true, termsVersion: "3", researchConsent: { accepted: true, version: "1", updatedAt: timestamp } }
+  const data = [active, {}, { ...active, termsVersion: "2" }, { ...active, termsAccepted: false },
+    { ...active, researchConsent: { accepted: false, version: "1", updatedAt: timestamp } },
+    { ...active, researchConsent: { accepted: true, version: "0", updatedAt: timestamp } },
+    { ...active, researchConsent: { accepted: true, version: "1" } }]
+  assert.deepEqual(excludeResearchAccounts(data.map((data, uid) => ({ uid, data })), []).map(p => p.uid), [0])
 })
 
 test("pesquisa mantém contadores legados e data vazia quando não há marca de correção", () => {

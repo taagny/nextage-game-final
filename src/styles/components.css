@@ -388,6 +388,15 @@
 .terms-modal .terms-content { min-height: 0; }
 .terms-modal .terms-version { color: #ccc; font-size: 0.85rem; }
 .terms-modal .terms-actions { flex-wrap: wrap; }
+.terms-research-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.terms-research-choice input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; accent-color: #ff3b3b; }
 .terms-modal button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .terms-content {

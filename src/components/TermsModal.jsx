@@ -2,9 +2,10 @@ import { useState } from "react"
 import Modal from "./Modal"
 import { CONTACT_EMAIL, TERMS_VERSION } from "../utils/constants"
 
-function TermsModal({ isOpen, onAccept, onReject }) {
+function TermsModal({ isOpen, onAccept, onReject, researchOnly = false }) {
   const [decision, setDecision] = useState("")
   const [error, setError] = useState("")
+  const [participate, setParticipate] = useState(false)
 
   async function decide(name, callback) {
     if (decision) return
@@ -12,6 +13,7 @@ function TermsModal({ isOpen, onAccept, onReject }) {
     setError("")
     try {
       await callback()
+      setParticipate(false)
     } catch (error) {
       console.error("Não foi possível registrar a decisão sobre o termo.", error?.code ?? error?.name)
       setError("Não foi possível concluir sua solicitação. Tente novamente.")
@@ -23,14 +25,15 @@ function TermsModal({ isOpen, onAccept, onReject }) {
   return (
     <Modal isOpen={isOpen}>
       <section className="modal-card terms-modal" role="dialog" aria-modal="true" aria-labelledby="terms-title">
-        <h2 id="terms-title" className="terms-title">Termo de Consentimento</h2>
+        <h2 id="terms-title" className="terms-title">{researchOnly ? "Participação na pesquisa" : "Privacidade e uso da conta"}</h2>
         <p className="terms-version">Versão {TERMS_VERSION}</p>
         <div className="terms-content">
           <p>
             O NEXTAGE é um jogo de palavras desenvolvido como Trabalho de Conclusão de Curso.
-            A finalidade da coleta é avaliar o uso e o desempenho da plataforma para fins acadêmicos.
+            Os dados da conta permitem salvar seu progresso e apresentar seu perfil e ranking.
+            Autorizar seu uso em pesquisa acadêmica é uma escolha separada e opcional.
           </p>
-          <p>Ao utilizar uma conta e aceitar este termo, são registrados:</p>
+          <p>Ao utilizar uma conta, são registrados:</p>
           <ul>
             <li>Identificador da conta, apelido e datas de criação do perfil e de aceite da versão do termo;</li>
             <li>Palavras jogadas no modo Clássico, tentativas, vitórias, derrotas, abandonos ao sair da conta e tempo de jogo;</li>
@@ -39,7 +42,7 @@ function TermsModal({ isOpen, onAccept, onReject }) {
           </ul>
           <p>
             Nome e e-mail ficam no Firebase Authentication para acesso à conta e não são copiados
-            para os documentos de jogo v2. Na pesquisa, o identificador é substituído por um código
+            para os documentos de jogo. Na pesquisa, o identificador é substituído por um código
             pseudonimizado, sem nome, e-mail ou apelido. Dados pseudonimizados continuam podendo
             ser relacionados à conta por quem dispõe das informações necessárias.
           </p>
@@ -52,9 +55,17 @@ function TermsModal({ isOpen, onAccept, onReject }) {
             nas configurações do perfil. A exclusão pede confirmação e nova autenticação.
           </p>
           <p className="terms-highlight">
-            A participação é voluntária. Você pode recusar o termo, encerrar a sessão
-            e continuar jogando como visitante; partidas de visitantes não são salvas.
-            Uma nova versão do termo exige novo aceite.
+            A pesquisa avalia o uso e o desempenho do NEXTAGE a partir das estatísticas e do
+            histórico da conta, inclusive partidas anteriores à autorização. A participação é
+            voluntária e não é necessária para usar a conta, salvar partidas ou aparecer no ranking.
+            Você pode revogar a autorização nas configurações e continuar jogando normalmente.
+            Após a revogação, seus dados deixam de integrar as próximas exportações de pesquisa.
+          </p>
+          <p>
+            A revogação não recolhe arquivos já exportados. Para solicitar o tratamento desses
+            arquivos ou a eliminação de dados da pesquisa, entre em contato com o responsável.
+            A exclusão da conta é uma opção independente. Uma nova versão da autorização
+            de pesquisa exige nova escolha explícita.
           </p>
           <p>
             Contato do responsável: {CONTACT_EMAIL
@@ -62,15 +73,22 @@ function TermsModal({ isOpen, onAccept, onReject }) {
               : "temporariamente indisponível. Tente novamente mais tarde."}
           </p>
         </div>
+        {!researchOnly && (
+          <label className="terms-research-choice">
+            <input type="checkbox" checked={participate} disabled={Boolean(decision) || !CONTACT_EMAIL}
+              onChange={event => setParticipate(event.target.checked)} />
+            Autorizo, opcionalmente, o uso das estatísticas e do histórico da minha conta na pesquisa descrita acima.
+          </label>
+        )}
         {error && <p role="alert">{error}</p>}
         <div className="terms-actions">
           <button className="terms-btn accept" disabled={Boolean(decision) || !CONTACT_EMAIL}
-            onClick={() => decide("accept", onAccept)}>
-            {decision === "accept" ? "Registrando…" : "Aceito"}
+            onClick={() => decide("accept", () => onAccept(researchOnly || participate))}>
+            {decision === "accept" ? "Registrando…" : researchOnly ? "Autorizar participação" : "Aceitar uso da conta e continuar"}
           </button>
           <button className="terms-btn reject" disabled={Boolean(decision)}
             onClick={() => decide("reject", onReject)}>
-            {decision === "reject" ? "Saindo…" : "Não aceito"}
+            {decision === "reject" ? "Aguarde…" : researchOnly ? "Cancelar" : "Sair e jogar como visitante"}
           </button>
         </div>
       </section>

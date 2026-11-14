@@ -1,4 +1,5 @@
-export const TERMS_VERSION = "2"
+export const TERMS_VERSION = "3"
+export const RESEARCH_CONSENT_VERSION = "1"
 export const NICKNAME_MIN = 3
 export const NICKNAME_MAX = 20
 export const LOSS_ATTEMPTS = 7
