@@ -7,6 +7,9 @@ import { setTimeout as delay } from "node:timers/promises"
 import { initializeApp, deleteApp } from "firebase/app"
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword, deleteUser } from "firebase/auth"
 import { connectFirestoreEmulator, getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore"
+import { initializeApp as initializeAdminApp, deleteApp as deleteAdminApp } from "firebase-admin/app"
+import { getFirestore as getAdminFirestore } from "firebase-admin/firestore"
+import { getAuth as getAdminAuth } from "firebase-admin/auth"
 
 async function until(check, timeout = 30000) {
   const end = Date.now() + timeout
@@ -166,7 +169,7 @@ test("Chrome retoma visitante/conta, preserva vitória/derrota e não duplica se
     await until(async () => (await snapshot()).recorded)
     assert.equal((await snapshot()).matchId, owned.matchId)
     await evaluate("document.querySelector('.victory-close').click(); document.querySelector('.header-left .icon-btn').click()")
-    await until(() => evaluate("!!document.querySelector('.ranking-row-self .highlight-blue')"))
+    await until(() => evaluate("document.querySelector('.ranking-list-new')?.getAttribute('aria-busy')==='false' && !!document.querySelector('.ranking-row-self .highlight-blue')"))
     assert.equal(await evaluate("document.querySelector('.ranking-row-self .highlight-blue').textContent.trim()"), "1")
     await evaluate("document.querySelector('.ranking-close').click()")
     await key("Enter")
@@ -194,7 +197,82 @@ test("Chrome retoma visitante/conta, preserva vitória/derrota e não duplica se
     assert.equal((await snapshot()).game.streak, 1)
     await openSettings()
     assert.ok(await evaluate("document.querySelector('.account-research').textContent.includes('Não autorizada')"))
+    const downloads = path.resolve(mkdtempSync(".firebase/browser-downloads-"))
+    await client.send("Browser.setDownloadBehavior", { behavior: "allow", downloadPath: downloads })
+    await evaluate("[...document.querySelectorAll('.account-data-actions button')].find(e=>e.textContent.includes('JSON')).click()")
+    const jsonPath = path.join(downloads, "nextage_meus_dados.json")
+    await until(() => existsSync(jsonPath))
+    const personal = JSON.parse(readFileSync(jsonPath, "utf8"))
+    assert.equal(personal.player.stats.totalWins, 1)
+    assert.equal(personal.player.researchConsent.accepted, false)
+    await until(() => evaluate("!document.querySelector('.account-data-actions button').disabled"))
+    await evaluate("[...document.querySelectorAll('.account-data-actions button')].find(e=>e.textContent.includes('CSV')).click()")
+    const csvPath = path.join(downloads, "nextage_minhas_partidas.csv")
+    await until(() => existsSync(csvPath))
+    assert.ok(readFileSync(csvPath, "utf8").includes(owned.secret))
     await evaluate("document.querySelector('.profile-close').click()")
+
+    // Regressão Runner: na sexta linha, entradas rejeitadas não encerram a corrida.
+    await evaluate("window.nextageOriginalRandom=Math.random; Math.random=()=>0; document.querySelector('a[href=\"/runner\"]').click()")
+    await until(() => evaluate("!!document.querySelector('.runner-options-vertical')"))
+    await evaluate("[...document.querySelectorAll('.runner-options-vertical button')].find(e=>e.textContent==='60s').click()")
+    await until(() => evaluate("!!document.querySelector('.runner-timer')"))
+    for (let row = 0; row < 5; row++) { await type("CASAS"); await key("Enter") }
+    await until(() => evaluate("document.querySelectorAll('.game-tile[class*=tile-]').length===25"))
+    await type("AB")
+    await key("Enter")
+    assert.ok(await evaluate("!!document.querySelector('.runner-timer') && !document.querySelector('.runner-result-card')"))
+    await key("Backspace")
+    await type("QZXQZ")
+    await evaluate("[...document.querySelectorAll('.keyboard button')].find(e=>e.textContent==='ENTER').click()")
+    await delay(100)
+    assert.ok(await evaluate("!!document.querySelector('.runner-timer') && !document.querySelector('.runner-result-card')"))
+    await key("Backspace")
+    await type("CASAS")
+    await key("Enter")
+    await until(() => evaluate("!!document.querySelector('.runner-result-card')"))
+    await evaluate("Math.random=window.nextageOriginalRandom; document.querySelector('.runner-back-btn').click()")
+    await until(() => evaluate("location.pathname==='/' && document.querySelectorAll('.game-tile').length===30"))
+
+    // Exclusão completa da própria conta fictícia pela interface, com senha fictícia.
+    await openSettings()
+    await until(() => evaluate("!document.querySelector('.account-data > button').disabled"))
+    await evaluate("[...document.querySelectorAll('.account-data > button')].find(e=>e.textContent==='Excluir minha conta').click()")
+    await until(() => evaluate("!!document.querySelector('#account-delete-confirmation')"))
+    await evaluate("[...document.querySelectorAll('.account-delete-panel button')].find(e=>e.textContent==='Cancelar').click()")
+    assert.ok(await evaluate("!!document.querySelector('.user-btn')"))
+    await evaluate("[...document.querySelectorAll('.account-data > button')].find(e=>e.textContent==='Excluir minha conta').click()")
+    await until(() => evaluate("!!document.querySelector('#account-delete-password')"))
+    await evaluate("(() => { for(const [id,value] of " + JSON.stringify([["account-delete-confirmation", "EXCLUIR"], ["account-delete-password", password]]) + ") { const input=document.getElementById(id); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,value); input.dispatchEvent(new Event('input',{bubbles:true})); }})()")
+    await until(() => evaluate("[...document.querySelectorAll('.account-delete-panel button')].some(e=>e.textContent==='Confirmar exclusão' && !e.disabled)"))
+    await evaluate("[...document.querySelectorAll('.account-delete-panel button')].find(e=>e.textContent==='Confirmar exclusão').click()")
+    await until(() => evaluate("!document.querySelector('.user-btn')"))
+    accountCreated = false
+    const originalFirestoreHost = process.env.FIRESTORE_EMULATOR_HOST
+    const originalAuthHost = process.env.FIREBASE_AUTH_EMULATOR_HOST
+    process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080"
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099"
+    const adminFixture = initializeAdminApp({ projectId: "demo-nextage-v2" }, "deletion-verification")
+    try {
+      const uid = storageKey.split(":user:")[1]
+      assert.ok(uid)
+      const db = getAdminFirestore(adminFixture)
+      const [player, profile, matches, words] = await Promise.all([
+        db.doc(`jogadores/${uid}`).get(), db.doc(`perfisPublicos/${uid}`).get(),
+        db.collection(`jogadores/${uid}/partidas`).get(), db.collection(`jogadores/${uid}/palavras`).get()
+      ])
+      assert.equal(player.exists, false)
+      assert.equal(profile.exists, false)
+      assert.equal(matches.size, 0)
+      assert.equal(words.size, 0)
+      await assert.rejects(getAdminAuth(adminFixture).getUser(uid), { code: "auth/user-not-found" })
+    } finally {
+      await deleteAdminApp(adminFixture)
+      if (originalFirestoreHost === undefined) delete process.env.FIRESTORE_EMULATOR_HOST
+      else process.env.FIRESTORE_EMULATOR_HOST = originalFirestoreHost
+      if (originalAuthHost === undefined) delete process.env.FIREBASE_AUTH_EMULATOR_HOST
+      else process.env.FIREBASE_AUTH_EMULATOR_HOST = originalAuthHost
+    }
   } finally {
     if (client) {
       client.send("Browser.close").catch(() => {})

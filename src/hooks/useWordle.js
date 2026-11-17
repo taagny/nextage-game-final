@@ -111,17 +111,17 @@ export function useWordle(secret, { initialState, onFinish } = {}) {
   }
 
   function submitGuess() {
-    if (isGameOver) return false
-    if (!dictionaryRef.current) return false
+    if (isGameOver) return null
+    if (!dictionaryRef.current) return null
 
     const guess = board[currentRow].join("")
 
-    if (guess.length !== 5) return false
+    if (guess.length !== 5) return null
 
     if (!dictionaryRef.current?.has(guess)) {
       setInvalidWord(true)
       setTimeout(() => setInvalidWord(false), 1000)
-      return false
+      return null
     }
 
     const result = checkGuess(secret, guess)

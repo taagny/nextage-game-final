@@ -8,7 +8,7 @@ import { useAuth } from "../context/useAuth"
 function RunnerRankingModal({ isOpen, onClose, time }) {
   const [players, setPlayers] = useState([])
   const [userPosition, setUserPosition] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
   const { user, publicProfile } = useAuth()

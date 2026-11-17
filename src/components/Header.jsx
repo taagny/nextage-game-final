@@ -1,15 +1,16 @@
-import { useRef, useState } from "react"
+import { lazy, useRef, useState } from "react"
+import DeferredContent from "./DeferredContent"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/useAuth"
 import { logout } from "../services/authService"
 import { registerAbandon } from "../services/playerService"
 import { clearClassicSession } from "../services/classicSessionService.js"
-import AuthModal from "./AuthModal"
-import UserSettingsModal from "./UserSettingsModal"
-import RankingModal from "./RankingModal"
-import InfoModal from "./InfoModal"
-import DevModal from "./DevModal"
-import TermsModal from "./TermsModal"
+const AuthModal = lazy(() => import("./AuthModal"))
+const UserSettingsModal = lazy(() => import("./UserSettingsModal"))
+const RankingModal = lazy(() => import("./RankingModal"))
+const InfoModal = lazy(() => import("./InfoModal"))
+const DevModal = lazy(() => import("./DevModal"))
+const TermsModal = lazy(() => import("./TermsModal"))
 
 function Header() {
 
@@ -134,9 +135,10 @@ function Header() {
         </nav>
       </header>
 
-      <AuthModal isOpen={openAuth} onClose={() => setOpenAuth(false)} />
+      <DeferredContent modal>
+      {openAuth && <AuthModal isOpen onClose={() => setOpenAuth(false)} />}
 
-      {user && (
+      {user && openSettings && (
         <UserSettingsModal
           isOpen={openSettings}
           onClose={() => setOpenSettings(false)}
@@ -144,9 +146,9 @@ function Header() {
         />
       )}
 
-      <RankingModal isOpen={openRanking} onClose={() => setOpenRanking(false)} />
-      <InfoModal isOpen={openInfo} onClose={() => setOpenInfo(false)} />
-      <DevModal isOpen={openDev} onClose={() => setOpenDev(false)} />
+      {openRanking && <RankingModal isOpen onClose={() => setOpenRanking(false)} />}
+      {openInfo && <InfoModal isOpen onClose={() => setOpenInfo(false)} />}
+      {isAdmin && openDev && <DevModal isOpen onClose={() => setOpenDev(false)} />}
 
       {user && mustAcceptTerms && (
         <TermsModal
@@ -155,6 +157,7 @@ function Header() {
           onReject={rejectTerms}
         />
       )}
+      </DeferredContent>
 
     </>
   )

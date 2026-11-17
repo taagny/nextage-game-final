@@ -83,7 +83,7 @@ function Runner() {
           const randomIndex = Math.floor(Math.random() * answers.length)
           setSecret(answers[randomIndex])
           resetBoard()
-        } else if (rowBefore === 5) {
+        } else if (correct === false && rowBefore === 5) {
           setLostByError(true)
           stop()
         }
@@ -210,7 +210,7 @@ function Runner() {
         const randomIndex = Math.floor(Math.random() * answers.length)
         setSecret(answers[randomIndex])
         resetBoard()
-      } else if (rowBefore === 5) {
+      } else if (correct === false && rowBefore === 5) {
         setLostByError(true)
         stop()
       }

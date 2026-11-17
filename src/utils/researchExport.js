@@ -3,12 +3,12 @@ import { timestampISO } from "./dataExport.js"
 import { hasResearchConsent } from "./researchConsent.js"
 
 export const SUMMARY_COLUMNS = [
-  "participant_id", "total_games", "total_wins", "total_losses", "abandoned_games",
+  "participant_id", "key_id", "total_games", "total_wins", "total_losses", "abandoned_games",
   "total_time_ms", "total_play_time_ms", "total_attempts", "avg_time_seconds",
   "avg_attempts", "level", "counters_valid_since"
 ]
 export const MATCH_COLUMNS = [
-  "participant_id", "mode", "attempts", "time_seconds", "won", "abandoned",
+  "participant_id", "key_id", "mode", "attempts", "time_seconds", "won", "abandoned",
   "word", "match_date", "counters_valid_since"
 ]
 
@@ -27,7 +27,7 @@ function flag(value = false) {
   return value
 }
 function participant(code) {
-  if (!/^P_[a-f0-9]{8}$/.test(code)) throw new Error("Código de pesquisa inválido.")
+  if (!/^P_[a-f0-9]{64}$/.test(code)) throw new Error("Código de pesquisa inválido.")
   return code
 }
 

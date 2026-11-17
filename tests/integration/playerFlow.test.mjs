@@ -1,6 +1,7 @@
 import { after, test } from "node:test"
 import assert from "node:assert/strict"
 import { deleteApp } from "firebase/app"
+import { getAuth } from "firebase/auth"
 import { app } from "./firebase.mjs"
 import { registerWithPassword, loginWithPassword, logout } from "../../src/services/authService.js"
 import {
@@ -9,6 +10,10 @@ import {
 } from "../../src/services/playerService.js"
 import { getClassicRanking, getRunnerRanking } from "../../src/services/rankingService.js"
 import { hasResearchConsent } from "../../src/utils/researchConsent.js"
+import { createResearchKeyFile, openResearchKeyFile, pseudonymizeUid } from "../../src/utils/pseudonym.js"
+import { getGlobalStats, exportResearchJSON, exportSummaryCSV, exportMatchesCSV } from "../../src/services/adminService.js"
+import { initializeApp as initializeAdminApp, deleteApp as deleteAdminApp } from "firebase-admin/app"
+import { getAuth as getAdminAuth } from "firebase-admin/auth"
 
 after(async () => { await deleteApp(app) })
 
@@ -56,4 +61,46 @@ test("cadastro, aceite, erro de senha, novo login, vitória e rankings usam os s
   assert.equal(hasResearchConsent(await getPlayer(uid)), false)
   assert.equal((await getPublicProfile(uid)).sequenciaAtual, 0)
   assert.equal((await getClassicRanking(uid, 0)).players.some(player => player.id === uid), false)
+
+  assert.match(process.env.FIREBASE_AUTH_EMULATOR_HOST, /^127\.0\.0\.1:\d+$/)
+  const adminFixture = initializeAdminApp({ projectId: "demo-nextage-v2" }, "research-fixture")
+  try {
+    await getAdminAuth(adminFixture).setCustomUserClaims(uid, { admin: true })
+    await getAuth(app).currentUser.getIdToken(true)
+    assert.equal((await getAuth(app).currentUser.getIdTokenResult()).claims.admin, true)
+    const keyFile = createResearchKeyFile()
+    const researchKey = await openResearchKeyFile(JSON.stringify(keyFile))
+    assert.equal((await getGlobalStats(researchKey)).totalPlayers, 0)
+    await setResearchConsent(uid, true)
+    assert.equal((await getGlobalStats(researchKey)).totalPlayers, 1)
+    const blobs = new Map(), downloads = []
+    const originalDocument = globalThis.document
+    const originalCreateURL = URL.createObjectURL
+    URL.createObjectURL = blob => { const url = originalCreateURL(blob); blobs.set(url, blob); return url }
+    globalThis.document = { body: { appendChild() {} }, createElement() { return { remove() {}, click() { downloads.push({ name: this.download, blob: blobs.get(this.href) }) } } } }
+    try {
+      await exportResearchJSON(researchKey)
+      await exportSummaryCSV(researchKey)
+      await exportMatchesCSV(researchKey)
+      const dataset = JSON.parse(await downloads[0].blob.text())
+      assert.equal(dataset.schemaVersion, 3)
+      assert.equal(dataset.pseudonymization.algorithm, "HMAC-SHA-256")
+      assert.equal(dataset.participants.length, 1)
+      assert.equal(dataset.participants[0].participant_id, await pseudonymizeUid(uid, researchKey))
+      assert.equal(dataset.participants[0].matches.length, 2)
+      for (const download of downloads) {
+        const text = await download.blob.text()
+        for (const forbidden of [uid, email, keyFile.secret]) assert.equal(text.includes(forbidden), false)
+        assert.ok(text.includes(researchKey.id))
+      }
+      await setResearchConsent(uid, false)
+      await exportResearchJSON(researchKey)
+      assert.equal(JSON.parse(await downloads.at(-1).blob.text()).participants.length, 0)
+      assert.equal((await getPlayer(uid)).stats.totalGames, 2)
+    } finally {
+      URL.createObjectURL = originalCreateURL
+      if (originalDocument === undefined) delete globalThis.document
+      else globalThis.document = originalDocument
+    }
+  } finally { await deleteAdminApp(adminFixture) }
 })

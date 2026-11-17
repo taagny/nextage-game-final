@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import Modal from "./Modal"
+import { createResearchKeyFile, openResearchKeyFile } from "../utils/pseudonym"
+import { downloadFile } from "../utils/download"
 import {
   getGlobalStats,
   exportSummaryCSV,
@@ -13,16 +15,18 @@ function DevModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState("")
+  const [researchKey, setResearchKey] = useState(null)
+  const [openingKey, setOpeningKey] = useState(false)
 
   useEffect(() => {
     let active = true
     async function loadStats() {
-      if (!isOpen) return
+      if (!isOpen || !researchKey) return
       setLoading(true)
       setError("")
       setStats(null)
       try {
-        const data = await getGlobalStats()
+        const data = await getGlobalStats(researchKey)
         if (active) setStats(data)
       } catch (error) {
         console.error("Não foi possível carregar os dados de pesquisa.", error?.code ?? error?.name)
@@ -34,14 +38,30 @@ function DevModal({ isOpen, onClose }) {
 
     loadStats()
     return () => { active = false }
-  }, [isOpen])
+  }, [isOpen, researchKey])
+
+  async function chooseKey(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file || openingKey || exporting) return
+    setOpeningKey(true)
+    setResearchKey(null)
+    setStats(null)
+    setError("")
+    try {
+      if (file.size > 4096) throw new Error("Arquivo de chave inválido.")
+      setResearchKey(await openResearchKeyFile(await file.text()))
+    } catch (error) {
+      setError(error.message)
+    } finally { setOpeningKey(false) }
+  }
 
   async function handleExport(exporter) {
     if (exporting) return
     setExporting(true)
     setError("")
     try {
-      await exporter()
+      await exporter(researchKey)
     } catch (error) {
       console.error("Não foi possível exportar a pesquisa.", error?.code ?? error?.name)
       setError(error.code ? "Não foi possível exportar os dados. Entre novamente e tente outra vez." : error.message)
@@ -57,6 +77,19 @@ function DevModal({ isOpen, onClose }) {
         <button className="dev-close" onClick={onClose} disabled={exporting}>×</button>
 
         <h2 className="dev-title">Painel de Pesquisa</h2>
+
+        <section className="research-key-section" aria-labelledby="research-key-title">
+          <h3 id="research-key-title">Chave da pesquisa</h3>
+          <p>Guarde a chave separada dos dados exportados. Use o mesmo arquivo para manter os códigos dos participantes entre exportações. Uma nova chave gera códigos diferentes.</p>
+          <p>O NEXTAGE não salva nem recupera esse arquivo. Nunca envie a chave junto dos dados da pesquisa.</p>
+          <button className="modal-btn" disabled={exporting || openingKey} onClick={() => {
+            downloadFile(JSON.stringify(createResearchKeyFile(), null, 2), "nextage_chave_pesquisa.json", "application/json;charset=utf-8")
+          }}>Gerar arquivo de chave</button>
+          <label htmlFor="research-key-file">Abrir chave guardada</label>
+          <input id="research-key-file" type="file" accept=".json,application/json"
+            disabled={exporting || openingKey} onChange={chooseKey} />
+          {researchKey && <p role="status">Chave aberta: {researchKey.id}. Mantida apenas enquanto este painel estiver aberto.</p>}
+        </section>
 
         {loading && <p>Carregando...</p>}
         {error && <p role="alert">{error}</p>}
@@ -104,7 +137,7 @@ function DevModal({ isOpen, onClose }) {
                 {stats.top10.map((player, index) => (
                   <div key={player.code} className="dev-rank-row">
                     <span className="rank-pos">{index + 1}</span>
-                    <span className="rank-name">{player.code}</span>
+                    <span className="rank-name" title={player.code}>{player.code.slice(0, 18)}…</span>
                     <span className="rank-metric">
                       {player.avgAttempts.toFixed(2)} tent.
                     </span>

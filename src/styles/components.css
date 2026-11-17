@@ -354,6 +354,11 @@
   gap: 20px;
 }
 
+.research-key-section { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin-block: 18px; text-align: left; }
+.research-key-section p { font-size: 0.9rem; line-height: 1.5; }
+.research-key-section input { max-width: 100%; }
+.wordlist-credit a { color: #a9caff; text-underline-offset: 3px; }
+
 .dev-close {
   position: absolute;
   top: 15px;

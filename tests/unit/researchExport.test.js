@@ -7,7 +7,7 @@ import {
   researchSummary, SUMMARY_COLUMNS
 } from "../../src/utils/researchExport.js"
 
-const code = "P_ba7816bf"
+const code = "P_" + "ab".repeat(32)
 const timestamp = Timestamp.fromMillis(1000)
 
 test("pesquisa usa campos permitidos e exclui identificadores, inclusive legados e aninhados", () => {

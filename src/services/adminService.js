@@ -11,11 +11,13 @@ import {
   researchSummary, SUMMARY_COLUMNS
 } from "../utils/researchExport.js"
 
-async function participants() {
+async function participants(key) {
   const user = auth.currentUser
   if (!user || !await getAdminStatus(user)) {
     throw new Error("Acesso restrito ao administrador.")
   }
+  if (!key) throw new Error("Abra sua chave de pesquisa antes de consultar ou exportar.")
+  await pseudonymizeUid("key-validation", key)
   if (EXCLUDED_FROM_RESEARCH_UIDS.length === 0) {
     throw new Error("A lista de contas excluídas da pesquisa não foi configurada.")
   }
@@ -25,10 +27,10 @@ async function participants() {
     EXCLUDED_FROM_RESEARCH_UIDS
   )
   const records = await Promise.all(eligible.map(async player => {
-    const code = await pseudonymizeUid(player.uid)
-    return { ...player, code, summary: researchSummary(code, player.data) }
+    const code = await pseudonymizeUid(player.uid, key)
+    return { ...player, code, summary: { ...researchSummary(code, player.data), key_id: key.id } }
   }))
-  // O prefixo + 8 hexadecimais não garante ausência de colisões.
+  // Mesmo usando os 256 bits, não produzir silenciosamente linhas ambíguas.
   if (new Set(records.map(record => record.code)).size !== records.length) {
     throw new Error("Dois participantes receberam o mesmo código. A exportação foi interrompida para revisão.")
   }
@@ -45,8 +47,8 @@ async function verifyResearchParticipation(records) {
   }
 }
 
-export async function getGlobalStats() {
-  const records = await participants()
+export async function getGlobalStats(key) {
+  const records = await participants(key)
   const result = {
     totalPlayers: records.length, totalGames: 0, totalWins: 0, totalLosses: 0,
     abandonedGames: 0, avgGlobalTime: 0, avgGlobalAttempts: 0,
@@ -81,8 +83,8 @@ export async function getGlobalStats() {
   return result
 }
 
-export async function exportSummaryCSV() {
-  const records = await participants()
+export async function exportSummaryCSV(key) {
+  const records = await participants(key)
   await verifyResearchParticipation(records)
   downloadFile(
     toCSV(SUMMARY_COLUMNS, records.map(record => record.summary)),
@@ -90,21 +92,21 @@ export async function exportSummaryCSV() {
   )
 }
 
-export async function exportMatchesCSV() {
-  const records = await participants()
+export async function exportMatchesCSV(key) {
+  const records = await participants(key)
   const rows = []
   for (const record of records) {
     const snapshot = await getDocs(collection(db, "jogadores", record.uid, "partidas"))
     rows.push(...snapshot.docs.map(document =>
-      researchMatch(record.code, document.data(), record.data.stats?.countersFixedAt)
+      ({ ...researchMatch(record.code, document.data(), record.data.stats?.countersFixedAt), key_id: key.id })
     ))
   }
   await verifyResearchParticipation(records)
   downloadFile(toCSV(MATCH_COLUMNS, rows), "nextage_pesquisa_partidas.csv", "text/csv;charset=utf-8")
 }
 
-export async function exportResearchJSON() {
-  const records = await participants()
+export async function exportResearchJSON(key) {
+  const records = await participants(key)
   const dataset = []
   for (const record of records) {
     const [profile, matches] = await Promise.all([
@@ -122,6 +124,7 @@ export async function exportResearchJSON() {
   }
   await verifyResearchParticipation(records)
   downloadFile(JSON.stringify({
-    schemaVersion: 2, exportedAt: new Date().toISOString(), participants: dataset
+    schemaVersion: 3, exportedAt: new Date().toISOString(),
+    pseudonymization: { algorithm: "HMAC-SHA-256", version: 1, keyId: key.id }, participants: dataset
   }, null, 2), "nextage_pesquisa.json", "application/json;charset=utf-8")
 }

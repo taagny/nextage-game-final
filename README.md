@@ -66,9 +66,13 @@ Ranking retorna até 100 documentos e, quando necessário para posição fora da
 
 ## Consentimento e conta
 
-Termo versão 2 exige novo aceite quando muda a versão; contato em `VITE_CONTACT_EMAIL`. Configurações permitem editar apelido, exportar JSON/CSV e excluir conta com confirmação/reautenticação. Exclusão remove subcoleções em lotes, perfis e por último Authentication; pode falhar parcialmente.
+Termo de uso versão 3 e autorização de pesquisa versão 1 são separados; participar da pesquisa é opcional e desmarcado por padrão. Configurações permitem revogar a pesquisa mantendo conta, progresso e ranking. As exportações verificam autorização vigente e a revalidam antes do arquivo. Contato em `VITE_CONTACT_EMAIL`. A exclusão da conta é independente e remove subcoleções em lotes, perfis e por último Authentication; pode falhar parcialmente.
 
-Pesquisa exige claim `admin: true` e lista de exclusão configurada. Exportações usam campos permitidos e códigos pseudonimizados, sem nome, e-mail, apelido ou UID bruto. JSON pessoal inclui os próprios dados e apelido. Veja [dados da conta](docs/DADOS_E_CONTA_V2.md).
+Pesquisa exige claim `admin: true`, lista de exclusão configurada e abertura de uma chave de pesquisa. O administrador gera um arquivo de chave aleatória de 256 bits, guarda-o separado e o abre a cada uso do painel. Reutilizar a mesma chave mantém os códigos; trocar a chave muda os códigos e seu identificador. A chave não é enviada ao banco, não fica no bundle/env/localStorage e não acompanha os dados exportados. Não há recuperação pelo aplicativo.
+
+Exportações usam HMAC-SHA-256 com domínio específico, 64 caracteres hexadecimais e campos permitidos, sem nome, e-mail, apelido ou UID bruto. O identificador não secreto da chave acompanha os arquivos para distinguir conjuntos. Os arquivos novos são incompatíveis com os antigos pseudônimos SHA-256 truncados; não misturar versões sem conferir o esquema. HMAC é pseudonimização, não garantia de anonimato. JSON pessoal inclui os próprios dados e apelido.
+
+A base bruta de palavras foi identificada por comparação integral com FrequencyWords. Créditos, licença dos dados e escopo da investigação estão em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e na ajuda do jogo. A lista de respostas e suas probabilidades foram preservadas; a origem histórica da seleção continua em investigação.
 
 ## Regras e publicação
 
@@ -76,7 +80,7 @@ Para falhas no preview hospedado da branch, veja [login e ranking na Vercel](doc
 
 `firestore.rules`, `firestore.indexes.json` e `firebase.json` versionam configuração. Regras são protótipo sujeito à suíte e revisão: resultados do cliente podem ser forjados dentro dos limites.
 
-O [roteiro](docs/PUBLICACAO_V2.md) descreve backup, cópia de perfis, publicação coordenada de regras/app, limpeza e claim. **Nenhuma publicação, migração ou mudança de produção foi executada.**
+As regras de consentimento foram publicadas, com autorização do responsável, somente no projeto Firebase de testes em 16/11/2026. Não houve migração nem mudança de produção. A main depende de autorização posterior do responsável.
 
 Scripts: `scripts/migrate-v2.mjs` (`--copy`/`--cleanup`, dry-run padrão) e `scripts/set-admin-claim.mjs` (consulta padrão). Exigem projeto explícito e credencial externa. Só o responsável deve executá-los seguindo o roteiro.
 

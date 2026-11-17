@@ -97,6 +97,7 @@ function InfoModal({ isOpen, onClose }) {
                     </a>
 
                 </div>
+                <p className="wordlist-credit"><a href="/wordlists/index.html" target="_blank" rel="noreferrer">Créditos e licença da base de palavras</a></p>
 
             </div>
         </Modal>
