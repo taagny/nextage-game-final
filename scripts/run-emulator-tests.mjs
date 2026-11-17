@@ -8,11 +8,12 @@ const scripts = {
   auth: { only: "auth", command: "node --test tests/auth/*.test.mjs" },
   firestore: { only: "firestore", command: "node --test rules-tests/*.test.js" },
   integration: { only: "auth,firestore", command: "node --import ./tests/integration/register.mjs --test tests/integration/playerFlow.test.mjs" },
+  backup: { only: "firestore", command: "node --test tests/integration/firestoreBackup.test.mjs" },
   "persistence-save": { only: "auth,firestore", command: "node --import ./tests/integration/register.mjs tests/integration/persistence.mjs save" },
   "persistence-load": { only: "auth,firestore", command: "node --import ./tests/integration/register.mjs tests/integration/persistence.mjs load" },
   app: { only: "auth,firestore" }
 }
-if (!Object.hasOwn(scripts, emulator)) throw new Error("Informe auth, firestore, integration ou app para executar os emuladores locais.")
+if (!Object.hasOwn(scripts, emulator)) throw new Error("Informe auth, firestore, integration, backup ou app para executar os emuladores locais.")
 const { only, command } = scripts[emulator]
 
 // Não modificar o ambiente do usuário. O DEBUG herdado faz o CLI registrar o

@@ -12,6 +12,7 @@
     "test:auth": "node scripts/run-emulator-tests.mjs auth",
     "test:rules": "node scripts/run-emulator-tests.mjs firestore",
     "test:integration": "node scripts/run-emulator-tests.mjs integration",
+    "test:backup": "node scripts/run-emulator-tests.mjs backup",
     "test:persistence": "node scripts/run-emulator-tests.mjs persistence-save && node scripts/run-emulator-tests.mjs persistence-load",
     "test:local": "node --test tests/local/*.test.mjs",
     "test:browser": "node --test tests/browser/*.test.mjs",

@@ -16,6 +16,7 @@ npm run test:unit
 npm run test:auth
 npm run test:rules
 npm run test:integration
+npm run test:backup
 npm run test:persistence
 npm run test:local
 npm run test:browser
@@ -43,7 +44,7 @@ No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executo
 
 O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
-Verificação atual: lint com zero erros/10 avisos, build aprovado e 70 testes unitários. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A nova regressão verifica que uma falha na migração mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
+Verificação atual: lint com zero erros/10 avisos, build aprovado na preparação da publicação e 73 testes unitários. O ensaio de backup/restauração no Firestore emulado também passou. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A regressão da migração verifica que uma falha mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
 
 ## Organização e dados
 
@@ -85,5 +86,11 @@ As regras de consentimento foram publicadas, com autorização do responsável, 
 Scripts: `scripts/migrate-v2.mjs` (`--copy`/`--cleanup`, dry-run padrão) e `scripts/set-admin-claim.mjs` (consulta padrão). Exigem projeto explícito e credencial externa. Só o responsável deve executá-los seguindo o roteiro.
 
 A preparação do merge é separada da publicação de produção. Antes de integrar à `main`, revisar as variáveis **Production** da hospedagem, guardar backup restaurável e preparar uma janela que impeça gravações do aplicativo antigo desde a cópia dos perfis até o fim da migração. Só fechar o site para novas visitas não bloqueia abas já abertas. A migração usa Admin SDK; suas gravações não dependem das regras do cliente. Voltar apenas o frontend antigo depois da limpeza do esquema não desfaz a migração: a recuperação precisa coordenar aplicativo, regras e dados. Não execute `--cleanup` como tentativa de corrigir um erro sem antes revisar o dry-run e o backup.
+
+### Cópia lógica local do Firestore
+
+`scripts/backup-firestore.mjs --project ID --out .firebase/private-backups/ARQUIVO.json` usa credencial externa via `GOOGLE_APPLICATION_CREDENTIALS` e somente lê documentos remotos. Percorre todas as coleções/subcoleções, inclusive pais ausentes, preserva os tipos suportados e interrompe em tipos desconhecidos. Guarda campos e caminhos privados: manter o arquivo restrito e fora do Git. Não substitui um backup gerenciado: não é snapshot atômico e não inclui Authentication, regras, índices ou Storage. As leituras consomem a quota do banco; uma migração exige nova cópia com gravações suspensas.
+
+`--verify ARQUIVO.json --project ID` confere integridade e formato localmente, sem credencial ou conexão remota. `--rehearse-local ARQUIVO.json --project demo-ID` só restaura em emulador `127.0.0.1` e recusa documentos existentes. Não há opção de restauração em produção nesse comando. A conferência com dados fictícios está em `npm run test:backup`; não constitui validação de uma cópia real ainda não feita. O hash detecta alterações acidentais, não autentica quem produziu o arquivo.
 
 Veja [alterações](docs/ALTERACOES_V2.md), [relatório técnico](docs/RELATORIO_TECNICO.md), [métricas](docs/METRICAS_V2.json). Limitações: fechamento de aba não detectado; sem moderação de apelidos ou histórico Runner; contadores antigos preservam semântica legada.
