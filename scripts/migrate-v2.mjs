@@ -3,7 +3,6 @@ import { deleteApp } from "firebase-admin/app"
 import { FieldPath, Timestamp } from "firebase-admin/firestore"
 import { adminClients } from "./lib/admin.mjs"
 import { buildPrivateDocument, buildPublicProfile } from "./lib/migration-v2.mjs"
-import { pseudonymizeUid } from "../src/utils/pseudonym.js"
 
 async function main() {
   const { values } = parseArgs({ options: {
@@ -69,7 +68,7 @@ async function main() {
           }
         } catch (error) {
           // Logs de diagnóstico não incluem nome, e-mail nem UID bruto.
-          throw new Error(`Documento ${await pseudonymizeUid(snapshot.id)}: ${error.message}`, { cause: error })
+          throw new Error(`Documento na posição ${summary.examined}: ${error.message}`, { cause: error })
         }
       }
       cursor = page.docs.at(-1)

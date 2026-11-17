@@ -43,7 +43,7 @@ No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executo
 
 O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
-Verificação atual: lint com zero erros/10 avisos, build aprovado e 66 testes unitários. Passou também o teste do Clássico no Chrome com cadastro, aceite, recargas reais e resultado reenviado sem duplicar a sequência. Há suítes de Authentication e integração; popup Google continua pendente de verificação no navegador.
+Verificação atual: lint com zero erros/10 avisos, build aprovado e 70 testes unitários. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A nova regressão verifica que uma falha na migração mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
 
 ## Organização e dados
 
@@ -72,7 +72,7 @@ Pesquisa exige claim `admin: true`, lista de exclusão configurada e abertura de
 
 Exportações usam HMAC-SHA-256 com domínio específico, 64 caracteres hexadecimais e campos permitidos, sem nome, e-mail, apelido ou UID bruto. O identificador não secreto da chave acompanha os arquivos para distinguir conjuntos. Os arquivos novos são incompatíveis com os antigos pseudônimos SHA-256 truncados; não misturar versões sem conferir o esquema. HMAC é pseudonimização, não garantia de anonimato. JSON pessoal inclui os próprios dados e apelido.
 
-A base bruta de palavras foi identificada por comparação integral com FrequencyWords. Créditos, licença dos dados e escopo da investigação estão em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e na ajuda do jogo. A lista de respostas e suas probabilidades foram preservadas; a origem histórica da seleção continua em investigação.
+A base bruta de palavras foi identificada por comparação integral com FrequencyWords. Créditos, licença dos dados e escopo da investigação estão em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e na ajuda do jogo. O autor identificou o código público do Charada como fonte imediata das respostas, apoiado pela comparação das listas; a fonte anterior e a licença específica dessa seleção continuam em investigação. A lista de respostas e suas probabilidades foram preservadas.
 
 ## Regras e publicação
 
@@ -83,5 +83,7 @@ Para falhas no preview hospedado da branch, veja [login e ranking na Vercel](doc
 As regras de consentimento foram publicadas, com autorização do responsável, somente no projeto Firebase de testes em 16/11/2026. Não houve migração nem mudança de produção. A main depende de autorização posterior do responsável.
 
 Scripts: `scripts/migrate-v2.mjs` (`--copy`/`--cleanup`, dry-run padrão) e `scripts/set-admin-claim.mjs` (consulta padrão). Exigem projeto explícito e credencial externa. Só o responsável deve executá-los seguindo o roteiro.
+
+A preparação do merge é separada da publicação de produção. Antes de integrar à `main`, revisar as variáveis **Production** da hospedagem, guardar backup restaurável e preparar uma janela que impeça gravações do aplicativo antigo desde a cópia dos perfis até o fim da migração. Só fechar o site para novas visitas não bloqueia abas já abertas. A migração usa Admin SDK; suas gravações não dependem das regras do cliente. Voltar apenas o frontend antigo depois da limpeza do esquema não desfaz a migração: a recuperação precisa coordenar aplicativo, regras e dados. Não execute `--cleanup` como tentativa de corrigir um erro sem antes revisar o dry-run e o backup.
 
 Veja [alterações](docs/ALTERACOES_V2.md), [relatório técnico](docs/RELATORIO_TECNICO.md), [métricas](docs/METRICAS_V2.json). Limitações: fechamento de aba não detectado; sem moderação de apelidos ou histórico Runner; contadores antigos preservam semântica legada.
