@@ -10,6 +10,7 @@ Ambiente utilizado: Node 24.21.0. Execute `npm ci`, copie `.env.example` para `.
 npm run dev
 npm run dev:local
 npm run lint
+npm run format:check
 npm run build
 npm run preview
 npm run test:unit
@@ -17,6 +18,7 @@ npm run test:auth
 npm run test:rules
 npm run test:integration
 npm run test:backup
+npm run test:cutover
 npm run test:persistence
 npm run test:local
 npm run test:browser
@@ -44,22 +46,22 @@ No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executo
 
 O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
-Verificação atual: lint com zero erros/10 avisos, build aprovado na preparação da publicação e 74 testes unitários. O ensaio de backup/restauração no Firestore emulado também passou. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A regressão da migração verifica que uma falha mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
+Verificação atual: lint com zero erros e zero avisos, build aprovado na preparação da publicação e 76 testes unitários. O ensaio de backup/restauração no Firestore emulado também passou. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A regressão da migração verifica que uma falha mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
 
 ## Organização e dados
 
-A [revisão de responsividade](docs/RESPONSIVIDADE.md) cobriu oito tamanhos entre 320 × 568 e 1440 × 900, com 136 verificações finais de páginas e modais. O cabeçalho, teclado e modais foram ajustados; o Clássico usa duas colunas em telas horizontais baixas. Capturas e medições podem ser reproduzidas com `npm run audit:responsive`.
+A revisão de responsividade (documento local: `docs/RESPONSIVIDADE.md`) cobriu oito tamanhos entre 320 × 568 e 1440 × 900, com 136 verificações finais de páginas e modais. O cabeçalho, teclado e modais foram ajustados; o Clássico usa duas colunas em telas horizontais baixas. Capturas e medições podem ser reproduzidas com `npm run audit:responsive`.
 
-O Clássico agora retoma a mesma palavra e tentativas após recarregar, usando armazenamento local separado por projeto/conta. Resultados pendentes preservam o ID e podem ser reenviados sem duplicar a partida. Veja [continuidade do Clássico](docs/CONTINUIDADE_CLASSICO.md) para ciclo, testes e limites: isso não impede manipulação deliberada do navegador nem sincroniza abas/dispositivos.
+O Clássico agora retoma a mesma palavra e tentativas após recarregar, usando armazenamento local separado por projeto/conta. Resultados pendentes preservam o ID e podem ser reenviados sem duplicar a partida. Veja continuidade do Clássico (documento local: `docs/CONTINUIDADE_CLASSICO.md`) para ciclo, testes e limites: isso não impede manipulação deliberada do navegador nem sincroniza abas/dispositivos.
 
 Interface e contexto chamam `src/services`; ESLint impede imports diretos de Auth/Firestore nessas camadas. Hooks ficam em `src/hooks`; cálculos em `src/utils`.
 
-| Caminho | Conteúdo | Leitura |
-|---|---|---|
-| `perfisPublicos/{uid}` | Apelido, sequência, perdas, recordes Runner | Pública |
-| `jogadores/{uid}` | Consentimento e estatísticas privadas | Dono/admin |
-| `jogadores/{uid}/partidas/{id}` | Desfecho Clássico, tentativas, tempo, palavra, abandono | Dono/admin |
-| `jogadores/{uid}/palavras/{WORD}` | Primeira/melhor/última ocorrência, médias | Dono |
+| Caminho                           | Conteúdo                                                | Leitura    |
+| --------------------------------- | ------------------------------------------------------- | ---------- |
+| `perfisPublicos/{uid}`            | Apelido, sequência, perdas, recordes Runner             | Pública    |
+| `jogadores/{uid}`                 | Consentimento e estatísticas privadas                   | Dono/admin |
+| `jogadores/{uid}/partidas/{id}`   | Desfecho Clássico, tentativas, tempo, palavra, abandono | Dono/admin |
+| `jogadores/{uid}/palavras/{WORD}` | Primeira/melhor/última ocorrência, médias               | Dono       |
 
 Vitória/derrota atualiza quatro documentos em transação. Abandono por logout não registra palavra. Visitantes jogam sem persistência. Nível intermediário a partir de 100 vitórias; avançado a partir de 500.
 
@@ -77,7 +79,7 @@ A base bruta de palavras foi identificada por comparação integral com Frequenc
 
 ## Regras e publicação
 
-Para falhas no preview hospedado da branch, veja [login e ranking na Vercel](docs/PREVIEW_VERCEL.md). O preview usa o Firebase real por padrão e não publica regras/migrações. É possível configurar outro projeto com as variáveis `VITE_FIREBASE_*` do `.env.example`, restritas ao ambiente Preview da Vercel. Configuração parcial é recusada para não misturar projetos.
+Para falhas no preview hospedado da branch, veja login e ranking na Vercel (documento local: `docs/PREVIEW_VERCEL.md`). O preview usa o Firebase real por padrão e não publica regras/migrações. É possível configurar outro projeto com as variáveis `VITE_FIREBASE_*` do `.env.example`, restritas ao ambiente Preview da Vercel. Configuração parcial é recusada para não misturar projetos.
 
 `firestore.rules`, `firestore.indexes.json` e `firebase.json` versionam configuração. Regras são protótipo sujeito à suíte e revisão: resultados do cliente podem ser forjados dentro dos limites.
 
@@ -89,10 +91,20 @@ A preparação do merge é separada da publicação de produção. Antes de inte
 
 ### Cópia lógica local do Firestore
 
+`npm run test:cutover` ensaia a janela de migração com dados fictícios e os scripts reais em emuladores: bloqueio de acesso do cliente, cópia, limpeza e recuperação. Verifica alterações concorrentes, preservação de perfis públicos existentes e histórico, além de repetição segura da recuperação. Não acessa produção.
+
+`firebase.maintenance.json` aponta para `firestore.maintenance.rules`, que bloqueia temporariamente todas as leituras e gravações dos clientes, inclusive de administradores autenticados. O Admin SDK continua operando por IAM. Essa configuração é exclusiva da janela coordenada; sua publicação interrompe o acesso aos dados do jogo e exige autorização do responsável.
+
+`node scripts/rollback-v2.mjs --project ID --backup ARQUIVO --auth-dates METADADOS` apenas apresenta o plano de recuperação. Aplicar exige `--apply --confirm-project ID` e, em produção, as regras de manutenção ativas. A recuperação aceita somente a cópia limitada e os metadados de criação do Authentication vinculados ao mesmo hash. Restaura documentos principais de jogadores e remove apenas perfis públicos comprovadamente criados pela migração; não escreve no histórico. Dados inesperados ou alterações concorrentes interrompem a operação. O retorno ao aplicativo anterior também exige restaurar as regras e o deployment anteriores, antes de reabrir o acesso.
+
 `scripts/backup-firestore.mjs --project ID --out .firebase/private-backups/ARQUIVO.json` usa credencial externa via `GOOGLE_APPLICATION_CREDENTIALS` e somente lê documentos remotos. Percorre todas as coleções/subcoleções, inclusive pais ausentes, preserva os tipos suportados e interrompe em tipos desconhecidos. Guarda campos e caminhos privados: manter o arquivo restrito e fora do Git. Não substitui um backup gerenciado: não é snapshot atômico e não inclui Authentication, regras, índices ou Storage. As leituras consomem a quota do banco; uma migração exige nova cópia com gravações suspensas.
 
 `--verify ARQUIVO.json --project ID` confere integridade e formato localmente, sem credencial ou conexão remota. `--rehearse-local ARQUIVO.json --project demo-ID` só restaura em emulador `127.0.0.1` e recusa documentos existentes. Não há opção de restauração em produção nesse comando. A conferência com dados fictícios está em `npm run test:backup`; cada cópia real exige sua própria verificação. O hash detecta alterações acidentais, não autentica quem produziu o arquivo.
 
 Quando o objetivo autorizado for preservar somente os documentos alterados por `migrate-v2.mjs`, acrescentar **`--migration-documents-only`** na exportação. Esse modo copia apenas `jogadores/{uid}` e `perfisPublicos/{uid}`, sem consultar subcoleções, e registra `scope: "migration-documents-only"` no arquivo e na conferência. **Não é backup integral nem proteção do histórico**: escolher esse escopo explicitamente e manter a migração restrita aos mesmos caminhos. A restauração local identifica projeto de origem e projeto demo de destino separadamente.
 
-Veja [alterações](docs/ALTERACOES_V2.md), [relatório técnico](docs/RELATORIO_TECNICO.md), [métricas](docs/METRICAS_V2.json). Limitações: fechamento de aba não detectado; sem moderação de apelidos ou histórico Runner; contadores antigos preservam semântica legada.
+Veja alterações (documento local: `docs/ALTERACOES_V2.md`), relatório técnico (documento local: `docs/RELATORIO_TECNICO.md`), métricas (documento local: `docs/METRICAS_V2.json`). Limitações: fechamento de aba não detectado; sem moderação de apelidos ou histórico Runner; contadores antigos preservam semântica legada.
+
+## Manutenção do repositório
+
+`npm run format` aplica a formatação padronizada; `npm run format:check` a verifica. As listas mantêm sua ordem e duplicatas. Artigos, documentos locais, arquivos de ambiente e cópias do banco ficam fora do Git. Referências a `docs/` acima descrevem documentos disponíveis somente no ambiente local. Consulte [SECURITY.md](SECURITY.md) para limitações e alertas de dependências pendentes.
