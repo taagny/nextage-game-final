@@ -36,7 +36,11 @@ async function main() {
         "utf8"
       )
       const current = await getSecurityRules(app).getFirestoreRuleset()
-      if (current.source.length !== 1 || current.source[0].content.trim() !== maintenance.trim())
+      if (
+        current.source.length !== 1 ||
+        current.source[0].content.replaceAll("\r\n", "\n").trim() !==
+          maintenance.replaceAll("\r\n", "\n").trim()
+      )
         throw Error("MAINTENANCE_RULES_NOT_ACTIVE")
     }
     const plan = await planMigrationRollback(db, backup, dates)
