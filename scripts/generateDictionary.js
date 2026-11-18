@@ -17,7 +17,7 @@ function formatInBlocks(arr, blockSize = 12) {
   let result = "[\n"
   for (let i = 0; i < arr.length; i += blockSize) {
     const block = arr.slice(i, i + blockSize)
-    result += "  " + block.map(w => `"${w}"`).join(", ") + ",\n"
+    result += "  " + block.map((w) => `"${w}"`).join(", ") + ",\n"
   }
   result += "]"
   return result
@@ -27,11 +27,11 @@ const rawText = fs.readFileSync(INPUT_PATH, "utf-8")
 
 const words = rawText
   .split("\n")
-  .map(line => line.trim())
-  .filter(line => line.length > 0)
-  .map(line => line.split(/\s+/)[0]) 
-  .map(normalizeWord)                
-  .filter(word => /^[A-Z]{5}$/.test(word)) 
+  .map((line) => line.trim())
+  .filter((line) => line.length > 0)
+  .map((line) => line.split(/\s+/)[0])
+  .map(normalizeWord)
+  .filter((word) => /^[A-Z]{5}$/.test(word))
 
 const uniqueWords = [...new Set(words)]
 

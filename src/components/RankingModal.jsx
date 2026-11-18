@@ -38,17 +38,19 @@ function RankingModal({ isOpen, onClose }) {
     }
 
     if (isOpen) loadRanking()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [isOpen, uid])
 
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new">
-        <button className="ranking-close" onClick={onClose}>×</button>
+        <button className="ranking-close" onClick={onClose}>
+          ×
+        </button>
 
-        <h1 className="ranking-title-new">
-          RANKING NEXTAGE
-        </h1>
+        <h1 className="ranking-title-new">RANKING NEXTAGE</h1>
 
         <div className="ranking-header-new">
           <span>TOP</span>
@@ -64,16 +66,27 @@ function RankingModal({ isOpen, onClose }) {
             <p>Nenhum jogador com sequência positiva no momento.</p>
           )}
           {players.map((player, index) => (
-            <RankingRow key={player.id} player={player} position={index + 1} isSelf={player.id === uid} />
+            <RankingRow
+              key={player.id}
+              player={player}
+              position={index + 1}
+              isSelf={player.id === uid}
+            />
           ))}
         </div>
 
-        {!loading && !error && user && publicProfile && !players.some(player => player.id === uid) && (
-          <div className="ranking-user-summary">
-            <p className="ranking-user-caption">Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}</p>
-            <RankingRow player={publicProfile} position={userPosition} isSelf />
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          user &&
+          publicProfile &&
+          !players.some((player) => player.id === uid) && (
+            <div className="ranking-user-summary">
+              <p className="ranking-user-caption">
+                Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}
+              </p>
+              <RankingRow player={publicProfile} position={userPosition} isSelf />
+            </div>
+          )}
       </div>
     </Modal>
   )

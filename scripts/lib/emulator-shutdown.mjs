@@ -1,7 +1,11 @@
 // Preload exclusivo do processo filho do Firebase CLI. Não inicializa Firebase.
 let signalReceived = false
-process.on("SIGINT", () => { signalReceived = true })
-process.on("SIGTERM", () => { signalReceived = true })
+process.on("SIGINT", () => {
+  signalReceived = true
+})
+process.on("SIGTERM", () => {
+  signalReceived = true
+})
 function requestShutdown() {
   if (signalReceived) return
   // Aguarda o CLI registrar o handler que exporta os dados e encerra o Java.
@@ -13,7 +17,7 @@ function requestShutdown() {
     }
   }, 25)
 }
-process.on("message", message => {
+process.on("message", (message) => {
   if (message?.type === "nextage:shutdown") requestShutdown()
 })
 // Se o wrapper falhar, o CLI ainda deve limpar Java/portas e exportar os dados.

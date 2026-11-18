@@ -9,7 +9,11 @@
   width: 100%;
   padding-bottom: 16px;
 }
-.game-wrapper > h1, .game-wrapper > p { max-width: calc(100% - 24px); text-align: center; }
+.game-wrapper > h1,
+.game-wrapper > p {
+  max-width: calc(100% - 24px);
+  text-align: center;
+}
 
 .game-grid {
   display: flex;
@@ -66,7 +70,9 @@
   width: 100%;
   justify-content: center;
 }
-.keyboard-row:nth-child(2) { width: 90%; }
+.keyboard-row:nth-child(2) {
+  width: 90%;
+}
 
 .key {
   height: 60px;
@@ -104,7 +110,6 @@
 }
 
 @media (max-width: 600px) {
-
   .game-wrapper {
     margin-top: 12px;
   }
@@ -127,7 +132,9 @@
     margin-top: 16px;
     gap: 6px;
   }
-  .keyboard-row { gap: 4px; }
+  .keyboard-row {
+    gap: 4px;
+  }
 
   .key {
     height: 44px;
@@ -156,12 +163,29 @@
     margin-top: 12px;
     padding: 0 20px 16px;
   }
-  .classic-game .game-grid, .classic-game .game-row { gap: 4px; }
-  .classic-game .game-tile { font-size: 1.5rem; }
-  .classic-game .keyboard { width: 100%; margin-top: 0; gap: 6px; }
-  .classic-game .keyboard-row { gap: 4px; }
-  .classic-game .key { height: 44px; padding: 0 2px; font-size: 0.75rem; }
-  .classic-game > p[role="alert"] { grid-column: 1 / -1; }
+  .classic-game .game-grid,
+  .classic-game .game-row {
+    gap: 4px;
+  }
+  .classic-game .game-tile {
+    font-size: 1.5rem;
+  }
+  .classic-game .keyboard {
+    width: 100%;
+    margin-top: 0;
+    gap: 6px;
+  }
+  .classic-game .keyboard-row {
+    gap: 4px;
+  }
+  .classic-game .key {
+    height: 44px;
+    padding: 0 2px;
+    font-size: 0.75rem;
+  }
+  .classic-game > p[role="alert"] {
+    grid-column: 1 / -1;
+  }
 }
 
 .invalid-message {
@@ -173,8 +197,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .row-shake {
@@ -186,10 +214,22 @@
 }
 
 @keyframes shake {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }

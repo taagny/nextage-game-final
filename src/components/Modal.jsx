@@ -1,4 +1,3 @@
-
 import { useEffect } from "react"
 
 function Modal({ children, isOpen, onClose, closeDisabled = false }) {
@@ -16,9 +15,12 @@ function Modal({ children, isOpen, onClose, closeDisabled = false }) {
   if (!isOpen) return null
 
   return (
-    <div className="modal-overlay" onClick={event => {
-      if (event.target === event.currentTarget && !closeDisabled) onClose?.()
-    }}>
+    <div
+      className="modal-overlay"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !closeDisabled) onClose?.()
+      }}
+    >
       {children}
     </div>
   )

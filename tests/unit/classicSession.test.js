@@ -1,6 +1,11 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { classicElapsedTime, classicSessionKey, newClassicRound, restoreClassicRound } from "../../src/utils/classicSession.js"
+import {
+  classicElapsedTime,
+  classicSessionKey,
+  newClassicRound,
+  restoreClassicRound
+} from "../../src/utils/classicSession.js"
 import { checkGuess } from "../../src/utils/gameLogic.js"
 
 function fixture(guesses = [], finished = false) {
@@ -53,8 +58,13 @@ test("cores são recalculadas; snapshot inválido ou linhas posteriores à vitó
   assert.equal(restoreClassicRound({ ...fixture(["OPACA"], true), finishedAt: null }), null)
 })
 test("contas, visitante e projetos têm chaves separadas", () => {
-  const keys = [classicSessionKey("projeto-a", "alice"), classicSessionKey("projeto-a", "bob"),
-    classicSessionKey("projeto-b", "alice"), classicSessionKey("projeto-a"), classicSessionKey("projeto-a", "guest")]
+  const keys = [
+    classicSessionKey("projeto-a", "alice"),
+    classicSessionKey("projeto-a", "bob"),
+    classicSessionKey("projeto-b", "alice"),
+    classicSessionKey("projeto-a"),
+    classicSessionKey("projeto-a", "guest")
+  ]
   assert.equal(new Set(keys).size, keys.length)
 })
 test("tempo inclui intervalo fora da página sem exceder os limites das regras", () => {

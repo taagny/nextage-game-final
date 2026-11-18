@@ -9,7 +9,11 @@ for (const host of [authHost, firestoreHost]) {
     throw new Error("Integração exige ambos os emuladores locais. Use npm run test:integration.")
   }
 }
-export const app = initializeApp({ projectId: "demo-nextage-v2", apiKey: "fake-api-key", authDomain: "localhost" })
+export const app = initializeApp({
+  projectId: "demo-nextage-v2",
+  apiKey: "fake-api-key",
+  authDomain: "localhost"
+})
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true })

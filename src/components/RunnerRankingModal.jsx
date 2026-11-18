@@ -38,17 +38,19 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
     }
 
     if (isOpen) loadRanking()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [isOpen, time, uid])
 
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new ranking-card-runner">
-        <button className="ranking-close" onClick={onClose}>×</button>
+        <button className="ranking-close" onClick={onClose}>
+          ×
+        </button>
 
-        <h1 className="ranking-title-new">
-          RANKING RUNNER {time ? `${time}s` : ""}
-        </h1>
+        <h1 className="ranking-title-new">RANKING RUNNER {time ? `${time}s` : ""}</h1>
 
         <div className="ranking-header-new">
           <span>TOP</span>
@@ -64,16 +66,29 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
             <p>Nenhum jogador com pontuação positiva nessa duração.</p>
           )}
           {players.map((player, index) => (
-            <RankingRow key={player.id} player={player} position={index + 1} isSelf={player.id === uid} time={time} />
+            <RankingRow
+              key={player.id}
+              player={player}
+              position={index + 1}
+              isSelf={player.id === uid}
+              time={time}
+            />
           ))}
         </div>
 
-        {!loading && !error && time && user && publicProfile && !players.some(player => player.id === uid) && (
-          <div className="ranking-user-summary">
-            <p className="ranking-user-caption">Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}</p>
-            <RankingRow player={publicProfile} position={userPosition} isSelf time={time} />
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          time &&
+          user &&
+          publicProfile &&
+          !players.some((player) => player.id === uid) && (
+            <div className="ranking-user-summary">
+              <p className="ranking-user-caption">
+                Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}
+              </p>
+              <RankingRow player={publicProfile} position={userPosition} isSelf time={time} />
+            </div>
+          )}
       </div>
     </Modal>
   )

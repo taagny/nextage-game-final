@@ -1,5 +1,7 @@
 export function downloadFile(content, filename, mimeType) {
-  const blob = new Blob([mimeType.startsWith("text/csv") ? "\uFEFF" : "", content], { type: mimeType })
+  const blob = new Blob([mimeType.startsWith("text/csv") ? "\uFEFF" : "", content], {
+    type: mimeType
+  })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url

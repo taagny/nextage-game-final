@@ -1,11 +1,18 @@
 import {
-  deleteUser, EmailAuthProvider, GoogleAuthProvider,
-  reauthenticateWithCredential, reauthenticateWithPopup
+  deleteUser,
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup
 } from "firebase/auth"
 import { collection, doc, getDoc, getDocs, limit, query, writeBatch } from "firebase/firestore"
 import { auth, db } from "./firebase"
 import { beginAccountDeletion, finishAccountDeletion } from "./accountLifecycle"
-import { deleteAccountInOrder, deleteInBatches, reauthenticationMethod } from "../utils/accountDeletion.js"
+import {
+  deleteAccountInOrder,
+  deleteInBatches,
+  reauthenticationMethod
+} from "../utils/accountDeletion.js"
 import { personalMatchesCSV, serializeTimestamps } from "../utils/dataExport.js"
 import { clearClassicSession } from "./classicSessionService.js"
 
@@ -19,28 +26,34 @@ function requireCurrentUser(uid) {
 
 async function myCollection(uid, name) {
   const snapshot = await getDocs(collection(db, "jogadores", uid, name))
-  return snapshot.docs.map(document => ({ ...document.data(), id: document.id }))
+  return snapshot.docs.map((document) => ({ ...document.data(), id: document.id }))
 }
 
 export async function exportMyDataJSON(uid) {
   requireCurrentUser(uid)
   const [profile, player, matches, words] = await Promise.all([
-    getDoc(doc(db, "perfisPublicos", uid)), getDoc(doc(db, "jogadores", uid)),
-    myCollection(uid, "partidas"), myCollection(uid, "palavras")
+    getDoc(doc(db, "perfisPublicos", uid)),
+    getDoc(doc(db, "jogadores", uid)),
+    myCollection(uid, "partidas"),
+    myCollection(uid, "palavras")
   ])
   requireCurrentUser(uid)
   // Exportação pessoal completa do Firestore, acessível somente à própria conta.
   // O apelido faz parte do perfil público; dados do Authentication não são copiados.
   return serializeTimestamps({
-    exportedAt: new Date(), publicProfile: profile.exists() ? profile.data() : null,
-    player: player.exists() ? player.data() : null, matches, words
+    exportedAt: new Date(),
+    publicProfile: profile.exists() ? profile.data() : null,
+    player: player.exists() ? player.data() : null,
+    matches,
+    words
   })
 }
 
 export async function exportMyMatchesCSV(uid) {
   requireCurrentUser(uid)
   const [player, matches] = await Promise.all([
-    getDoc(doc(db, "jogadores", uid)), myCollection(uid, "partidas")
+    getDoc(doc(db, "jogadores", uid)),
+    myCollection(uid, "partidas")
   ])
   requireCurrentUser(uid)
   return personalMatchesCSV(matches, player.data()?.stats?.countersFixedAt)
@@ -61,23 +74,28 @@ async function reauthenticateAccount(user, password) {
     }
     await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
   } else {
-    throw new Error("Não foi possível identificar uma forma de reautenticação compatível. Entre novamente.")
+    throw new Error(
+      "Não foi possível identificar uma forma de reautenticação compatível. Entre novamente."
+    )
   }
   requireCurrentUser(user.uid)
 }
 
 async function removeCollection(uid, name) {
   const ref = collection(db, "jogadores", uid, name)
-  await deleteInBatches(async size => {
-    requireCurrentUser(uid)
-    const snapshot = await getDocs(query(ref, limit(size)))
-    return snapshot.docs
-  }, async documents => {
-    requireCurrentUser(uid)
-    const batch = writeBatch(db)
-    documents.forEach(document => batch.delete(document.ref))
-    await batch.commit()
-  })
+  await deleteInBatches(
+    async (size) => {
+      requireCurrentUser(uid)
+      const snapshot = await getDocs(query(ref, limit(size)))
+      return snapshot.docs
+    },
+    async (documents) => {
+      requireCurrentUser(uid)
+      const batch = writeBatch(db)
+      documents.forEach((document) => batch.delete(document.ref))
+      await batch.commit()
+    }
+  )
 }
 
 export async function deleteMyAccount(user, { password } = {}) {
@@ -97,9 +115,13 @@ export async function deleteMyAccount(user, { password } = {}) {
     },
     removeAuth: () => {
       requireCurrentUser(uid)
-      try { clearClassicSession(uid) } catch { console.warn("Não foi possível limpar a partida local desta conta.") }
+      try {
+        clearClassicSession(uid)
+      } catch {
+        console.warn("Não foi possível limpar a partida local desta conta.")
+      }
       return deleteUser(user)
     },
-    finish: complete => finishAccountDeletion(uid, complete)
+    finish: (complete) => finishAccountDeletion(uid, complete)
   })
 }

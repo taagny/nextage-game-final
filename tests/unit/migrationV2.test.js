@@ -1,19 +1,33 @@
 import test from "node:test"
 import assert from "node:assert/strict"
 import { Timestamp } from "firebase-admin/firestore"
-import { buildPrivateDocument, buildPublicProfile, LEGACY_FIELDS } from "../../scripts/lib/migration-v2.mjs"
+import {
+  buildPrivateDocument,
+  buildPublicProfile,
+  LEGACY_FIELDS
+} from "../../scripts/lib/migration-v2.mjs"
 
 const createdAt = Timestamp.fromMillis(1000)
 const now = Timestamp.fromMillis(2000)
 
 test("copy extrai somente o perfil público e saneia o primeiro nome", () => {
-  const profile = buildPublicProfile({
-    nome: "João Silva", email: "dado-legado", sequenciaAtual: 5, tentativas: 3,
-    runnerScores: { 10: 2, 30: 3, 60: 4 }, premium: { active: true }
-  }, now)
+  const profile = buildPublicProfile(
+    {
+      nome: "João Silva",
+      email: "dado-legado",
+      sequenciaAtual: 5,
+      tentativas: 3,
+      runnerScores: { 10: 2, 30: 3, 60: 4 },
+      premium: { active: true }
+    },
+    now
+  )
   assert.deepEqual(profile, {
-    apelido: "Joao", sequenciaAtual: 5, sequenciasPerdidas: 3,
-    runnerScores: { 10: 2, 30: 3, 60: 4 }, updatedAt: now
+    apelido: "Joao",
+    sequenciaAtual: 5,
+    sequenciasPerdidas: 3,
+    runnerScores: { 10: 2, 30: 3, 60: 4 },
+    updatedAt: now
   })
 })
 
@@ -25,11 +39,19 @@ test("copy fornece os padrões especificados, sem truncar placares inválidos", 
 })
 
 test("cleanup remove os campos legados e marca a semântica nova sem recalcular o passado", () => {
-  const legacy = Object.fromEntries(LEGACY_FIELDS.map(field => [field, "legado"]))
+  const legacy = Object.fromEntries(LEGACY_FIELDS.map((field) => [field, "legado"]))
   legacy.termsAccepted = true
   legacy.termsAcceptedAt = createdAt
-  legacy.stats = { totalGames: 7, totalWins: 7, totalTimeMs: 14000, totalAttempts: 21,
-    avgTimePerWord: 2000, avgAttemptsPerWord: 3, profile: "iniciante", abandonedGames: 2 }
+  legacy.stats = {
+    totalGames: 7,
+    totalWins: 7,
+    totalTimeMs: 14000,
+    totalAttempts: 21,
+    avgTimePerWord: 2000,
+    avgAttemptsPerWord: 3,
+    profile: "iniciante",
+    abandonedGames: 2
+  }
   const cleaned = buildPrivateDocument(legacy, { now, createdAt })
   for (const field of LEGACY_FIELDS) assert.equal(Object.hasOwn(cleaned, field), false)
   assert.equal(Object.hasOwn(cleaned.stats, "profile"), false)
@@ -57,8 +79,14 @@ test("cleanup repetido é idempotente e preserva um novo aceite válido", () => 
 test("cleanup recusa campos desconhecidos, datas ausentes e totais inconsistentes", () => {
   assert.throws(() => buildPrivateDocument({ role: "admin" }, { now, createdAt }), /desconhecidos/)
   assert.throws(() => buildPrivateDocument({}, { now }), /Data de criação/)
-  assert.throws(() => buildPrivateDocument({ stats: { totalGames: 1, totalWins: 2 } }, { now, createdAt }), /inconsistentes/)
-  assert.throws(() => buildPrivateDocument({ stats: { totalTimeMs: -1 } }, { now, createdAt }), /inválido/)
+  assert.throws(
+    () => buildPrivateDocument({ stats: { totalGames: 1, totalWins: 2 } }, { now, createdAt }),
+    /inconsistentes/
+  )
+  assert.throws(
+    () => buildPrivateDocument({ stats: { totalTimeMs: -1 } }, { now, createdAt }),
+    /inválido/
+  )
 })
 
 test("cleanup preserva autorização ou revogação explícita e não cria participação para contas antigas", () => {
@@ -66,7 +94,10 @@ test("cleanup preserva autorização ou revogação explícita e não cria parti
   assert.equal(Object.hasOwn(cleaned, "researchConsent"), false)
   for (const accepted of [true, false]) {
     cleaned.researchConsent = { accepted, version: "1", updatedAt: now }
-    assert.deepEqual(buildPrivateDocument(cleaned, { now, createdAt }).researchConsent, cleaned.researchConsent)
+    assert.deepEqual(
+      buildPrivateDocument(cleaned, { now, createdAt }).researchConsent,
+      cleaned.researchConsent
+    )
   }
   cleaned.researchConsent.accepted = "sim"
   assert.throws(() => buildPrivateDocument(cleaned, { now, createdAt }), /pesquisa inválida/)

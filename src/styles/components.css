@@ -14,7 +14,10 @@
   padding: 12px;
   overflow-y: auto;
 }
-.modal-overlay > * { flex-shrink: 0; margin-block: auto; }
+.modal-overlay > * {
+  flex-shrink: 0;
+  margin-block: auto;
+}
 
 .modal-card {
   background: #1f1f3a;
@@ -85,7 +88,11 @@
   color: #ccc;
 }
 
-.word-feedback { color: #c3e0ff; font-size: 0.9rem; line-height: 1.5; }
+.word-feedback {
+  color: #c3e0ff;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
 
 .streak-highlight-box {
   display: flex;
@@ -243,7 +250,7 @@
 }
 
 .info-title {
-  font-family: 'Creepster', cursive;
+  font-family: "Creepster", cursive;
   font-size: 2rem;
   color: #ff3b3b;
   text-align: center;
@@ -354,10 +361,25 @@
   gap: 20px;
 }
 
-.research-key-section { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin-block: 18px; text-align: left; }
-.research-key-section p { font-size: 0.9rem; line-height: 1.5; }
-.research-key-section input { max-width: 100%; }
-.wordlist-credit a { color: #a9caff; text-underline-offset: 3px; }
+.research-key-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-block: 18px;
+  text-align: left;
+}
+.research-key-section p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.research-key-section input {
+  max-width: 100%;
+}
+.wordlist-credit a {
+  color: #a9caff;
+  text-underline-offset: 3px;
+}
 
 .dev-close {
   position: absolute;
@@ -389,10 +411,19 @@
   font-size: 1.6rem;
 }
 
-.terms-modal { max-height: calc(100dvh - 24px); }
-.terms-modal .terms-content { min-height: 0; }
-.terms-modal .terms-version { color: #ccc; font-size: 0.85rem; }
-.terms-modal .terms-actions { flex-wrap: wrap; }
+.terms-modal {
+  max-height: calc(100dvh - 24px);
+}
+.terms-modal .terms-content {
+  min-height: 0;
+}
+.terms-modal .terms-version {
+  color: #ccc;
+  font-size: 0.85rem;
+}
+.terms-modal .terms-actions {
+  flex-wrap: wrap;
+}
 .terms-research-choice {
   display: flex;
   align-items: flex-start;
@@ -401,8 +432,17 @@
   font-size: 0.9rem;
   line-height: 1.45;
 }
-.terms-research-choice input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; accent-color: #ff3b3b; }
-.terms-modal button:disabled { opacity: 0.55; cursor: not-allowed; }
+.terms-research-choice input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #ff3b3b;
+}
+.terms-modal button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 .terms-content {
   font-size: 0.9rem;
@@ -565,21 +605,6 @@
   gap: 15px;
   justify-content: center;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* ================= GUESS DISTRIBUTION ================= */
 

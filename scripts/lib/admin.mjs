@@ -11,7 +11,9 @@ export function adminClients(projectId) {
   }
   const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
   if (!credentialsPath) {
-    throw new Error("Defina GOOGLE_APPLICATION_CREDENTIALS para uma credencial fora do repositório.")
+    throw new Error(
+      "Defina GOOGLE_APPLICATION_CREDENTIALS para uma credencial fora do repositório."
+    )
   }
   const root = realpathSync(fileURLToPath(new URL("../../", import.meta.url)))
   let credential
@@ -21,8 +23,13 @@ export function adminClients(projectId) {
     throw new Error("A credencial informada não está acessível.")
   }
   const pathFromRoot = relative(root, credential)
-  if (pathFromRoot === "" || (!isAbsolute(pathFromRoot) && pathFromRoot !== ".." && !pathFromRoot.startsWith(`..${sep}`))) {
-    throw new Error("A credencial precisa estar fora do repositório, inclusive após resolver links.")
+  if (
+    pathFromRoot === "" ||
+    (!isAbsolute(pathFromRoot) && pathFromRoot !== ".." && !pathFromRoot.startsWith(`..${sep}`))
+  ) {
+    throw new Error(
+      "A credencial precisa estar fora do repositório, inclusive após resolver links."
+    )
   }
   const app = initializeApp({ projectId, credential: applicationDefault() })
   return { app, db: getFirestore(app), auth: getAuth(app) }

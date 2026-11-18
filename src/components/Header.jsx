@@ -13,8 +13,16 @@ const DevModal = lazy(() => import("./DevModal"))
 const TermsModal = lazy(() => import("./TermsModal"))
 
 function Header() {
-
-  const { user, isAdmin, nickname, gameInProgress, gameMatchId, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
+  const {
+    user,
+    isAdmin,
+    nickname,
+    gameInProgress,
+    gameMatchId,
+    mustAcceptTerms,
+    acceptTerms,
+    rejectTerms
+  } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -34,7 +42,6 @@ function Header() {
       )
 
       if (!confirmExit) return
-
     }
 
     logoutInProgress.current = true
@@ -109,25 +116,23 @@ function Header() {
 
           {user && (
             <div className="user-menu-wrapper">
-              <button className="user-btn" onClick={() => setOpenMenu(prev => !prev)}>
-                <span className="user-avatar">
-                  {nickname.charAt(0).toUpperCase() || "?"}
-                </span>
+              <button className="user-btn" onClick={() => setOpenMenu((prev) => !prev)}>
+                <span className="user-avatar">{nickname.charAt(0).toUpperCase() || "?"}</span>
                 <span className="user-name">{nickname || "Jogador"}</span>
               </button>
 
               {openMenu && (
                 <div className="user-dropdown">
-                  <button onClick={() => {
-                    setOpenSettings(true)
-                    setOpenMenu(false)
-                  }}>
+                  <button
+                    onClick={() => {
+                      setOpenSettings(true)
+                      setOpenMenu(false)
+                    }}
+                  >
                     Configurações
                   </button>
 
-                  <button onClick={handleLogout}>
-                    Sair da Conta
-                  </button>
+                  <button onClick={handleLogout}>Sair da Conta</button>
                 </div>
               )}
             </div>
@@ -136,29 +141,24 @@ function Header() {
       </header>
 
       <DeferredContent modal>
-      {openAuth && <AuthModal isOpen onClose={() => setOpenAuth(false)} />}
+        {openAuth && <AuthModal isOpen onClose={() => setOpenAuth(false)} />}
 
-      {user && openSettings && (
-        <UserSettingsModal
-          isOpen={openSettings}
-          onClose={() => setOpenSettings(false)}
-          user={user}
-        />
-      )}
+        {user && openSettings && (
+          <UserSettingsModal
+            isOpen={openSettings}
+            onClose={() => setOpenSettings(false)}
+            user={user}
+          />
+        )}
 
-      {openRanking && <RankingModal isOpen onClose={() => setOpenRanking(false)} />}
-      {openInfo && <InfoModal isOpen onClose={() => setOpenInfo(false)} />}
-      {isAdmin && openDev && <DevModal isOpen onClose={() => setOpenDev(false)} />}
+        {openRanking && <RankingModal isOpen onClose={() => setOpenRanking(false)} />}
+        {openInfo && <InfoModal isOpen onClose={() => setOpenInfo(false)} />}
+        {isAdmin && openDev && <DevModal isOpen onClose={() => setOpenDev(false)} />}
 
-      {user && mustAcceptTerms && (
-        <TermsModal
-          isOpen={true}
-          onAccept={acceptTerms}
-          onReject={rejectTerms}
-        />
-      )}
+        {user && mustAcceptTerms && (
+          <TermsModal isOpen={true} onAccept={acceptTerms} onReject={rejectTerms} />
+        )}
       </DeferredContent>
-
     </>
   )
 }

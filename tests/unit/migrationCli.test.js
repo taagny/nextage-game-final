@@ -22,12 +22,23 @@ test("migração informa o placar inválido original sem exigir chave de pesquis
   }`
   const registration = `import { register } from 'node:module';
     register(${JSON.stringify(`data:text/javascript,${encodeURIComponent(loader)}`)}, ${JSON.stringify(import.meta.url)});`
-  const env = Object.fromEntries(["SystemRoot", "WINDIR", "PATH", "TEMP", "TMP"]
-    .filter(key => process.env[key]).map(key => [key, process.env[key]]))
-  const result = spawnSync(process.execPath, [
-    "--import", `data:text/javascript,${encodeURIComponent(registration)}`,
-    "scripts/migrate-v2.mjs", "--copy", "--project", "demo-nextage-migration"
-  ], { encoding: "utf8", windowsHide: true, timeout: 20000, env })
+  const env = Object.fromEntries(
+    ["SystemRoot", "WINDIR", "PATH", "TEMP", "TMP"]
+      .filter((key) => process.env[key])
+      .map((key) => [key, process.env[key]])
+  )
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      `data:text/javascript,${encodeURIComponent(registration)}`,
+      "scripts/migrate-v2.mjs",
+      "--copy",
+      "--project",
+      "demo-nextage-migration"
+    ],
+    { encoding: "utf8", windowsHide: true, timeout: 20000, env }
+  )
   assert.equal(result.error, undefined)
   assert.equal(result.status, 1)
   const output = result.stdout + result.stderr

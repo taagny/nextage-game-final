@@ -4,10 +4,19 @@ import { nextWordDoc } from "../../src/utils/wordHistory.js"
 
 test("primeira vitória cria o documento completo da palavra", () => {
   assert.deepEqual(nextWordDoc(null, { won: true, attempts: 3, timeMs: 1000 }, "primeira"), {
-    vezesVista: 1, vitorias: 1, totalTentativas: 3, mediaTentativas: 3,
-    primeiraVenceu: true, primeiraTentativas: 3, primeiraTempoMs: 1000,
-    melhorTentativas: 3, melhorTempoMs: 1000, ultimaVenceu: true,
-    ultimaTentativas: 3, ultimaTempoMs: 1000, atualizadoEm: "primeira"
+    vezesVista: 1,
+    vitorias: 1,
+    totalTentativas: 3,
+    mediaTentativas: 3,
+    primeiraVenceu: true,
+    primeiraTentativas: 3,
+    primeiraTempoMs: 1000,
+    melhorTentativas: 3,
+    melhorTempoMs: 1000,
+    ultimaVenceu: true,
+    ultimaTentativas: 3,
+    ultimaTempoMs: 1000,
+    atualizadoEm: "primeira"
   })
 })
 
@@ -23,7 +32,9 @@ test("primeira derrota usa 7 tentativas na média sem alterar o resultado recebi
 })
 
 test("vitória depois de derrota melhora o recorde e mantém a primeira ocorrência", () => {
-  const first = Object.freeze(nextWordDoc(null, { won: false, attempts: 6, timeMs: 9000 }, "primeira"))
+  const first = Object.freeze(
+    nextWordDoc(null, { won: false, attempts: 6, timeMs: 9000 }, "primeira")
+  )
   const next = nextWordDoc(first, { won: true, attempts: 3, timeMs: 2000 }, "segunda")
   assert.equal(next.vezesVista, 2)
   assert.equal(next.vitorias, 1)
@@ -39,7 +50,11 @@ test("vitória depois de derrota melhora o recorde e mantém a primeira ocorrên
 
 test("melhor resultado prioriza tentativas e depois tempo, sem piorar com novas partidas", () => {
   let word = nextWordDoc(null, { won: true, attempts: 6, timeMs: 10000 }, "1")
-  for (const [attempts, timeMs] of [[2, 5000], [2, 3000], [3, 1000]]) {
+  for (const [attempts, timeMs] of [
+    [2, 5000],
+    [2, 3000],
+    [3, 1000]
+  ]) {
     word = nextWordDoc(word, { won: true, attempts, timeMs }, "depois")
   }
   word = nextWordDoc(word, { won: false, attempts: 6, timeMs: 500 }, "última")
@@ -64,7 +79,10 @@ test("duas derrotas mantêm o primeiro tempo como recorde sem desempate por temp
 })
 
 test("tempo zero da primeira ocorrência é preservado e campos extras não são copiados", () => {
-  const first = { ...nextWordDoc(null, { won: true, attempts: 1, timeMs: 0 }, "1"), extra: "fixture" }
+  const first = {
+    ...nextWordDoc(null, { won: true, attempts: 1, timeMs: 0 }, "1"),
+    extra: "fixture"
+  }
   const second = nextWordDoc(first, { won: true, attempts: 2, timeMs: 100 }, "2")
   assert.equal(second.primeiraTempoMs, 0)
   assert.equal(second.melhorTempoMs, 0)
@@ -74,8 +92,12 @@ test("tempo zero da primeira ocorrência é preservado e campos extras não são
 test("histórico rejeita abandonos, vitórias inválidas e tempos fora dos limites", () => {
   for (const result of [
     { won: false, abandoned: true, attempts: 0, timeMs: 0 },
-    { won: true, attempts: 0, timeMs: 0 }, { won: true, attempts: 7, timeMs: 0 },
-    { won: true, attempts: 2.5, timeMs: 0 }, { won: true, attempts: 2, timeMs: -1 },
-    { won: false, attempts: 6, timeMs: 86400001 }, { won: true, attempts: 2, timeMs: 0.5 }
-  ]) assert.throws(() => nextWordDoc(null, result, "agora"), /Resultado inválido/)
+    { won: true, attempts: 0, timeMs: 0 },
+    { won: true, attempts: 7, timeMs: 0 },
+    { won: true, attempts: 2.5, timeMs: 0 },
+    { won: true, attempts: 2, timeMs: -1 },
+    { won: false, attempts: 6, timeMs: 86400001 },
+    { won: true, attempts: 2, timeMs: 0.5 }
+  ])
+    assert.throws(() => nextWordDoc(null, result, "agora"), /Resultado inválido/)
 })

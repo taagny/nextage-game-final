@@ -23,7 +23,17 @@ test("validação aceita as bordas e os caracteres permitidos", () => {
 })
 
 test("validação rejeita tamanho inválido, espaços e outros caracteres", () => {
-  for (const nickname of [null, 123, "", "AB", "A".repeat(21), "Ana Maria", "João", "<Ana>", "Ana\n"]) {
+  for (const nickname of [
+    null,
+    123,
+    "",
+    "AB",
+    "A".repeat(21),
+    "Ana Maria",
+    "João",
+    "<Ana>",
+    "Ana\n"
+  ]) {
     assert.ok(validateNickname(nickname))
   }
 })

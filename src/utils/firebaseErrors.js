@@ -6,16 +6,19 @@ const authMessages = {
   "auth/invalid-email": "Email inválido.",
   "auth/weak-password": "Senha muito fraca. Use pelo menos 6 caracteres.",
   "auth/too-many-requests": "Muitas tentativas. Tente novamente mais tarde.",
-  "auth/network-request-failed": "Não foi possível conectar ao serviço de login. Verifique sua conexão e tente novamente.",
+  "auth/network-request-failed":
+    "Não foi possível conectar ao serviço de login. Verifique sua conexão e tente novamente.",
   "auth/user-disabled": "Esta conta está desativada. Entre em contato com o responsável.",
   "auth/operation-not-allowed": "Esta forma de login está indisponível no momento.",
   "auth/unauthorized-domain": "O login não está disponível neste endereço do site.",
   "auth/invalid-api-key": "O serviço de login está indisponível neste ambiente.",
   "auth/app-not-authorized": "O serviço de login está indisponível neste ambiente.",
   "auth/internal-error": "O serviço de login está indisponível neste ambiente.",
-  "auth/popup-blocked": "O navegador bloqueou a janela de login. Permita a abertura e tente novamente.",
+  "auth/popup-blocked":
+    "O navegador bloqueou a janela de login. Permita a abertura e tente novamente.",
   "auth/popup-closed-by-user": "O login foi cancelado. Você pode tentar novamente.",
-  "auth/cancelled-popup-request": "Outra tentativa de login foi iniciada. Aguarde e tente novamente."
+  "auth/cancelled-popup-request":
+    "Outra tentativa de login foi iniciada. Aguarde e tente novamente."
 }
 
 // Não retornar error.message: respostas brutas podem conter dados da requisição.
@@ -35,5 +38,6 @@ export function rankingErrorMessage(error) {
 
 export function firebaseErrorCode(error) {
   return typeof error?.code === "string" && /^(auth\/)?[a-z-]+$/.test(error.code)
-    ? error.code : "unknown"
+    ? error.code
+    : "unknown"
 }

@@ -1,5 +1,5 @@
 export function reauthenticationMethod(user) {
-  const providers = user.providerData.map(provider => provider.providerId)
+  const providers = user.providerData.map((provider) => provider.providerId)
   if (providers.includes("google.com")) return "google"
   if (providers.includes("password")) return "password"
   return null

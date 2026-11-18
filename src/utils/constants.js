@@ -7,4 +7,6 @@ export const CONTACT_EMAIL = import.meta.env?.VITE_CONTACT_EMAIL ?? ""
 
 // Configuração local/de publicação; não gravar UIDs reais em arquivos versionados.
 export const EXCLUDED_FROM_RESEARCH_UIDS = (import.meta.env?.VITE_EXCLUDED_FROM_RESEARCH_UIDS ?? "")
-  .split(",").map(uid => uid.trim()).filter(Boolean)
+  .split(",")
+  .map((uid) => uid.trim())
+  .filter(Boolean)

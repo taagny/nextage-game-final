@@ -7,8 +7,9 @@ export async function getHardestWords(uid, count = 10) {
   }
   const words = query(
     collection(db, "jogadores", uid, "palavras"),
-    orderBy("mediaTentativas", "desc"), limit(count)
+    orderBy("mediaTentativas", "desc"),
+    limit(count)
   )
   const snapshot = await getDocs(words)
-  return snapshot.docs.map(word => ({ ...word.data(), word: word.id }))
+  return snapshot.docs.map((word) => ({ ...word.data(), word: word.id }))
 }

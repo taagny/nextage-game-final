@@ -17,7 +17,7 @@ export function debuggerClient(url) {
     socket.addEventListener("open", resolve, { once: true })
     socket.addEventListener("error", reject, { once: true })
   })
-  socket.addEventListener("message", event => {
+  socket.addEventListener("message", (event) => {
     const response = JSON.parse(event.data)
     const request = pending.get(response.id)
     if (!request) return

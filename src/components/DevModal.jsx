@@ -10,7 +10,6 @@ import {
 } from "../services/adminService"
 
 function DevModal({ isOpen, onClose }) {
-
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -30,14 +29,21 @@ function DevModal({ isOpen, onClose }) {
         if (active) setStats(data)
       } catch (error) {
         console.error("Não foi possível carregar os dados de pesquisa.", error?.code ?? error?.name)
-        if (active) setError(error.code ? "Não foi possível carregar os dados. Entre novamente e tente outra vez." : error.message)
+        if (active)
+          setError(
+            error.code
+              ? "Não foi possível carregar os dados. Entre novamente e tente outra vez."
+              : error.message
+          )
       } finally {
         if (active) setLoading(false)
       }
     }
 
     loadStats()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [isOpen, researchKey])
 
   async function chooseKey(event) {
@@ -53,7 +59,9 @@ function DevModal({ isOpen, onClose }) {
       setResearchKey(await openResearchKeyFile(await file.text()))
     } catch (error) {
       setError(error.message)
-    } finally { setOpeningKey(false) }
+    } finally {
+      setOpeningKey(false)
+    }
   }
 
   async function handleExport(exporter) {
@@ -64,7 +72,11 @@ function DevModal({ isOpen, onClose }) {
       await exporter(researchKey)
     } catch (error) {
       console.error("Não foi possível exportar a pesquisa.", error?.code ?? error?.name)
-      setError(error.code ? "Não foi possível exportar os dados. Entre novamente e tente outra vez." : error.message)
+      setError(
+        error.code
+          ? "Não foi possível exportar os dados. Entre novamente e tente outra vez."
+          : error.message
+      )
     } finally {
       setExporting(false)
     }
@@ -73,22 +85,48 @@ function DevModal({ isOpen, onClose }) {
   return (
     <Modal isOpen={isOpen}>
       <div className="modal-card dev-panel">
-
-        <button className="dev-close" onClick={onClose} disabled={exporting}>×</button>
+        <button className="dev-close" onClick={onClose} disabled={exporting}>
+          ×
+        </button>
 
         <h2 className="dev-title">Painel de Pesquisa</h2>
 
         <section className="research-key-section" aria-labelledby="research-key-title">
           <h3 id="research-key-title">Chave da pesquisa</h3>
-          <p>Guarde a chave separada dos dados exportados. Use o mesmo arquivo para manter os códigos dos participantes entre exportações. Uma nova chave gera códigos diferentes.</p>
-          <p>O NEXTAGE não salva nem recupera esse arquivo. Nunca envie a chave junto dos dados da pesquisa.</p>
-          <button className="modal-btn" disabled={exporting || openingKey} onClick={() => {
-            downloadFile(JSON.stringify(createResearchKeyFile(), null, 2), "nextage_chave_pesquisa.json", "application/json;charset=utf-8")
-          }}>Gerar arquivo de chave</button>
+          <p>
+            Guarde a chave separada dos dados exportados. Use o mesmo arquivo para manter os códigos
+            dos participantes entre exportações. Uma nova chave gera códigos diferentes.
+          </p>
+          <p>
+            O NEXTAGE não salva nem recupera esse arquivo. Nunca envie a chave junto dos dados da
+            pesquisa.
+          </p>
+          <button
+            className="modal-btn"
+            disabled={exporting || openingKey}
+            onClick={() => {
+              downloadFile(
+                JSON.stringify(createResearchKeyFile(), null, 2),
+                "nextage_chave_pesquisa.json",
+                "application/json;charset=utf-8"
+              )
+            }}
+          >
+            Gerar arquivo de chave
+          </button>
           <label htmlFor="research-key-file">Abrir chave guardada</label>
-          <input id="research-key-file" type="file" accept=".json,application/json"
-            disabled={exporting || openingKey} onChange={chooseKey} />
-          {researchKey && <p role="status">Chave aberta: {researchKey.id}. Mantida apenas enquanto este painel estiver aberto.</p>}
+          <input
+            id="research-key-file"
+            type="file"
+            accept=".json,application/json"
+            disabled={exporting || openingKey}
+            onChange={chooseKey}
+          />
+          {researchKey && (
+            <p role="status">
+              Chave aberta: {researchKey.id}. Mantida apenas enquanto este painel estiver aberto.
+            </p>
+          )}
         </section>
 
         {loading && <p>Carregando...</p>}
@@ -97,7 +135,6 @@ function DevModal({ isOpen, onClose }) {
 
         {stats && (
           <div className="dev-grid">
-
             <div className="dev-card">
               <h3>Métricas Globais</h3>
               <div className="dev-metrics">
@@ -114,7 +151,7 @@ function DevModal({ isOpen, onClose }) {
             <div className="dev-card">
               <h3>Distribuição Global</h3>
               <div className="dev-distribution">
-                {Object.keys(stats.globalDistribution).map(key => (
+                {Object.keys(stats.globalDistribution).map((key) => (
                   <div key={key} className="dev-dist-row">
                     <span>{key}</span>
                     <div className="dev-bar-wrapper">
@@ -137,13 +174,11 @@ function DevModal({ isOpen, onClose }) {
                 {stats.top10.map((player, index) => (
                   <div key={player.code} className="dev-rank-row">
                     <span className="rank-pos">{index + 1}</span>
-                    <span className="rank-name" title={player.code}>{player.code.slice(0, 18)}…</span>
-                    <span className="rank-metric">
-                      {player.avgAttempts.toFixed(2)} tent.
+                    <span className="rank-name" title={player.code}>
+                      {player.code.slice(0, 18)}…
                     </span>
-                    <span className="rank-time">
-                      {player.avgTime.toFixed(2)}s
-                    </span>
+                    <span className="rank-metric">{player.avgAttempts.toFixed(2)} tent.</span>
+                    <span className="rank-time">{player.avgTime.toFixed(2)}s</span>
                   </div>
                 ))}
               </div>
@@ -151,12 +186,23 @@ function DevModal({ isOpen, onClose }) {
 
             <div className="dev-card full-width export-section">
               <h3>Exportação TCC</h3>
-              <p>As contas excluídas da pesquisa não entram nestes totais ou arquivos. Dados legados mantêm a semântica anterior dos contadores.</p>
+              <p>
+                As contas excluídas da pesquisa não entram nestes totais ou arquivos. Dados legados
+                mantêm a semântica anterior dos contadores.
+              </p>
               <div className="dev-actions">
-                <button className="modal-btn green" disabled={exporting} onClick={() => handleExport(exportSummaryCSV)}>
+                <button
+                  className="modal-btn green"
+                  disabled={exporting}
+                  onClick={() => handleExport(exportSummaryCSV)}
+                >
                   Exportar Resumo CSV
                 </button>
-                <button className="modal-btn red" disabled={exporting} onClick={() => handleExport(exportMatchesCSV)}>
+                <button
+                  className="modal-btn red"
+                  disabled={exporting}
+                  onClick={() => handleExport(exportMatchesCSV)}
+                >
                   Exportar Histórico CSV
                 </button>
                 <button
@@ -169,10 +215,8 @@ function DevModal({ isOpen, onClose }) {
                 </button>
               </div>
             </div>
-
           </div>
         )}
-
       </div>
     </Modal>
   )

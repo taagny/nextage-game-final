@@ -1,6 +1,14 @@
 import {
-  collection, documentId, endBefore, FieldPath, getCountFromServer,
-  getDocs, limit, orderBy, query, where
+  collection,
+  documentId,
+  endBefore,
+  FieldPath,
+  getCountFromServer,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  where
 } from "firebase/firestore"
 import { db } from "./firebase"
 
@@ -16,8 +24,8 @@ async function getRanking(field, uid, score) {
     orderBy(documentId(), "desc")
   )
   const snapshot = await getDocs(query(ranked, limit(RANKING_LIMIT)))
-  const players = snapshot.docs.map(profile => ({ ...profile.data(), id: profile.id }))
-  const userIndex = uid ? players.findIndex(player => player.id === uid) : -1
+  const players = snapshot.docs.map((profile) => ({ ...profile.data(), id: profile.id }))
+  const userIndex = uid ? players.findIndex((player) => player.id === uid) : -1
   if (userIndex !== -1) return { players, userPosition: userIndex + 1 }
   if (!uid || !Number.isFinite(score) || score <= 0) {
     return { players, userPosition: null }

@@ -12,7 +12,14 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/runner" element={<DeferredContent><Runner /></DeferredContent>} />
+        <Route
+          path="/runner"
+          element={
+            <DeferredContent>
+              <Runner />
+            </DeferredContent>
+          }
+        />
       </Routes>
     </Layout>
   )

@@ -19,8 +19,13 @@ export function resolve(specifier, context, nextResolve) {
 // O Vite injeta import.meta.env no navegador; a suíte usa configuração fictícia.
 export async function load(url, context, nextLoad) {
   const result = await nextLoad(url, context)
-  if (url.endsWith('/src/utils/constants.js')) {
-    return { ...result, source: result.source.toString().replaceAll('import.meta.env', '({ VITE_EXCLUDED_FROM_RESEARCH_UIDS: "excluded-fixture" })') }
+  if (url.endsWith("/src/utils/constants.js")) {
+    return {
+      ...result,
+      source: result.source
+        .toString()
+        .replaceAll("import.meta.env", '({ VITE_EXCLUDED_FROM_RESEARCH_UIDS: "excluded-fixture" })')
+    }
   }
   return result
 }

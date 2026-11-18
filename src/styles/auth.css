@@ -12,7 +12,9 @@
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
 }
-.auth-card > * { flex-shrink: 0; }
+.auth-card > * {
+  flex-shrink: 0;
+}
 
 .close-btn {
   position: absolute;
@@ -110,7 +112,7 @@
 }
 
 .info-message {
-  color: #4CAF50;
+  color: #4caf50;
   font-size: 0.75rem;
 }
 

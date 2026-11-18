@@ -9,12 +9,15 @@ const settings = {
 
 // Uma configuração parcial nunca deve misturar projetos de preview/produção.
 export function resolveFirebaseConfig(environment, fallback) {
-  const configured = Object.fromEntries(Object.entries(settings)
-    .map(([key, variable]) => [key, environment[variable]?.trim() ?? ""])
-    .filter(([, value]) => value !== ""))
+  const configured = Object.fromEntries(
+    Object.entries(settings)
+      .map(([key, variable]) => [key, environment[variable]?.trim() ?? ""])
+      .filter(([, value]) => value !== "")
+  )
   if (Object.keys(configured).length === 0) return { ...fallback }
   const missing = ["apiKey", "authDomain", "projectId", "appId"]
-    .filter(key => !configured[key]).map(key => settings[key])
+    .filter((key) => !configured[key])
+    .map((key) => settings[key])
   if (missing.length) throw new Error(`Configuração Firebase incompleta: ${missing.join(", ")}.`)
   return configured
 }

@@ -15,11 +15,18 @@ export function compareWithFirst(first, current) {
 
 export function buildWordFeedback(wordDoc) {
   if (!wordDoc || wordDoc.vezesVista < 2) return null
-  const comparison = compareWithFirst({
-    won: wordDoc.primeiraVenceu, attempts: wordDoc.primeiraTentativas, timeMs: wordDoc.primeiraTempoMs
-  }, {
-    won: wordDoc.ultimaVenceu, attempts: wordDoc.ultimaTentativas, timeMs: wordDoc.ultimaTempoMs
-  })
+  const comparison = compareWithFirst(
+    {
+      won: wordDoc.primeiraVenceu,
+      attempts: wordDoc.primeiraTentativas,
+      timeMs: wordDoc.primeiraTempoMs
+    },
+    {
+      won: wordDoc.ultimaVenceu,
+      attempts: wordDoc.ultimaTentativas,
+      timeMs: wordDoc.ultimaTempoMs
+    }
+  )
   const messages = {
     melhor: "Seu desempenho foi melhor que na primeira vez.",
     pior: "Seu desempenho foi pior que na primeira vez.",

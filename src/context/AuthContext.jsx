@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react"
-import { ensurePlayerExists, setTermsAccepted, setResearchConsent, subscribeToPlayer, subscribeToPublicProfile } from "../services/playerService"
+import {
+  ensurePlayerExists,
+  setTermsAccepted,
+  setResearchConsent,
+  subscribeToPlayer,
+  subscribeToPublicProfile
+} from "../services/playerService"
 import { TERMS_VERSION } from "../utils/constants"
 import { getAdminStatus, observeAuthState, logout } from "../services/authService"
 
@@ -50,25 +56,33 @@ export function AuthProvider({ children }) {
         setIsAdmin(adminStatus)
         setPublicProfile(publicProfile)
         setResearchPlayer(player)
-        unsubscribePlayer = subscribeToPlayer(currentUser.uid, nextPlayer => {
-          if (!active || currentSession !== session) return
-          setResearchPlayer(nextPlayer)
-          setMustAcceptTerms(!nextPlayer?.termsAccepted || nextPlayer.termsVersion !== TERMS_VERSION)
-        }, error => {
-          console.error("Não foi possível acompanhar a participação na pesquisa.", error?.code)
-          if (active && currentSession === session) setResearchPlayer(null)
-        })
-        unsubscribeProfile = subscribeToPublicProfile(currentUser.uid, profile => {
-          if (!active || currentSession !== session) return
-          setPublicProfile(profile)
-          setNickname(profile?.apelido ?? "")
-        }, error => {
-          console.error("Não foi possível acompanhar o perfil público.", error)
-          if (active && currentSession === session) setPublicProfile(null)
-        })
-        setMustAcceptTerms(
-          player.termsAccepted !== true || player.termsVersion !== TERMS_VERSION
+        unsubscribePlayer = subscribeToPlayer(
+          currentUser.uid,
+          (nextPlayer) => {
+            if (!active || currentSession !== session) return
+            setResearchPlayer(nextPlayer)
+            setMustAcceptTerms(
+              !nextPlayer?.termsAccepted || nextPlayer.termsVersion !== TERMS_VERSION
+            )
+          },
+          (error) => {
+            console.error("Não foi possível acompanhar a participação na pesquisa.", error?.code)
+            if (active && currentSession === session) setResearchPlayer(null)
+          }
         )
+        unsubscribeProfile = subscribeToPublicProfile(
+          currentUser.uid,
+          (profile) => {
+            if (!active || currentSession !== session) return
+            setPublicProfile(profile)
+            setNickname(profile?.apelido ?? "")
+          },
+          (error) => {
+            console.error("Não foi possível acompanhar o perfil público.", error)
+            if (active && currentSession === session) setPublicProfile(null)
+          }
+        )
+        setMustAcceptTerms(player.termsAccepted !== true || player.termsVersion !== TERMS_VERSION)
         setUser(currentUser)
       } catch (error) {
         console.error("Não foi possível preparar o perfil.", error)
@@ -125,12 +139,15 @@ export function AuthProvider({ children }) {
         changeResearchConsent
       }}
     >
-      {!loading && (profileError ? (
-        <div role="alert">
-          <p>{profileError}</p>
-          <button onClick={() => window.location.reload()}>Tentar novamente</button>
-        </div>
-      ) : children)}
+      {!loading &&
+        (profileError ? (
+          <div role="alert">
+            <p>{profileError}</p>
+            <button onClick={() => window.location.reload()}>Tentar novamente</button>
+          </div>
+        ) : (
+          children
+        ))}
     </AuthContext.Provider>
   )
 }
