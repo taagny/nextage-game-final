@@ -2,8 +2,9 @@
 
 .header {
   position: relative;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(44px, 1fr) auto minmax(0, 1fr);
+  gap: 16px;
   align-items: center;
   padding: 20px 40px;
   border-bottom: 1px solid #2a1a1a;
@@ -40,27 +41,14 @@
   transform: scale(1.15);
 }
 
-/* COROA PREMIUM */
-
-.premium-icon {
-  font-size: 42px;
-  line-height: 1;
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
-  transition: 0.2s ease;
-}
-
-.premium-icon:hover {
-  transform: scale(1.15);
-}
-
 /* ================= LOGO ================= */
 
 .logo {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Creepster', cursive;
-  font-size: 5rem;
+  position: static;
+  transform: none;
+  margin: 0;
+  font-family: "Creepster", cursive;
+  font-size: clamp(2.2rem, 5.8vw, 5rem);
   color: #ff3939;
   letter-spacing: 3px;
 }
@@ -71,6 +59,8 @@
   display: flex;
   gap: 15px;
   align-items: center;
+  justify-self: end;
+  min-width: 0;
 }
 
 .nav-btn {
@@ -106,6 +96,7 @@
   color: white;
   cursor: pointer;
   transition: 0.2s ease;
+  max-width: 210px;
 }
 
 .user-btn:hover {
@@ -127,6 +118,10 @@
 .user-name {
   font-size: 0.85rem;
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-dropdown {
@@ -139,6 +134,88 @@
   border-radius: 8px;
   min-width: 150px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+@media (max-width: 1100px) {
+  .user-name {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .user-name {
+    display: none;
+  }
+  .user-btn {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 10px 12px;
+    padding: 12px 16px;
+  }
+  .header-left {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .logo {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    margin: 0;
+    font-size: clamp(2rem, 7vw, 2.75rem);
+  }
+  .trophy-emoji {
+    font-size: 32px;
+  }
+  .nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: stretch;
+    justify-content: center;
+    gap: 12px;
+  }
+  .nav-btn {
+    min-height: 40px;
+    display: grid;
+    place-items: center;
+    padding: 8px 12px;
+  }
+  .info-btn,
+  .user-btn,
+  .dev-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+@media (max-height: 500px) and (min-width: 600px) {
+  .header {
+    grid-template-columns: minmax(44px, 1fr) auto minmax(0, 1fr);
+    padding: 10px 20px;
+    gap: 16px;
+  }
+  .header-left {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .logo {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 2.2rem;
+  }
+  .nav {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .trophy-emoji {
+    font-size: 32px;
+  }
 }
 
 .user-dropdown button {
@@ -198,7 +275,6 @@
 /* ================= RESPONSIVO ================= */
 
 @media (max-width: 600px) {
-
   .header {
     padding: 12px 15px;
     justify-content: space-between;
@@ -213,10 +289,6 @@
 
   .trophy-emoji {
     font-size: 32px;
-  }
-
-  .premium-icon {
-    font-size: 24px;
   }
 
   .nav {

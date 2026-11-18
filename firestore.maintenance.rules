@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Temporary maintenance only. All client data access is paused, including
+    // jogadores, perfisPublicos and their subcollections. Admin SDK uses IAM.
+    // No schema or owner can authorize a write while this ruleset is active.
+    function maintenanceAccessAllowed() { return false; }
+    match /{document=**} {
+      allow get, list: if maintenanceAccessAllowed();
+      allow create, update, delete: if maintenanceAccessAllowed();
+    }
+  }
+}

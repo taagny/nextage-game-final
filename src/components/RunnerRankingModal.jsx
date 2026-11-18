@@ -1,60 +1,56 @@
-import { useState, useEffect } from "react"
-import { collection, getDocs } from "firebase/firestore"
-import { db } from "../services/firebase"
+import { useState, useEffect, useEffectEvent } from "react"
+import { getRunnerRanking } from "../services/rankingService"
+import { rankingErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import Modal from "./Modal"
-import { useAuth } from "../context/AuthContext"
+import RankingRow from "./RankingRow"
+import { useAuth } from "../context/useAuth"
 
 function RunnerRankingModal({ isOpen, onClose, time }) {
   const [players, setPlayers] = useState([])
   const [userPosition, setUserPosition] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const { user } = useAuth()
+  const { user, publicProfile } = useAuth()
+  const uid = user?.uid
+  const score = publicProfile?.runnerScores?.[time]
+  const loadCurrentRanking = useEffectEvent(() => getRunnerRanking(time, uid, score))
 
   useEffect(() => {
+    let active = true
     async function loadRanking() {
-      if (!time) return
-
-      const snapshot = await getDocs(collection(db, "jogadores"))
-
-      const list = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-
-      const sortedFull = list.sort(
-        (a, b) =>
-          (b.runnerScores?.[time] || 0) -
-          (a.runnerScores?.[time] || 0)
-      )
-
-      const top100 = sortedFull.slice(0, 100)
-
-      setPlayers(top100)
-
-      if (user) {
-        const index = sortedFull.findIndex(p => p.id === user.uid)
-        setUserPosition(index !== -1 ? index + 1 : null)
+      setLoading(true)
+      setError("")
+      setPlayers([])
+      setUserPosition(null)
+      try {
+        if (!time) return
+        const ranking = await loadCurrentRanking()
+        if (!active) return
+        setPlayers(ranking.players)
+        setUserPosition(ranking.userPosition)
+      } catch (error) {
+        console.error("Falha no ranking Runner:", firebaseErrorCode(error))
+        if (active) setError(rankingErrorMessage(error))
+      } finally {
+        if (active) setLoading(false)
       }
     }
 
     if (isOpen) loadRanking()
-  }, [isOpen, time, user])
-
-  function getMedal(index) {
-    if (index === 0) return "🏆 1"
-    if (index === 1) return "🥈 2"
-    if (index === 2) return "🥉 3"
-    return `# ${index + 1}`
-  }
+    return () => {
+      active = false
+    }
+  }, [isOpen, time, uid])
 
   return (
     <Modal isOpen={isOpen}>
       <div className="ranking-card-new ranking-card-runner">
-        <button className="ranking-close" onClick={onClose}>×</button>
+        <button className="ranking-close" onClick={onClose}>
+          ×
+        </button>
 
-        <h1 className="ranking-title-new">
-          RANKING RUNNER {time}s
-        </h1>
+        <h1 className="ranking-title-new">RANKING RUNNER {time ? `${time}s` : ""}</h1>
 
         <div className="ranking-header-new">
           <span>TOP</span>
@@ -62,37 +58,37 @@ function RunnerRankingModal({ isOpen, onClose, time }) {
           <span>PONTOS</span>
         </div>
 
-        <div className="ranking-list-new">
+        <div className="ranking-list-new" aria-busy={loading}>
+          {loading && <p role="status">Carregando ranking…</p>}
+          {error && <p role="alert">{error}</p>}
+          {!loading && !error && !time && <p>Escolha uma duração para consultar o ranking.</p>}
+          {!loading && !error && time && players.length === 0 && (
+            <p>Nenhum jogador com pontuação positiva nessa duração.</p>
+          )}
           {players.map((player, index) => (
-            <div
+            <RankingRow
               key={player.id}
-              className={`ranking-row-new ${
-                user && player.id === user.uid ? "ranking-row-self" : ""
-              }`}
-            >
-              <span className="ranking-top">
-                {getMedal(index)}
-              </span>
-
-              <span
-                className="ranking-name-new"
-              >
-                {player.nome}
-                
-              </span>
-
-              <span className="ranking-stat-new highlight-blue">
-                {(player.runnerScores?.[time] || 0).toLocaleString("pt-BR")}
-              </span>
-            </div>
+              player={player}
+              position={index + 1}
+              isSelf={player.id === uid}
+              time={time}
+            />
           ))}
         </div>
 
-        {userPosition && userPosition > 100 && (
-          <div className="ranking-user-position">
-            Sua posição: #{userPosition}
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          time &&
+          user &&
+          publicProfile &&
+          !players.some((player) => player.id === uid) && (
+            <div className="ranking-user-summary">
+              <p className="ranking-user-caption">
+                Seu desempenho{(score || 0) <= 0 ? " · Ainda não classificado" : ""}
+              </p>
+              <RankingRow player={publicProfile} position={userPosition} isSelf time={time} />
+            </div>
+          )}
       </div>
     </Modal>
   )

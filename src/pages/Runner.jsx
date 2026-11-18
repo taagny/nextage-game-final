@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useWordle } from "../hooks/useWordle"
 import { useRunner } from "../hooks/useRunner"
@@ -7,7 +7,7 @@ import RunnerRankingModal from "../components/RunnerRankingModal"
 import Modal from "../components/Modal"
 import Keyboard from "../components/Keyboard"
 import { saveRunnerRecord } from "../services/playerService"
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/useAuth"
 import "../styles/game.css"
 import "../styles/runner.css"
 
@@ -20,89 +20,79 @@ function Runner() {
   const [openRunnerRanking, setOpenRunnerRanking] = useState(false)
   const [lostByError, setLostByError] = useState(false)
 
-  const {
-    timeLeft,
-    isRunning,
-    score,
-    start,
-    stop,
-    incrementScore,
-    reset
-  } = useRunner(selectedTime || 0)
+  const { timeLeft, isRunning, score, start, stop, incrementScore, reset } = useRunner(
+    selectedTime || 0
+  )
 
   const [secret, setSecret] = useState(() => {
     const randomIndex = Math.floor(Math.random() * answers.length)
     return answers[randomIndex]
   })
 
-  const {
-    board,
-    results,
-    addLetter,
-    submitGuess,
-    resetBoard,
-    currentRow,
-    clearCurrentRow
-  } = useWordle(secret)
+  const { board, results, addLetter, submitGuess, resetBoard, currentRow, clearCurrentRow } =
+    useWordle(secret)
 
   const finished = selectedTime && (timeLeft <= 0 || lostByError)
 
   useEffect(() => {
     if (!isRunning) return
     if (timeLeft <= 0) stop()
-  }, [timeLeft, isRunning])
+  }, [timeLeft, isRunning, stop])
 
   useEffect(() => {
     if (prepTime === null) return
 
-    if (prepTime <= 0) {
-      setPrepTime(null)
-      start()
+    const timer = setTimeout(
+      () => {
+        if (prepTime <= 0) {
+          setPrepTime(null)
+          start()
+        } else {
+          setPrepTime((prev) => prev - 1)
+        }
+      },
+      prepTime <= 0 ? 0 : 1000
+    )
+
+    return () => clearTimeout(timer)
+  }, [prepTime, start])
+
+  const handleKey = useEffectEvent((e) => {
+    const key = e.key?.toUpperCase?.() || ""
+
+    if (!isRunning || finished || openRunnerRanking) return
+
+    if (key === "ENTER") {
+      const rowBefore = currentRow
+      const correct = submitGuess()
+
+      if (correct === true) {
+        incrementScore()
+
+        const randomIndex = Math.floor(Math.random() * answers.length)
+        setSecret(answers[randomIndex])
+        resetBoard()
+      } else if (correct === false && rowBefore === 5) {
+        setLostByError(true)
+        stop()
+      }
+
       return
     }
 
-    const timer = setTimeout(() => {
-      setPrepTime(prev => prev - 1)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [prepTime])
-
-  useEffect(() => {
-    function handleKey(e) {
-      const key = e.key?.toUpperCase?.() || ""
-
-      if (!isRunning || finished || openRunnerRanking) return
-
-      if (key === "ENTER") {
-        const rowBefore = currentRow
-        const correct = submitGuess()
-
-        if (correct === true) {
-          incrementScore()
-
-          const randomIndex = Math.floor(Math.random() * answers.length)
-          setSecret(answers[randomIndex])
-          resetBoard()
-        } else if (rowBefore === 5) {
-          setLostByError(true)
-          stop()
-        }
-
-        return
-      }
-
-      if (key === "BACKSPACE") {
-        clearCurrentRow()
-        return
-      }
-
-      if (/^[A-Z]$/.test(key)) return addLetter(key)
+    if (key === "BACKSPACE") {
+      clearCurrentRow()
+      return
     }
 
-    window.addEventListener("keydown", handleKey)
-    return () => window.removeEventListener("keydown", handleKey)
-  }, [addLetter, submitGuess, isRunning, finished, openRunnerRanking, currentRow])
+    if (/^[A-Z]$/.test(key)) return addLetter(key)
+  })
+
+  useEffect(() => {
+    const listener = (event) => handleKey(event)
+    window.addEventListener("keydown", listener)
+    return () => window.removeEventListener("keydown", listener)
+  }, [])
 
   useEffect(() => {
     function handleOpenRanking() {
@@ -112,11 +102,17 @@ function Runner() {
 
     window.addEventListener("openRunnerRanking", handleOpenRanking)
     return () => window.removeEventListener("openRunnerRanking", handleOpenRanking)
-  }, [isRunning])
+  }, [isRunning, stop])
+
+  const changeRunnerTime = useEffectEvent(() => handleChangeTime())
+  const restartRunner = useEffectEvent(() => handleRestart())
+  const resumeAfterRanking = useEffectEvent(() => {
+    if (!openRunnerRanking && selectedTime && !finished) start()
+  })
 
   useEffect(() => {
     function handleOpenRunnerMode() {
-      handleChangeTime()
+      changeRunnerTime()
     }
 
     window.addEventListener("openRunnerMode", handleOpenRunnerMode)
@@ -124,16 +120,14 @@ function Runner() {
   }, [])
 
   useEffect(() => {
-    if (!openRunnerRanking && selectedTime && !finished) {
-      start()
-    }
+    resumeAfterRanking()
   }, [openRunnerRanking])
 
   useEffect(() => {
     function handleEscape(e) {
       if (e.key !== "Escape") return
       if (openRunnerRanking) return
-      if (selectedTime) handleRestart()
+      if (selectedTime) restartRunner()
     }
 
     window.addEventListener("keydown", handleEscape)
@@ -142,14 +136,16 @@ function Runner() {
 
   useEffect(() => {
     if (!finished || !user) return
-    saveRunnerRecord(user.uid, String(selectedTime), score)
-  }, [finished])
+    saveRunnerRecord(user.uid, String(selectedTime), score).catch((error) =>
+      console.error("Não foi possível salvar o recorde do Runner.", error)
+    )
+  }, [finished, user, selectedTime, score])
 
   useEffect(() => {
     function handleEnterRestart(e) {
       if (!finished) return
       if (e.key === "Enter") {
-        handleRestart()
+        restartRunner()
       }
     }
 
@@ -210,7 +206,7 @@ function Runner() {
         const randomIndex = Math.floor(Math.random() * answers.length)
         setSecret(answers[randomIndex])
         resetBoard()
-      } else if (rowBefore === 5) {
+      } else if (correct === false && rowBefore === 5) {
         setLostByError(true)
         stop()
       }
@@ -239,15 +235,18 @@ function Runner() {
             <h2>Escolha o tempo</h2>
 
             <div className="runner-options-vertical">
-              <button className="modal-btn red" onClick={() => startRunner(10)}>10s</button>
-              <button className="modal-btn red" onClick={() => startRunner(30)}>30s</button>
-              <button className="modal-btn red" onClick={() => startRunner(60)}>60s</button>
+              <button className="modal-btn red" onClick={() => startRunner(10)}>
+                10s
+              </button>
+              <button className="modal-btn red" onClick={() => startRunner(30)}>
+                30s
+              </button>
+              <button className="modal-btn red" onClick={() => startRunner(60)}>
+                60s
+              </button>
             </div>
 
-            <button
-              className="runner-close-select-btn"
-              onClick={handleBackToClassic}
-            >
+            <button className="runner-close-select-btn" onClick={handleBackToClassic}>
               Fechar
             </button>
           </div>
@@ -290,24 +289,16 @@ function Runner() {
             ))}
           </div>
 
-          <Keyboard
-            onKeyPress={handleVirtualKey}
-            results={results}
-            board={board}
-          />
+          <Keyboard onKeyPress={handleVirtualKey} results={results} board={board} />
         </>
       )}
 
       {finished && (
         <Modal isOpen={true}>
           <div className="modal-card runner-result-card">
-            <h2 className="runner-result-title">
-              FIM DA CORRIDA 🏁
-            </h2>
+            <h2 className="runner-result-title">FIM DA CORRIDA 🏁</h2>
 
-            <p className="runner-result-time">
-              Tempo Total: {selectedTime}s
-            </p>
+            <p className="runner-result-time">Tempo Total: {selectedTime}s</p>
 
             <div className="runner-result-acertos">
               <span className="runner-acertos-label">ACERTOS:</span>
@@ -320,17 +311,11 @@ function Runner() {
                 : "Nenhuma palavra acertada"}
             </p>
 
-            <button
-              className="runner-restart-btn"
-              onClick={handleRestart}
-            >
+            <button className="runner-restart-btn" onClick={handleRestart}>
               NOVA CORRIDA
             </button>
 
-            <button
-              className="runner-back-btn"
-              onClick={handleBackToClassic}
-            >
+            <button className="runner-back-btn" onClick={handleBackToClassic}>
               VOLTAR AO MODO CLÁSSICO
             </button>
           </div>

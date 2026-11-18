@@ -1,10 +1,9 @@
 import { useState } from "react"
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../services/firebase"
+import { registerWithPassword, loginWithPassword } from "../services/authService"
+import { authErrorMessage, firebaseErrorCode } from "../utils/firebaseErrors.js"
 import "../styles/auth.css"
 
 function Auth() {
-
   const [isLogin, setIsLogin] = useState(true)
 
   const [nome, setNome] = useState("")
@@ -48,19 +47,18 @@ function Auth() {
 
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, senha)
+        await loginWithPassword(email, senha)
       } else {
-        await createUserWithEmailAndPassword(auth, email, senha)
+        await registerWithPassword(email, senha)
       }
     } catch (error) {
-      setErrors({ firebase: error.message })
+      console.error("Falha na autenticação:", firebaseErrorCode(error))
+      setErrors({ firebase: authErrorMessage(error) })
     }
   }
 
-  const isFormValid = Object.keys(errors).length === 0 &&
-    email &&
-    senha &&
-    (isLogin || (nome && confirmSenha))
+  const isFormValid =
+    Object.keys(errors).length === 0 && email && senha && (isLogin || (nome && confirmSenha))
 
   return (
     <div className="auth-container">
@@ -68,7 +66,6 @@ function Auth() {
         <h2>{isLogin ? "Entrar" : "Criar Conta"}</h2>
 
         <form onSubmit={handleSubmit}>
-
           {!isLogin && (
             <>
               <input
@@ -114,7 +111,6 @@ function Auth() {
           <button type="submit" disabled={!isFormValid}>
             {isLogin ? "Entrar" : "Criar Conta"}
           </button>
-
         </form>
 
         <p onClick={() => setIsLogin(!isLogin)} className="switch">

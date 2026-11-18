@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.firebase/
+.agents/
+.claude/
+docs/
+entregas/
+package-lock.json
+public/dictionary.json
+public/wordlists/
+scripts/raw-words.txt
+*.local

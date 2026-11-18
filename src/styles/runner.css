@@ -45,10 +45,10 @@
 }
 
 .prep-number {
-  font-family: 'Creepster', cursive;
+  font-family: "Creepster", cursive;
   font-size: 9rem;
   color: #ff3b3b;
-  text-shadow: 0 0 20px rgba(255,59,59,0.6);
+  text-shadow: 0 0 20px rgba(255, 59, 59, 0.6);
 }
 
 .runner-result-card {
@@ -154,7 +154,6 @@
 }
 
 @media (max-width: 600px) {
-
   .runner-stats {
     gap: 20px;
     margin-bottom: 15px;

@@ -1,27 +1,30 @@
-import { useState, useEffect } from "react"
+import { lazy, useRef, useState } from "react"
+import DeferredContent from "./DeferredContent"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { signOut } from "firebase/auth"
-import { auth } from "../services/firebase"
-import { doc, getDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore"
-import { db } from "../services/firebase"
-import { saveMatchHistory } from "../services/playerService"
-import PremiumModal from "./PremiumModal"
-import AuthModal from "./AuthModal"
-import UserSettingsModal from "./UserSettingsModal"
-import RankingModal from "./RankingModal"
-import InfoModal from "./InfoModal"
-import DevModal from "./DevModal"
-import TermsModal from "./TermsModal"
+import { useAuth } from "../context/useAuth"
+import { logout } from "../services/authService"
+import { registerAbandon } from "../services/playerService"
+import { clearClassicSession } from "../services/classicSessionService.js"
+const AuthModal = lazy(() => import("./AuthModal"))
+const UserSettingsModal = lazy(() => import("./UserSettingsModal"))
+const RankingModal = lazy(() => import("./RankingModal"))
+const InfoModal = lazy(() => import("./InfoModal"))
+const DevModal = lazy(() => import("./DevModal"))
+const TermsModal = lazy(() => import("./TermsModal"))
 
 function Header() {
-
-  const { user, gameInProgress, mustAcceptTerms, acceptTerms, rejectTerms } = useAuth()
+  const {
+    user,
+    isAdmin,
+    nickname,
+    gameInProgress,
+    gameMatchId,
+    mustAcceptTerms,
+    acceptTerms,
+    rejectTerms
+  } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-
-  const DEV_UID = "Pfi5xF95YCTi3KB52l2zEwFpQ6d2"
-  const isDev = user?.uid === DEV_UID
 
   const [openAuth, setOpenAuth] = useState(false)
   const [openMenu, setOpenMenu] = useState(false)
@@ -29,55 +32,33 @@ function Header() {
   const [openRanking, setOpenRanking] = useState(false)
   const [openInfo, setOpenInfo] = useState(false)
   const [openDev, setOpenDev] = useState(false)
-  const [userName, setUserName] = useState("")
-
-  useEffect(() => {
-    if (!user) {
-      setUserName("")
-      return
-    }
-
-    const loadUserName = async () => {
-      const ref = doc(db, "jogadores", user.uid)
-      const snap = await getDoc(ref)
-
-      if (!snap.exists()) return
-
-      const data = snap.data()
-      setUserName(data?.nome ?? "")
-    }
-
-    loadUserName()
-  }, [user])
+  const logoutInProgress = useRef(false)
 
   async function handleLogout() {
+    if (logoutInProgress.current) return
     if (gameInProgress && user) {
       const confirmExit = window.confirm(
         "Você está com um jogo em andamento.\n\nSe sair agora sua sequência será zerada e a partida será registrada como abandono.\n\nDeseja continuar?"
       )
 
       if (!confirmExit) return
-
-      try {
-        const ref = doc(db, "jogadores", user.uid)
-
-        await updateDoc(ref, {
-          sequenciaAtual: 0,
-          "stats.abandonedGames": increment(1)
-        })
-
-        await saveMatchHistory(user.uid, {
-          mode: "classico",
-          won: false,
-          attempts: 0,
-          timeMs: 0,
-          abandoned: true
-        })
-      } catch (err) {}
     }
 
-    await signOut(auth)
-    setOpenMenu(false)
+    logoutInProgress.current = true
+    try {
+      if (gameInProgress && user) {
+        try {
+          await registerAbandon(user.uid, { matchId: gameMatchId })
+          clearClassicSession(user.uid)
+        } catch (error) {
+          console.error("Não foi possível registrar o abandono.", error)
+        }
+      }
+      await logout()
+      setOpenMenu(false)
+    } finally {
+      logoutInProgress.current = false
+    }
   }
 
   function handleTrophyClick() {
@@ -121,7 +102,7 @@ function Header() {
             Runner
           </NavLink>
 
-          {isDev && (
+          {isAdmin && (
             <button className="dev-btn" onClick={() => setOpenDev(true)}>
               ⚙️
             </button>
@@ -135,25 +116,23 @@ function Header() {
 
           {user && (
             <div className="user-menu-wrapper">
-              <button className="user-btn" onClick={() => setOpenMenu(prev => !prev)}>
-                <span className="user-avatar">
-                  {userName?.charAt?.(0)?.toUpperCase?.() || "?"}
-                </span>
-                <span className="user-name">{userName || "Usuário"}</span>
+              <button className="user-btn" onClick={() => setOpenMenu((prev) => !prev)}>
+                <span className="user-avatar">{nickname.charAt(0).toUpperCase() || "?"}</span>
+                <span className="user-name">{nickname || "Jogador"}</span>
               </button>
 
               {openMenu && (
                 <div className="user-dropdown">
-                  <button onClick={() => {
-                    setOpenSettings(true)
-                    setOpenMenu(false)
-                  }}>
+                  <button
+                    onClick={() => {
+                      setOpenSettings(true)
+                      setOpenMenu(false)
+                    }}
+                  >
                     Configurações
                   </button>
 
-                  <button onClick={handleLogout}>
-                    Sair da Conta
-                  </button>
+                  <button onClick={handleLogout}>Sair da Conta</button>
                 </div>
               )}
             </div>
@@ -161,28 +140,25 @@ function Header() {
         </nav>
       </header>
 
-      <AuthModal isOpen={openAuth} onClose={() => setOpenAuth(false)} />
+      <DeferredContent modal>
+        {openAuth && <AuthModal isOpen onClose={() => setOpenAuth(false)} />}
 
-      {user && (
-        <UserSettingsModal
-          isOpen={openSettings}
-          onClose={() => setOpenSettings(false)}
-          user={user}
-        />
-      )}
+        {user && openSettings && (
+          <UserSettingsModal
+            isOpen={openSettings}
+            onClose={() => setOpenSettings(false)}
+            user={user}
+          />
+        )}
 
-      <RankingModal isOpen={openRanking} onClose={() => setOpenRanking(false)} />
-      <InfoModal isOpen={openInfo} onClose={() => setOpenInfo(false)} />
-      <DevModal isOpen={openDev} onClose={() => setOpenDev(false)} />
+        {openRanking && <RankingModal isOpen onClose={() => setOpenRanking(false)} />}
+        {openInfo && <InfoModal isOpen onClose={() => setOpenInfo(false)} />}
+        {isAdmin && openDev && <DevModal isOpen onClose={() => setOpenDev(false)} />}
 
-      {user && mustAcceptTerms && (
-        <TermsModal
-          isOpen={true}
-          onAccept={acceptTerms}
-          onReject={rejectTerms}
-        />
-      )}
-
+        {user && mustAcceptTerms && (
+          <TermsModal isOpen={true} onAccept={acceptTerms} onReject={rejectTerms} />
+        )}
+      </DeferredContent>
     </>
   )
 }

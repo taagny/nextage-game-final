@@ -1,0 +1,310 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Protótipo v2. Limita formato/magnitude; não prova que uma partida ocorreu.
+    // Calcular resultados em Cloud Functions seria o trabalho futuro definitivo.
+    // Modelo: perfisPublicos = apelido, sequenciaAtual, sequenciasPerdidas,
+    // runnerScores {10,30,60}, updatedAt. Nenhum nome/e-mail no documento público.
+    // jogadores = schemaVersion, termsAccepted/At, termsVersion, createdAt, stats.
+    // stats = contadores, totais de tempo/tentativas, médias, distribuição 1..6,
+    // countersFixedAt. createdAt e countersFixedAt são imutáveis.
+    // partidas = mode, won, attempts, timeMs, abandoned, createdAt e word opcional
+    // (obrigatória fora de abandonos). Histórico imutável, mas pode ser excluído.
+    // palavras = contadores, média, primeira/melhor/última ocorrência e timestamp;
+    // id A-Z{5}, primeira ocorrência imutável. Derrota equivale a 7 tentativas.
+
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function admin() {
+      return request.auth != null && request.auth.token.get('admin', false) == true;
+    }
+    function closed(data, fields) {
+      return data is map && data.keys().hasAll(fields) && data.keys().hasOnly(fields);
+    }
+    function counter(value) {
+      return value is int && value >= 0 && value <= 1000000000;
+    }
+    function total(value) {
+      return value is int && value >= 0 && value <= 9007199254740991;
+    }
+    function time(value) {
+      return value is int && value >= 0 && value <= 86400000;
+    }
+    function delta(before, after) {
+      let difference = after - before;
+      return difference >= 0 && difference <= 1;
+    }
+    function playerBefore(uid) {
+      return get(/databases/$(database)/documents/jogadores/$(uid)).data;
+    }
+    function playerAfter(uid) {
+      return getAfter(/databases/$(database)/documents/jogadores/$(uid)).data;
+    }
+    function accepted(uid) {
+      let player = playerAfter(uid);
+      return player.termsAccepted == true && player.termsVersion == '3';
+    }
+    function runner(scores) {
+      return closed(scores, ['10', '30', '60'])
+        && scores['10'] is int && scores['10'] >= 0 && scores['10'] <= 10
+        && scores['30'] is int && scores['30'] >= 0 && scores['30'] <= 30
+        && scores['60'] is int && scores['60'] >= 0 && scores['60'] <= 60;
+    }
+    function validPublic(data) {
+      return closed(data, ['apelido', 'sequenciaAtual', 'sequenciasPerdidas', 'runnerScores', 'updatedAt'])
+        && data.apelido is string && data.apelido.size() >= 3 && data.apelido.size() <= 20
+        && data.apelido.matches('[A-Za-z0-9_-]{3,20}')
+        && counter(data.sequenciaAtual) && counter(data.sequenciasPerdidas)
+        && runner(data.runnerScores) && data.updatedAt == request.time;
+    }
+    function publicCounters(uid, before, after) {
+      let oldStats = playerBefore(uid).stats;
+      let newStats = playerAfter(uid).stats;
+      return (after.sequenciaAtual == before.sequenciaAtual
+          && after.sequenciasPerdidas == before.sequenciasPerdidas)
+        || (accepted(uid) && newStats.totalGames == oldStats.totalGames + 1
+          && ((newStats.totalWins == oldStats.totalWins + 1
+              && after.sequenciaAtual == before.sequenciaAtual + 1
+              && after.sequenciasPerdidas == before.sequenciasPerdidas)
+            || (newStats.totalLosses + newStats.abandonedGames
+                  == oldStats.totalLosses + oldStats.abandonedGames + 1
+              && after.sequenciaAtual == 0
+              && after.sequenciasPerdidas == before.sequenciasPerdidas + 1)));
+    }
+    function publicUpdate(uid, before, after) {
+      return after.runnerScores['10'] >= before.runnerScores['10']
+        && after.runnerScores['30'] >= before.runnerScores['30']
+        && after.runnerScores['60'] >= before.runnerScores['60']
+        && (after.runnerScores == before.runnerScores || accepted(uid))
+        && publicCounters(uid, before, after);
+    }
+    function distribution(data) {
+      return closed(data, ['1', '2', '3', '4', '5', '6'])
+        && counter(data['1']) && counter(data['2']) && counter(data['3'])
+        && counter(data['4']) && counter(data['5']) && counter(data['6']);
+    }
+    function distributionSum(data) {
+      return data['1'] + data['2'] + data['3'] + data['4'] + data['5'] + data['6'];
+    }
+    function validStats(data) {
+      return closed(data, ['totalGames', 'totalWins', 'totalLosses', 'abandonedGames',
+          'totalTimeMs', 'totalPlayTimeMs', 'totalAttempts', 'avgTimePerWord',
+          'avgAttemptsPerWord', 'guessDistribution', 'countersFixedAt'])
+        && counter(data.totalGames) && counter(data.totalWins)
+        && counter(data.totalLosses) && counter(data.abandonedGames)
+        && data.totalWins <= data.totalGames
+        && total(data.totalTimeMs) && total(data.totalPlayTimeMs)
+        && data.totalPlayTimeMs >= data.totalTimeMs && total(data.totalAttempts)
+        && data.avgTimePerWord is number && data.avgTimePerWord >= 0
+        && data.avgTimePerWord <= 86400000
+        && data.avgAttemptsPerWord is number && data.avgAttemptsPerWord >= 0
+        && data.avgAttemptsPerWord <= 6
+        && distribution(data.guessDistribution)
+        && data.countersFixedAt is timestamp && data.countersFixedAt <= request.time;
+    }
+    function zeroStats(data) {
+      return data.totalGames == 0 && data.totalWins == 0 && data.totalLosses == 0
+        && data.abandonedGames == 0 && data.totalTimeMs == 0
+        && data.totalPlayTimeMs == 0 && data.totalAttempts == 0
+        && data.avgTimePerWord == 0 && data.avgAttemptsPerWord == 0
+        && distributionSum(data.guessDistribution) == 0
+        && data.countersFixedAt == request.time;
+    }
+    function validPlayer(data) {
+      return data.keys().hasAll(['schemaVersion', 'termsAccepted', 'termsAcceptedAt',
+          'termsVersion', 'createdAt', 'stats'])
+        && data.keys().hasOnly(['schemaVersion', 'termsAccepted', 'termsAcceptedAt',
+          'termsVersion', 'createdAt', 'stats', 'researchConsent'])
+        && data.schemaVersion is int && data.schemaVersion == 2 && data.termsAccepted is bool
+        && data.termsVersion in ['2', '3']
+        && (!('researchConsent' in data) || validResearchConsent(data.researchConsent))
+        && ((data.termsAccepted && data.termsAcceptedAt is timestamp
+            && data.termsAcceptedAt <= request.time)
+          || (!data.termsAccepted && data.termsAcceptedAt == null))
+        && data.createdAt is timestamp && data.createdAt <= request.time
+        && validStats(data.stats);
+    }
+    function validResearchConsent(data) {
+      return closed(data, ['accepted', 'version', 'updatedAt'])
+        && data.accepted is bool && data.version == '1'
+        && data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+    function researchConsentUpdate(before, after) {
+      let previous = before.get('researchConsent', null);
+      let next = after.get('researchConsent', null);
+      return next == previous
+        || (next != null && after.termsAccepted && after.termsVersion == '3'
+          && next.updatedAt == request.time);
+    }
+    function validConsent(before, after) {
+      return (after.termsAccepted == before.termsAccepted
+          && after.termsAcceptedAt == before.termsAcceptedAt
+          && after.termsVersion == before.termsVersion)
+        || (after.termsAccepted && after.termsVersion == '3'
+          && after.termsAcceptedAt == request.time);
+    }
+    function distributionUpdate(before, after, wins, attempts) {
+      // Uma vitória incrementa somente a faixa de tentativas correspondente.
+      // Evita recalcular somas e pesos das seis faixas e exceder 1000 expressões.
+      let bucket = string(attempts);
+      return (wins == 0 && after == before)
+        || (wins == 1 && attempts >= 1 && attempts <= 6
+          && after.diff(before).affectedKeys().hasOnly([bucket])
+          && after[bucket] == before[bucket] + 1);
+    }
+    function statsUpdate(before, after) {
+      let games = after.totalGames - before.totalGames;
+      let wins = after.totalWins - before.totalWins;
+      let losses = after.totalLosses - before.totalLosses;
+      let abandoned = after.abandonedGames - before.abandonedGames;
+      let playTime = after.totalPlayTimeMs - before.totalPlayTimeMs;
+      let attempts = after.totalAttempts - before.totalAttempts;
+      return after.countersFixedAt == before.countersFixedAt
+        && delta(before.totalGames, after.totalGames)
+        && delta(before.totalWins, after.totalWins)
+        && delta(before.totalLosses, after.totalLosses)
+        && delta(before.abandonedGames, after.abandonedGames)
+        && games == wins + losses + abandoned
+        && ((games == 0 && after == before)
+          || (games == 1 && time(playTime)
+            && after.totalTimeMs - before.totalTimeMs == (wins == 1 ? playTime : 0)
+            && ((wins == 1 && attempts >= 1 && attempts <= 6) || (wins == 0 && attempts == 0))
+            && distributionUpdate(before.guessDistribution, after.guessDistribution, wins, attempts)
+            && ((after.totalWins == 0 && after.avgTimePerWord == 0 && after.avgAttemptsPerWord == 0)
+              || (after.totalWins > 0
+                && math.abs(after.avgTimePerWord - after.totalTimeMs * 1.0 / after.totalWins) < 0.000001
+                && math.abs(after.avgAttemptsPerWord - after.totalAttempts * 1.0 / after.totalWins) < 0.000001))));
+    }
+    function profileAfterMatch(uid, before, after) {
+      let oldProfile = get(/databases/$(database)/documents/perfisPublicos/$(uid)).data;
+      let newProfile = getAfter(/databases/$(database)/documents/perfisPublicos/$(uid)).data;
+      return (after.totalGames == before.totalGames)
+        || (accepted(uid) && newProfile.updatedAt == request.time
+          && ((after.totalWins == before.totalWins + 1
+              && newProfile.sequenciaAtual == oldProfile.sequenciaAtual + 1
+              && newProfile.sequenciasPerdidas == oldProfile.sequenciasPerdidas)
+            || (after.totalWins == before.totalWins && newProfile.sequenciaAtual == 0
+              && newProfile.sequenciasPerdidas == oldProfile.sequenciasPerdidas + 1)));
+    }
+    function validMatch(data) {
+      return data.keys().hasAll(['mode', 'won', 'attempts', 'timeMs', 'abandoned', 'createdAt'])
+        && data.keys().hasOnly(['mode', 'won', 'attempts', 'timeMs', 'abandoned', 'word', 'createdAt'])
+        && data.mode == 'classico' && data.won is bool && data.abandoned is bool
+        && data.attempts is int && time(data.timeMs) && data.createdAt == request.time
+        && ((data.abandoned && !data.won && data.attempts == 0 && !('word' in data))
+          || (!data.abandoned && data.word is string && data.word.matches('[A-Z]{5}')
+            && ((data.won && data.attempts >= 1 && data.attempts <= 6)
+              || (!data.won && data.attempts == 6))));
+    }
+    function matchStats(uid, data) {
+      let before = playerBefore(uid).stats;
+      let after = playerAfter(uid).stats;
+      return accepted(uid) && after.totalGames == before.totalGames + 1
+        && after.totalPlayTimeMs == before.totalPlayTimeMs + data.timeMs
+        && after.totalWins - before.totalWins == (data.won ? 1 : 0)
+        && after.totalLosses - before.totalLosses == (!data.won && !data.abandoned ? 1 : 0)
+        && after.abandonedGames - before.abandonedGames == (data.abandoned ? 1 : 0)
+        && after.totalAttempts - before.totalAttempts == (data.won ? data.attempts : 0);
+    }
+    function wordAttempts(won, attempts) {
+      return won is bool && attempts is int
+        && ((won && attempts >= 1 && attempts <= 6) || (!won && attempts == 7));
+    }
+    function validWord(word, data) {
+      return word.matches('[A-Z]{5}')
+        && closed(data, ['vezesVista', 'vitorias', 'totalTentativas', 'mediaTentativas',
+          'primeiraVenceu', 'primeiraTentativas', 'primeiraTempoMs', 'melhorTentativas',
+          'melhorTempoMs', 'ultimaVenceu', 'ultimaTentativas', 'ultimaTempoMs', 'atualizadoEm'])
+        && counter(data.vezesVista) && data.vezesVista >= 1
+        && counter(data.vitorias) && data.vitorias <= data.vezesVista
+        && total(data.totalTentativas) && data.totalTentativas >= data.vezesVista
+        && data.totalTentativas <= 7 * data.vezesVista
+        && data.mediaTentativas is number && data.mediaTentativas >= 1 && data.mediaTentativas <= 7
+        && math.abs(data.mediaTentativas - data.totalTentativas * 1.0 / data.vezesVista) < 0.000001
+        && wordAttempts(data.primeiraVenceu, data.primeiraTentativas) && time(data.primeiraTempoMs)
+        && wordAttempts(data.ultimaVenceu, data.ultimaTentativas) && time(data.ultimaTempoMs)
+        && data.melhorTentativas is int && data.melhorTentativas >= 1 && data.melhorTentativas <= 7
+        && data.melhorTentativas <= data.primeiraTentativas && data.melhorTentativas <= data.ultimaTentativas
+        && time(data.melhorTempoMs) && data.atualizadoEm == request.time;
+    }
+    function firstWord(data) {
+      return data.vezesVista == 1 && data.vitorias == (data.ultimaVenceu ? 1 : 0)
+        && data.totalTentativas == data.ultimaTentativas
+        && data.primeiraVenceu == data.ultimaVenceu
+        && data.primeiraTentativas == data.ultimaTentativas
+        && data.primeiraTempoMs == data.ultimaTempoMs
+        && data.melhorTentativas == data.ultimaTentativas
+        && data.melhorTempoMs == data.ultimaTempoMs;
+    }
+    function wordUpdate(before, after) {
+      let better = after.ultimaTentativas < before.melhorTentativas;
+      let faster = after.ultimaTentativas == before.melhorTentativas
+        && after.ultimaVenceu && after.ultimaTempoMs < before.melhorTempoMs;
+      return after.vezesVista == before.vezesVista + 1
+        && after.vitorias == before.vitorias + (after.ultimaVenceu ? 1 : 0)
+        && after.totalTentativas == before.totalTentativas + after.ultimaTentativas
+        && after.primeiraVenceu == before.primeiraVenceu
+        && after.primeiraTentativas == before.primeiraTentativas
+        && after.primeiraTempoMs == before.primeiraTempoMs
+        && after.melhorTentativas == (better ? after.ultimaTentativas : before.melhorTentativas)
+        && after.melhorTempoMs == (better || faster ? after.ultimaTempoMs : before.melhorTempoMs);
+    }
+    function wordStats(uid, data) {
+      let before = playerBefore(uid).stats;
+      let after = playerAfter(uid).stats;
+      return accepted(uid) && after.totalGames == before.totalGames + 1
+        && after.totalWins - before.totalWins == (data.ultimaVenceu ? 1 : 0)
+        && after.totalLosses - before.totalLosses == (data.ultimaVenceu ? 0 : 1)
+        && after.totalPlayTimeMs - before.totalPlayTimeMs == data.ultimaTempoMs
+        && after.totalAttempts - before.totalAttempts == (data.ultimaVenceu ? data.ultimaTentativas : 0);
+    }
+
+    match /perfisPublicos/{uid} {
+      // Leitura pública solicitada explicitamente, inclusive a consulta de contagem.
+      allow read: if true;
+      allow create: if owner(uid) && validPublic(request.resource.data)
+        && request.resource.data.sequenciaAtual == 0 && request.resource.data.sequenciasPerdidas == 0
+        && request.resource.data.runnerScores == {'10': 0, '30': 0, '60': 0};
+      allow update: if owner(uid) && validPublic(request.resource.data)
+        && publicUpdate(uid, resource.data, request.resource.data);
+      allow delete: if owner(uid) || admin();
+    }
+    match /jogadores/{uid} {
+      allow read: if owner(uid) || admin();
+      allow create: if owner(uid) && validPlayer(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.termsAccepted == false && zeroStats(request.resource.data.stats)
+        && (!('researchConsent' in request.resource.data)
+          || (!request.resource.data.researchConsent.accepted
+            && request.resource.data.researchConsent.updatedAt == request.time));
+      allow update: if owner(uid) && validPlayer(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validConsent(resource.data, request.resource.data)
+        && researchConsentUpdate(resource.data, request.resource.data)
+        && statsUpdate(resource.data.stats, request.resource.data.stats)
+        && profileAfterMatch(uid, resource.data.stats, request.resource.data.stats);
+      allow delete: if owner(uid) || admin();
+
+      match /partidas/{matchId} {
+        allow read: if owner(uid) || admin();
+        allow create: if owner(uid) && validMatch(request.resource.data)
+          && matchStats(uid, request.resource.data);
+        allow update: if false;
+        allow delete: if owner(uid) || admin();
+      }
+      match /palavras/{word} {
+        allow read: if owner(uid);
+        allow create: if owner(uid) && validWord(word, request.resource.data)
+          && firstWord(request.resource.data) && wordStats(uid, request.resource.data);
+        allow update: if owner(uid) && validWord(word, request.resource.data)
+          && wordUpdate(resource.data, request.resource.data) && wordStats(uid, request.resource.data);
+        allow delete: if owner(uid) || admin();
+      }
+    }
+    // Sem permissões para dicionario, config, doacoes ou qualquer coleção não usada.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

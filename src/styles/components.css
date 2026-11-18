@@ -8,9 +8,15 @@
   height: 100%;
   background: #120909;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 2000;
+  padding: 12px;
+  overflow-y: auto;
+}
+.modal-overlay > * {
+  flex-shrink: 0;
+  margin-block: auto;
 }
 
 .modal-card {
@@ -20,6 +26,8 @@
   text-align: center;
   width: 420px;
   max-width: 90%;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   animation: modalFade 0.2s ease-out;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
@@ -78,6 +86,12 @@
 .victory-word {
   font-size: 0.9rem;
   color: #ccc;
+}
+
+.word-feedback {
+  color: #c3e0ff;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .streak-highlight-box {
@@ -147,17 +161,24 @@
   display: flex;
   gap: 18px;
   margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .victory-close {
   position: absolute;
-  top: 18px;
-  right: 22px;
+  top: 12px;
+  right: 12px;
   background: none;
   border: none;
   color: white;
   font-size: 22px;
   cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
 }
 
 /* ================= SETTINGS ================= */
@@ -229,7 +250,7 @@
 }
 
 .info-title {
-  font-family: 'Creepster', cursive;
+  font-family: "Creepster", cursive;
   font-size: 2rem;
   color: #ff3b3b;
   text-align: center;
@@ -340,6 +361,26 @@
   gap: 20px;
 }
 
+.research-key-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-block: 18px;
+  text-align: left;
+}
+.research-key-section p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.research-key-section input {
+  max-width: 100%;
+}
+.wordlist-credit a {
+  color: #a9caff;
+  text-underline-offset: 3px;
+}
+
 .dev-close {
   position: absolute;
   top: 15px;
@@ -368,6 +409,39 @@
 
 .terms-title {
   font-size: 1.6rem;
+}
+
+.terms-modal {
+  max-height: calc(100dvh - 24px);
+}
+.terms-modal .terms-content {
+  min-height: 0;
+}
+.terms-modal .terms-version {
+  color: #ccc;
+  font-size: 0.85rem;
+}
+.terms-modal .terms-actions {
+  flex-wrap: wrap;
+}
+.terms-research-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.terms-research-choice input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #ff3b3b;
+}
+.terms-modal button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .terms-content {
@@ -530,121 +604,6 @@
   display: flex;
   gap: 15px;
   justify-content: center;
-}
-
-.premium-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  align-items: center;
-  max-width: 480px;
-}
-
-.premium-title {
-  font-size: 1.8rem;
-}
-
-.premium-empty {
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.premium-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #0c1022;
-  padding: 16px;
-  border-radius: 14px;
-  width: 100%;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.premium-user {
-  padding: 8px 12px;
-  background: #151523;
-  border-radius: 10px;
-  color: #ffd700;
-  font-weight: 600;
-  text-align: center;
-}
-
-.premium-close-btn {
-  background: #ff3b3b;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 12px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.premium-close-btn:hover {
-  transform: translateY(-2px);
-}
-
-.premium-text {
-  font-size: 0.95rem;
-  color: #ddd;
-  text-align: center;
-}
-
-.premium-highlight {
-  background: #0c1022;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.premium-empty {
-  font-size: 0.9rem;
-  color: #ccc;
-}
-
-.premium-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #151523;
-  padding: 14px;
-  border-radius: 12px;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.premium-user {
-  padding: 6px 10px;
-  background: #0c1022;
-  border-radius: 8px;
-  color: #ffd700;
-  font-weight: 600;
-  text-align: center;
-}
-
-.premium-buy-btn {
-  background: linear-gradient(45deg, #ffd700, #ffb700);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: 0.2s ease;
-}
-
-.premium-buy-btn:hover {
-  transform: scale(1.05);
-}
-
-.premium-active {
-  margin-top: 10px;
-  font-weight: 600;
-  color: #ffd700;
 }
 
 /* ================= GUESS DISTRIBUTION ================= */

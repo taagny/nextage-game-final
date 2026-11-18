@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.firebase/
 *.local
 
 .vscode/*
@@ -24,3 +25,14 @@ dist-ssr
 
 .env
 .env.*
+!.env.example
+
+serviceAccount*.json
+*-adminsdk-*.json
+
+# Documentacao e artigos mantidos somente no computador local
+/docs/
+/entregas/
+
+# Configuração local de ferramentas de desenvolvimento
+/.claude/

@@ -5,7 +5,6 @@ const rows = [
 ]
 
 function Keyboard({ onKeyPress, results, board }) {
-
   function getKeyStatus(letter) {
     let status = null
 
@@ -32,7 +31,7 @@ function Keyboard({ onKeyPress, results, board }) {
     <div className="keyboard">
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="keyboard-row">
-          {row.map(key => {
+          {row.map((key) => {
             const status = getKeyStatus(key)
             let className = "key"
 
@@ -42,11 +41,7 @@ function Keyboard({ onKeyPress, results, board }) {
             if (key === "ENTER" || key === "BACKSPACE") className += " key-wide"
 
             return (
-              <button
-                key={key}
-                className={className}
-                onClick={() => onKeyPress(key)}
-              >
+              <button key={key} className={className} onClick={() => onKeyPress(key)}>
                 {key === "BACKSPACE" ? "⌫" : key}
               </button>
             )

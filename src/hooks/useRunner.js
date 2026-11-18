@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 export function useRunner(duration) {
   const [timeLeft, setTimeLeft] = useState(duration)
@@ -10,19 +10,19 @@ export function useRunner(duration) {
     if (timeLeft <= 0) return
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1)
+      setTimeLeft((prev) => prev - 1)
     }, 1000)
 
     return () => clearInterval(timer)
   }, [isRunning, timeLeft])
 
-  function start() {
+  const start = useCallback(() => {
     setIsRunning(true)
-  }
+  }, [])
 
-  function stop() {
+  const stop = useCallback(() => {
     setIsRunning(false)
-  }
+  }, [])
 
   function reset(newDuration) {
     setTimeLeft(newDuration)
@@ -31,7 +31,7 @@ export function useRunner(duration) {
   }
 
   function incrementScore() {
-    setScore(prev => prev + 1)
+    setScore((prev) => prev + 1)
   }
 
   return {
