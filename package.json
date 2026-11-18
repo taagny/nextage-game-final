@@ -8,11 +8,14 @@
     "dev:local": "node scripts/run-emulator-tests.mjs app",
     "build": "vite build",
     "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:auth": "node scripts/run-emulator-tests.mjs auth",
     "test:rules": "node scripts/run-emulator-tests.mjs firestore",
     "test:integration": "node scripts/run-emulator-tests.mjs integration",
     "test:backup": "node scripts/run-emulator-tests.mjs backup",
+    "test:cutover": "node scripts/run-emulator-tests.mjs cutover",
     "test:persistence": "node scripts/run-emulator-tests.mjs persistence-save && node scripts/run-emulator-tests.mjs persistence-load",
     "test:local": "node --test tests/local/*.test.mjs",
     "test:browser": "node --test tests/browser/*.test.mjs",
@@ -40,6 +43,7 @@
     "firebase-admin": "14.5.0",
     "firebase-tools": "15.35.0",
     "globals": "^17.5.0",
+    "prettier": "3.8.1",
     "vite": "^8.0.10"
   }
 }

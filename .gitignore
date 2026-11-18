@@ -33,3 +33,6 @@ serviceAccount*.json
 # Documentacao e artigos mantidos somente no computador local
 /docs/
 /entregas/
+
+# Configuração local de ferramentas de desenvolvimento
+/.claude/
