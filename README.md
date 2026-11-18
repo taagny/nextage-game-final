@@ -26,7 +26,7 @@ npm run audit:responsive
 node scripts/measure-v2.mjs
 ```
 
-Emuladores usam projeto fictício `demo-nextage-v2`. O executor filtra variáveis herdadas. Firestore requer Java 21+ e pode baixar artefatos no primeiro uso. Nesta máquina, Microsoft OpenJDK 21 foi instalado e os 33 testes de regras passaram após corrigir a validação da distribuição de tentativas que excedia o limite de expressões.
+Emuladores usam projeto fictício `demo-nextage-v2`. O executor filtra variáveis herdadas. Firestore requer Java 21+ e pode baixar artefatos no primeiro uso.
 
 ### Testar a branch antes de publicar
 
@@ -46,7 +46,7 @@ No Windows, se o terminal ainda tiver o PATH anterior à instalação, o executo
 
 O modo de emulação é exclusivo de desenvolvimento. `npm run build` continua usando a configuração real. Não publique regras isoladamente para destravar o teste: siga a ordem de migração/publicação documentada. Os testes usam `firebase.tests.json`, com Firestore em 8085 e Auth em 9098, sem limpar os dados do app em 8080/9099. Reinicie o servidor local após mudanças na configuração. Testes de navegador permanecem necessários.
 
-Verificação atual: lint com zero erros e zero avisos, build aprovado na preparação da publicação e 76 testes unitários. O ensaio de backup/restauração no Firestore emulado também passou. Na revisão anterior passaram 36 testes de regras, integração e navegador, incluindo recargas sem duplicação, downloads pessoais, exclusão de conta e a correção do Runner. O autor confirmou o login Google no preview de testes. A regressão da migração verifica que uma falha mantém o diagnóstico original, sem exigir a chave da pesquisa nem imprimir o UID do documento.
+Verificação da publicação em 18/11/2026: formatação aprovada, lint com zero erros e zero avisos, build aprovado, 76 testes unitários, 36 testes de regras e ensaio de migração/recuperação em emuladores aprovados. O teste local no Chrome cobriu recargas sem duplicação, downloads pessoais, exclusão de conta e a regressão do Runner. No site publicado, nove verificações com conta fictícia cobriram visitante, ranking, cadastro, aceite sem pesquisa, salvamento, recarga, configurações e novo login; a conta e seus dados foram removidos ao final. O login Google real depende de conferência manual; foi confirmado anteriormente no preview de testes. Esses ensaios operacionais não são resultados de pesquisa com participantes.
 
 ## Organização e dados
 
@@ -83,7 +83,7 @@ Para falhas no preview hospedado da branch, veja login e ranking na Vercel (docu
 
 `firestore.rules`, `firestore.indexes.json` e `firebase.json` versionam configuração. Regras são protótipo sujeito à suíte e revisão: resultados do cliente podem ser forjados dentro dos limites.
 
-As regras de consentimento foram publicadas, com autorização do responsável, somente no projeto Firebase de testes em 16/11/2026. Não houve migração nem mudança de produção. A main depende de autorização posterior do responsável.
+Em 18/11/2026, com autorização do responsável, a branch foi integrada à main e publicada em produção. A janela bloqueou o acesso dos clientes, atualizou e verificou uma cópia limitada dos documentos da migração, criou 388 perfis públicos e adequou 388 documentos privados. Os scripts não escreveram nas subcoleções de histórico. O deployment foi comparado ao build local com os mesmos metadados públicos da Vercel, antes de reabrir o acesso com as regras normais. O Firebase de testes permanece separado da produção.
 
 Scripts: `scripts/migrate-v2.mjs` (`--copy`/`--cleanup`, dry-run padrão) e `scripts/set-admin-claim.mjs` (consulta padrão). Exigem projeto explícito e credencial externa. Só o responsável deve executá-los seguindo o roteiro.
 
