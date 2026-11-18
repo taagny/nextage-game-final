@@ -3,6 +3,7 @@ import { Buffer } from "node:buffer"
 import { Timestamp, GeoPoint, DocumentReference, FieldValue } from "firebase-admin/firestore"
 
 const Vector = FieldValue.vector([]).constructor
+const MIGRATION_COLLECTIONS = ["jogadores", "perfisPublicos"]
 const sha = value => createHash("sha256").update(JSON.stringify(value)).digest("hex")
 const validPath = value => typeof value === "string" && value.split("/").length % 2 === 0 &&
   value.split("/").every(part => part && part !== "." && part !== "..")
@@ -47,7 +48,7 @@ export function decodeValue(encoded, db) {
   throw new Error("Tipo de backup inválido.")
 }
 
-export async function captureFirestore(db, projectId) {
+export async function captureFirestore(db, projectId, { migrationDocumentsOnly = false } = {}) {
   const documents = []
   let missingParents = 0
   async function visit(collection) {
@@ -59,15 +60,21 @@ export async function captureFirestore(db, projectId) {
       for (const snapshot of snapshots) {
         if (snapshot.exists) documents.push({ path: snapshot.ref.path, fields: encodeValue(snapshot.data(), db) })
         else missingParents++
-        for (const child of await snapshot.ref.listCollections()) await visit(child)
+        if (!migrationDocumentsOnly) {
+          for (const child of await snapshot.ref.listCollections()) await visit(child)
+        }
       }
     }
   }
-  for (const collection of await db.listCollections()) await visit(collection)
+  const collections = migrationDocumentsOnly
+    ? MIGRATION_COLLECTIONS.map(name => db.collection(name)) : await db.listCollections()
+  for (const collection of collections) await visit(collection)
   documents.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
   const payload = { format: "nextage-firestore-logical-backup", version: 1, projectId,
     databaseId: "(default)", capturedAt: new Date().toISOString(),
-    consistentSnapshot: false, documents, missingParents }
+    consistentSnapshot: false,
+    scope: migrationDocumentsOnly ? "migration-documents-only" : "all-documents",
+    documents, missingParents }
   return { payload, sha256: sha(payload) }
 }
 
@@ -78,12 +85,16 @@ export function inspectBackup(backup, db) {
     throw new Error("Backup incompleto, alterado ou de formato desconhecido.")
   }
   const paths = new Set()
+  if (p.scope !== undefined && !["all-documents", "migration-documents-only"].includes(p.scope)) throw new Error("Escopo de backup desconhecido.")
   for (const row of p.documents) {
     if (!validPath(row.path) || paths.has(row.path) || row.fields?.[0] !== "map") throw new Error("Documento de backup inválido ou duplicado.")
+    if (p.scope === "migration-documents-only" && (row.path.split("/").length !== 2 || !MIGRATION_COLLECTIONS.includes(row.path.split("/")[0]))) {
+      throw new Error("Documento fora do escopo declarado da cópia de migração.")
+    }
     paths.add(row.path)
     decodeValue(row.fields, db)
   }
-  return { projectId: p.projectId, documents: paths.size, sha256: backup.sha256 }
+  return { projectId: p.projectId, documents: paths.size, sha256: backup.sha256, scope: p.scope ?? "all-documents" }
 }
 
 // Safe rehearsal only. There is intentionally no production-write option here.

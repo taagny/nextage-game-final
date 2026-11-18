@@ -63,3 +63,19 @@ test("restauração recusa produção, host remoto e destino com documentos exis
     doc: () => ({ get: async () => ({ exists: true }), create: () => { throw Error("Não sobrescrever") } })
   }, "demo-rehearsal", "127.0.0.1:8085"), /já contém/)
 })
+
+test("escopo de migração copia somente documentos principais e nunca lê as partidas", async () => {
+  const requested = []
+  const forbidden = () => { throw Error("O histórico não deve ser consultado") }
+  const db = { listCollections: forbidden,
+    collection: name => { requested.push(name); return { listDocuments: async () => [{ path: name + "/ficticio", listCollections: forbidden }] } },
+    getAll: async (...refs) => refs.map(ref => ({ ref, exists: true, data: () => ({ value: "original" }) })) }
+  const backup = await captureFirestore(db, "demo-backup-scoped", { migrationDocumentsOnly: true })
+  assert.deepEqual(requested, ["jogadores", "perfisPublicos"])
+  assert.equal(backup.payload.scope, "migration-documents-only")
+  assert.equal(inspectBackup(backup, db).scope, "migration-documents-only")
+  assert.equal(backup.payload.documents.length, 2)
+  backup.payload.documents[0].path = "jogadores/ficticio/partidas/segredo"
+  backup.sha256 = createHash("sha256").update(JSON.stringify(backup.payload)).digest("hex")
+  assert.throws(() => inspectBackup(backup, db), /fora do escopo/)
+})

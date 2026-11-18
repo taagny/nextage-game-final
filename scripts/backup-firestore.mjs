@@ -10,12 +10,14 @@ import { captureFirestore, inspectBackup, restoreBackupToEmulator } from "./lib/
 async function main() {
   const { values } = parseArgs({ options: {
     project: { type: "string" }, out: { type: "string" },
-    verify: { type: "string" }, "rehearse-local": { type: "string" }
+    verify: { type: "string" }, "rehearse-local": { type: "string" },
+    "migration-documents-only": { type: "boolean", default: false }
   } })
   if (!values.project || [values.out, values.verify, values["rehearse-local"]].filter(Boolean).length !== 1) {
     throw new Error("Informe --project e exatamente um de --out, --verify ou --rehearse-local.")
   }
   if (values.verify || values["rehearse-local"]) {
+    if (values["migration-documents-only"]) throw new Error("O escopo da cópia existente é lido do arquivo; não informe outro escopo na verificação.")
     const backup = JSON.parse(await readFile(values.verify || values["rehearse-local"], "utf8"))
     const host = process.env.FIRESTORE_EMULATOR_HOST
     if (values["rehearse-local"] && (!/^demo-[a-z0-9-]+$/.test(values.project) || !/^127\.0\.0\.1:\d+$/.test(host ?? ""))) {
@@ -26,7 +28,8 @@ async function main() {
     try {
       const db = getFirestore(app); db.settings({ useBigInt: true })
       const summary = values.verify ? inspectBackup(backup, db) : await restoreBackupToEmulator(backup, db, values.project, host)
-      console.log(JSON.stringify({ mode: values.verify ? "verify-offline" : "rehearsal-local", ...summary }))
+      console.log(JSON.stringify({ mode: values.verify ? "verify-offline" : "rehearsal-local", ...summary,
+        ...(values["rehearse-local"] ? { sourceProjectId: summary.projectId, targetProjectId: values.project, emulatorHost: host } : {}) }))
     } finally { await deleteApp(app) }
     return
   }
@@ -38,7 +41,8 @@ async function main() {
   try {
     db.settings({ useBigInt: true })
     console.log("Copiando documentos por leitura administrativa. Nenhum documento remoto será alterado.")
-    const backup = await captureFirestore(db, values.project)
+    if (values["migration-documents-only"]) console.log("Escopo limitado: documentos principais de jogadores e perfis públicos. O histórico de partidas não integra esta cópia.")
+    const backup = await captureFirestore(db, values.project, { migrationDocumentsOnly: values["migration-documents-only"] })
     const summary = inspectBackup(backup, db)
     await mkdir(path.dirname(out), { recursive: true })
     // Never overwrite a previous recovery file. A failed write has no success marker.
