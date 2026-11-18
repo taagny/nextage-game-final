@@ -1,14 +1,14 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
 import { classicElapsedTime, newClassicRound } from "../utils/classicSession.js"
-import { classicScope, loadClassicSession, saveClassicSession } from "../services/classicSessionService.js"
+import {
+  classicScope,
+  loadClassicSession,
+  saveClassicSession
+} from "../services/classicSessionService.js"
 import { useAuth } from "../context/useAuth"
 import { buildWordFeedback } from "../utils/wordFeedback"
-import {
-  getPublicProfile,
-  registerWin,
-  registerLoss
-} from "../services/playerService"
+import { getPublicProfile, registerWin, registerLoss } from "../services/playerService"
 import Modal from "../components/Modal"
 import Keyboard from "../components/Keyboard"
 import "../styles/game.css"
@@ -23,17 +23,22 @@ function ClassicSession({ ownerId }) {
     const loaded = loadClassicSession(ownerId)
     return { round: loaded.round ?? newClassicRound(), error: loaded.error }
   })
-  return <ClassicRound key={session.round.matchId} initialRound={session.round}
-    ownerId={ownerId} storageWarning={session.error}
-    onNewGame={streak => {
-      const round = newClassicRound()
-      round.game.streak = streak
-      setSession({ round, error: session.error })
-    }} />
+  return (
+    <ClassicRound
+      key={session.round.matchId}
+      initialRound={session.round}
+      ownerId={ownerId}
+      storageWarning={session.error}
+      onNewGame={(streak) => {
+        const round = newClassicRound()
+        round.game.streak = streak
+        setSession({ round, error: session.error })
+      }}
+    />
+  )
 }
 
 function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
-
   const { user, setGameInProgress, setGameMatchId } = useAuth()
   const [copied, setCopied] = useState(false)
   const startTime = initialRound.startTime
@@ -63,17 +68,43 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
     isManualSelection,
     setExternalStreak,
     invalidWord
-  } = useWordle(secret, { initialState: initialRound.game, onFinish: () => {
-    setFinishedAt(Math.max(Date.now(), startTime))
-    setShowVictoryModal(true)
-  } })
+  } = useWordle(secret, {
+    initialState: initialRound.game,
+    onFinish: () => {
+      setFinishedAt(Math.max(Date.now(), startTime))
+      setShowVictoryModal(true)
+    }
+  })
 
   useLayoutEffect(() => {
-    saveClassicSession(ownerId, { version: 1, matchId, secret, startTime, finishedAt, recorded,
+    saveClassicSession(ownerId, {
+      version: 1,
+      matchId,
+      secret,
+      startTime,
+      finishedAt,
+      recorded,
       game: { board, results, currentRow, currentCol, isManualSelection, isGameOver, streak }
-    }).catch(() => setStorageError("Não foi possível salvar a partida neste navegador. Não recarregue a página até concluí-la."))
-  }, [ownerId, matchId, secret, startTime, finishedAt, recorded, board, results, currentRow,
-    currentCol, isManualSelection, isGameOver, streak])
+    }).catch(() =>
+      setStorageError(
+        "Não foi possível salvar a partida neste navegador. Não recarregue a página até concluí-la."
+      )
+    )
+  }, [
+    ownerId,
+    matchId,
+    secret,
+    startTime,
+    finishedAt,
+    recorded,
+    board,
+    results,
+    currentRow,
+    currentCol,
+    isManualSelection,
+    isGameOver,
+    streak
+  ])
 
   const restartFinishedRound = useEffectEvent(() => handleNewGame())
 
@@ -89,9 +120,11 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
       }
     }
 
-    loadPlayer().catch(error => console.error("Não foi possível carregar a sequência.", error))
-    return () => { active = false }
-  }, [user])
+    loadPlayer().catch((error) => console.error("Não foi possível carregar a sequência.", error))
+    return () => {
+      active = false
+    }
+  }, [user, setExternalStreak])
 
   useEffect(() => {
     function handleEnterRestart(e) {
@@ -109,7 +142,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
     if (!isGameOver || !user || recorded || finishedAt === null) return
     let active = true
     if (!finishRequest.current) {
-      const isWinner = results[currentRow].every(status => status === "correct")
+      const isWinner = results[currentRow].every((status) => status === "correct")
       const register = isWinner ? registerWin : registerLoss
       finishRequest.current = register(user.uid, {
         word: secret,
@@ -118,16 +151,31 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
         matchId
       })
     }
-    finishRequest.current.then(saved => {
-      if (!active) return
-      setWordFeedback(buildWordFeedback(saved.wordHistory))
-      setRecorded(true)
-    }).catch(error => {
-      console.error("Não foi possível salvar a partida.", error)
-      if (active) setSaveError("Não foi possível salvar sua partida. Verifique sua conexão.")
-    })
-    return () => { active = false }
-  }, [isGameOver, currentRow, results, startTime, finishedAt, user, secret, matchId, recorded, saveAttempt])
+    finishRequest.current
+      .then((saved) => {
+        if (!active) return
+        setWordFeedback(buildWordFeedback(saved.wordHistory))
+        setRecorded(true)
+      })
+      .catch((error) => {
+        console.error("Não foi possível salvar a partida.", error)
+        if (active) setSaveError("Não foi possível salvar sua partida. Verifique sua conexão.")
+      })
+    return () => {
+      active = false
+    }
+  }, [
+    isGameOver,
+    currentRow,
+    results,
+    startTime,
+    finishedAt,
+    user,
+    secret,
+    matchId,
+    recorded,
+    saveAttempt
+  ])
 
   useEffect(() => {
     function handleKey(e) {
@@ -144,9 +192,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
   }, [addLetter, deleteLetter, submitGuess, isGameOver])
 
   useEffect(() => {
-    const hasTypedLetter = board?.some(row =>
-      row?.some(cell => cell !== "")
-    )
+    const hasTypedLetter = board?.some((row) => row?.some((cell) => cell !== ""))
 
     if (!isGameOver && hasTypedLetter) {
       setGameInProgress(true)
@@ -158,9 +204,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
   }, [board, isGameOver, matchId, setGameInProgress, setGameMatchId])
 
   function handleVirtualKey(key) {
-
     if (key === "ENTER") {
-
       if (isGameOver && !showVictoryModal) {
         handleNewGame()
         return
@@ -187,7 +231,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
   function retrySave() {
     finishRequest.current = null
     setSaveError("")
-    setSaveAttempt(attempt => attempt + 1)
+    setSaveAttempt((attempt) => attempt + 1)
   }
 
   function generateShareText() {
@@ -195,7 +239,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
 
     for (let i = 0; i <= currentRow; i++) {
       if (!results?.[i]) continue
-      results[i].forEach(status => {
+      results[i].forEach((status) => {
         if (status === "correct") text += "🟩"
         else if (status === "present") text += "🟨"
         else text += "⬛"
@@ -223,16 +267,12 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
 
       <Modal isOpen={showVictoryModal}>
         <div className="modal-card streak-modal">
-
-          <button
-            className="victory-close"
-            onClick={() => setShowVictoryModal(false)}
-          >
+          <button className="victory-close" onClick={() => setShowVictoryModal(false)}>
             ×
           </button>
 
           <h2 className="streak-title">
-            {results?.[currentRow]?.every(status => status === "correct")
+            {results?.[currentRow]?.every((status) => status === "correct")
               ? "PARABÉNS!"
               : "FIM DE JOGO!"}
           </h2>
@@ -241,35 +281,36 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
             A palavra era: <strong>{secret}</strong>
           </p>
           {saveError && <p role="alert">{saveError}</p>}
-          {saveError && <button className="modal-btn red" onClick={retrySave}>Tentar salvar novamente</button>}
+          {saveError && (
+            <button className="modal-btn red" onClick={retrySave}>
+              Tentar salvar novamente
+            </button>
+          )}
           {ownerId && !recorded && !saveError && <p role="status">Salvando partida…</p>}
-          {wordFeedback && <p className="word-feedback" role="status">{wordFeedback.message}</p>}
+          {wordFeedback && (
+            <p className="word-feedback" role="status">
+              {wordFeedback.message}
+            </p>
+          )}
 
           {user && (
             <div className="streak-highlight-box">
               <span className="streak-fire">🔥</span>
               <div className="streak-highlight-info">
                 <span className="streak-highlight-label">SEQUÊNCIA</span>
-                <span className="streak-highlight-number">
-                  {streak.toLocaleString("pt-BR")}
-                </span>
+                <span className="streak-highlight-number">{streak.toLocaleString("pt-BR")}</span>
               </div>
             </div>
           )}
 
           <div className="victory-mini-grid">
-            {(results || [])
-              .slice(0, currentRow + 1)
-              .map((row, rowIndex) => (
-                <div key={rowIndex} className="victory-mini-row">
-                  {(row || []).map((status, colIndex) => (
-                    <div
-                      key={colIndex}
-                      className={`victory-mini-tile ${status || ""}`}
-                    />
-                  ))}
-                </div>
-              ))}
+            {(results || []).slice(0, currentRow + 1).map((row, rowIndex) => (
+              <div key={rowIndex} className="victory-mini-row">
+                {(row || []).map((status, colIndex) => (
+                  <div key={colIndex} className={`victory-mini-tile ${status || ""}`} />
+                ))}
+              </div>
+            ))}
           </div>
 
           <div className="victory-actions">
@@ -277,26 +318,24 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
               {copied ? "COPIADO ✅" : "Compartilhar 🔗"}
             </button>
 
-            <button onClick={handleNewGame} disabled={Boolean(ownerId && !recorded)} className="modal-btn red">
+            <button
+              onClick={handleNewGame}
+              disabled={Boolean(ownerId && !recorded)}
+              className="modal-btn red"
+            >
               Novo Jogo ↺
             </button>
           </div>
-
         </div>
       </Modal>
 
-      {invalidWord && (
-        <div className="invalid-message">
-          Palavra inválida
-        </div>
-      )}
+      {invalidWord && <div className="invalid-message">Palavra inválida</div>}
 
       <div className="game-grid">
         {board.map((row, rowIndex) => (
           <div
             key={rowIndex}
-            className={`game-row ${invalidWord && rowIndex === currentRow ? "row-shake" : ""
-              }`}
+            className={`game-row ${invalidWord && rowIndex === currentRow ? "row-shake" : ""}`}
           >
             {row.map((cell, colIndex) => {
               const status = results?.[rowIndex]?.[colIndex]
@@ -308,10 +347,9 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
               return (
                 <div
                   key={colIndex}
-                  className={`${className} ${rowIndex === currentRow && colIndex === currentCol
-                      ? "cursor-active"
-                      : ""
-                    }`}
+                  className={`${className} ${
+                    rowIndex === currentRow && colIndex === currentCol ? "cursor-active" : ""
+                  }`}
                   onClick={() => {
                     if (!isGameOver && rowIndex === currentRow) {
                       setCurrentCol(colIndex)
@@ -327,12 +365,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
         ))}
       </div>
 
-      <Keyboard
-        onKeyPress={handleVirtualKey}
-        results={results}
-        board={board}
-      />
-
+      <Keyboard onKeyPress={handleVirtualKey} results={results} board={board} />
     </div>
   )
 }
