@@ -33,7 +33,7 @@ function inspectViewport() {
   const issues = []
   const selectors = overlay
     ? ".modal-card,.auth-card,.ranking-card-new,.profile-close,.ranking-close,.victory-close,.info-close"
-    : ".logo,.header-left,.nav,.game-grid,.keyboard,.game-wrapper>h1,.game-wrapper>p,.user-dropdown"
+    : ".logo,.header-left,.theme-toggle,.nav,.game-grid,.keyboard,.game-wrapper>h1,.game-wrapper>p,.user-dropdown"
   for (const element of scope.querySelectorAll(selectors)) {
     const bounds = rect(element)
     if (!bounds.w || !bounds.h) continue
@@ -76,6 +76,8 @@ function inspectViewport() {
 
 const label = process.argv[2] || "current"
 if (!/^[a-z-]+$/.test(label)) throw new Error("Rótulo inválido.")
+const theme = process.argv[3] || "dark"
+assert.ok(["dark", "light"].includes(theme), "Tema inválido: use dark ou light.")
 const directory = path.resolve(".firebase/responsiveness", label)
 mkdirSync(directory, { recursive: true })
 const profile = path.resolve(mkdtempSync(".firebase/responsive-browser-"))
@@ -187,6 +189,79 @@ try {
   await viewport(1440, 900)
   await client.send("Page.navigate", { url: "http://127.0.0.1:5173/" })
   await until(() => evaluate("document.querySelectorAll('.game-tile').length===30"))
+  assert.equal(await evaluate("document.documentElement.dataset.theme"), "dark")
+  const initialBoard = await evaluate("document.querySelector('.game-grid').textContent")
+  await click(".theme-toggle")
+  await until(() => evaluate("document.documentElement.dataset.theme === 'light'"))
+  assert.equal(await evaluate("localStorage.getItem('nextage:theme')"), "light")
+  assert.equal(await evaluate("document.querySelector('.game-grid').textContent"), initialBoard)
+  const reloadMarker = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: "window.__themeReloadReady = true"
+  })
+  await client.send("Page.reload")
+  await until(() =>
+    evaluate(
+      "window.__themeReloadReady && !!document.querySelector('.theme-toggle') && document.querySelectorAll('.game-tile').length === 30"
+    ).catch(() => false)
+  )
+  await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+    identifier: reloadMarker.identifier
+  })
+  assert.equal(await evaluate("document.documentElement.dataset.theme"), "light")
+  // Enter no seletor não pode enviar a palavra para o jogo.
+  for (const key of "CASAS") {
+    await evaluate(
+      "window.dispatchEvent(new KeyboardEvent('keydown',{key:" + JSON.stringify(key) + "}))"
+    )
+  }
+  await delay(150)
+  await client.send("Page.bringToFront")
+  await evaluate("document.querySelector('.theme-toggle').focus()")
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13,
+    text: "\r",
+    unmodifiedText: "\r"
+  })
+  console.log(
+    "Seletor por teclado:",
+    await evaluate(
+      "({theme:document.documentElement.dataset.theme,focused:document.activeElement.className})"
+    )
+  )
+  await client.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Enter",
+    code: "Enter",
+    windowsVirtualKeyCode: 13
+  })
+  await until(() => evaluate("document.documentElement.dataset.theme === 'dark'"))
+  assert.equal(
+    await evaluate(
+      "document.querySelectorAll('.game-tile.tile-correct,.game-tile.tile-present,.game-tile.tile-absent').length"
+    ),
+    0
+  )
+  await evaluate("document.querySelector('.theme-toggle').blur()")
+  for (let index = 0; index < 5; index++) {
+    await evaluate("window.dispatchEvent(new KeyboardEvent('keydown',{key:'Backspace'}))")
+  }
+  // Armazenamento bloqueado não impede alternar o tema na sessão atual.
+  await evaluate(`(() => {
+    const original = Storage.prototype.setItem
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'nextage:theme') throw new DOMException('Bloqueado', 'SecurityError')
+      return original.call(this, key, value)
+    }
+    try { document.querySelector('.theme-toggle').click() }
+    finally { Storage.prototype.setItem = original }
+  })()`)
+  await until(() => evaluate("document.documentElement.dataset.theme === 'light'"))
+  await click(".theme-toggle")
+  if (theme === "light") await click(".theme-toggle")
+  await until(() => evaluate("document.documentElement.dataset.theme === " + JSON.stringify(theme)))
   // Aviso injetado pelo SDK só existe nos emuladores, não no site publicado.
   await evaluate("document.querySelector('.firebase-emulator-warning')?.remove()")
   await measure("classic")
@@ -325,6 +400,7 @@ try {
     JSON.stringify(
       {
         directory,
+        theme,
         cases: measurements.length,
         affected: affected.map((item) => ({
           scene: item.scene,
