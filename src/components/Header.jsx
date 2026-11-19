@@ -1,5 +1,6 @@
 import { lazy, useRef, useState } from "react"
 import DeferredContent from "./DeferredContent"
+import ThemeToggle from "./ThemeToggle"
 import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/useAuth"
 import { logout } from "../services/authService"
@@ -85,6 +86,7 @@ function Header() {
           <button className="icon-btn" onClick={handleTrophyClick}>
             <span className="trophy-emoji">🏆</span>
           </button>
+          <ThemeToggle />
         </div>
 
         <h1 className="logo">NEXTAGE</h1>

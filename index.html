@@ -1,7 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      try {
+        if (localStorage.getItem("nextage:theme") === "light") {
+          document.documentElement.dataset.theme = "light"
+        }
+      } catch {
+        // Sem armazenamento, mantém o tema escuro padrão.
+      }
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link
       href="https://fonts.googleapis.com/css2?family=Creepster&family=Roboto:wght@400;700&display=swap"
