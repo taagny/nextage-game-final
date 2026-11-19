@@ -350,15 +350,24 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                       data={chartData}
                       margin={{ top: 20, right: 20, left: 20, bottom: 10 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3c" />
-                      <XAxis dataKey="partida" stroke="#ccc" tick={{ fill: "#ccc" }} />
-                      <YAxis domain={[1, 6]} stroke="#ccc" tick={{ fill: "#ccc" }} width={35} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--input-border)" />
+                      <XAxis
+                        dataKey="partida"
+                        stroke="var(--muted)"
+                        tick={{ fill: "var(--muted)" }}
+                      />
+                      <YAxis
+                        domain={[1, 6]}
+                        stroke="var(--muted)"
+                        tick={{ fill: "var(--muted)" }}
+                        width={35}
+                      />
                       <Tooltip />
                       <Line
                         type="monotone"
                         dataKey="attempts"
                         name="Tentativas"
-                        stroke="#ff3b3b"
+                        stroke="var(--accent)"
                         strokeWidth={3}
                         dot={{ r: 5 }}
                       />
@@ -370,7 +379,9 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                   <div>Tempo médio recente: {recentAvgTime.toFixed(1)}s</div>
                   <div>
                     Melhoria:{" "}
-                    <strong style={{ color: improvement >= 0 ? "#4CAF50" : "#ff3b3b" }}>
+                    <strong
+                      style={{ color: improvement >= 0 ? "var(--positive-text)" : "var(--accent)" }}
+                    >
                       {improvement.toFixed(1)}%
                     </strong>
                   </div>

@@ -7,7 +7,7 @@
   overflow-y: auto;
   padding: clamp(22px, 4vw, 34px);
   gap: 20px;
-  background-color: #4a3333;
+  background-color: var(--surface-warm);
   background-image:
     radial-gradient(ellipse at 100% 0%, rgba(255, 59, 59, 0.16), transparent 36%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 55%);
@@ -86,11 +86,11 @@
     0 5px 12px rgba(0, 0, 0, 0.16);
 }
 .tile-example.correct {
-  background: #538d4e;
+  background: var(--success);
   border-color: #72a76d;
 }
 .tile-example.present {
-  background: #b59f3b;
+  background: var(--present);
   border-color: #cbb659;
 }
 .tile-example.absent {

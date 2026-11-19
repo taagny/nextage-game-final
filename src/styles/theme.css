@@ -1,0 +1,304 @@
+/* A paleta escura mantém os valores originais; o tema claro troca somente as cores. */
+:root {
+  color-scheme: dark;
+  --page-bg: #120909;
+  --text: #fff;
+  --muted: #ccc;
+  --subtle: #aaa;
+  --surface: #1f1f3a;
+  --surface-soft: #151523;
+  --surface-deep: #0c1022;
+  --surface-warm: #4a3333;
+  --auth-bg: #201414;
+  --control-bg: #4a3838;
+  --control-text: #fff;
+  --border: #2a1a1a;
+  --input-border: #2a2a3c;
+  --tile-bg: #2c2121;
+  --tile-border: #3a3a3c;
+  --accent: #ff3b3b;
+  --success: #538d4e;
+  --present: #b59f3b;
+  --absent: #3a3a3c;
+  --on-mark: #fff;
+  --link: #c3e0ff;
+  --positive-text: #4caf50;
+  --error-text: #ff6b6b;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --page-bg: #f7f3ee;
+  --text: #302626;
+  --muted: #625656;
+  --subtle: #6b6060;
+  --surface: #fffdf9;
+  --surface-soft: #eee7df;
+  --surface-deep: #e8dfd4;
+  --surface-warm: #fffaf5;
+  --auth-bg: #fffdf9;
+  --control-bg: #e5dbd1;
+  --control-text: #382b2b;
+  --border: #d5c7ba;
+  --input-border: #bcae9f;
+  --tile-bg: #fffdf9;
+  --tile-border: #c4b5a8;
+  --accent: #bd292f;
+  --success: #39723a;
+  --present: #8b7019;
+  --absent: #66605c;
+  --link: #225c91;
+  --positive-text: #28652e;
+  --error-text: #b3232c;
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-toggle:hover {
+  background: var(--control-bg);
+  color: var(--text);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.tile-correct,
+.tile-present,
+.tile-absent,
+.key.key-correct,
+.key.key-present,
+.key.key-absent,
+.tile-example.correct,
+.tile-example.present,
+.tile-example.absent {
+  color: var(--on-mark);
+}
+
+:root[data-theme="light"] .nav-btn:hover,
+:root[data-theme="light"] .nav-btn.active {
+  color: #fff;
+}
+:root[data-theme="light"] .logo {
+  color: var(--accent);
+}
+:root[data-theme="light"] :is(.streak-highlight-number, .rank-pos) {
+  color: #875013;
+}
+:root[data-theme="light"] .info-card .tile-example {
+  border-color: var(--tile-border);
+}
+
+/* Superfícies específicas dos modais; os demais componentes usam os tokens acima. */
+:root[data-theme="light"] .user-btn {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+:root[data-theme="light"] .user-btn:hover,
+:root[data-theme="light"] .user-dropdown button:hover {
+  background: var(--control-bg);
+}
+:root[data-theme="light"] .user-dropdown {
+  box-shadow: 0 10px 25px rgb(65 40 25 / 12%);
+}
+:root[data-theme="light"] .modal-card,
+:root[data-theme="light"] .info-card,
+:root[data-theme="light"] .ranking-card-new {
+  color: var(--text);
+  box-shadow: 0 20px 60px rgb(65 40 25 / 14%);
+}
+:root[data-theme="light"] .info-card,
+:root[data-theme="light"] .ranking-card-new {
+  background: var(--surface-warm);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .ranking-card-new {
+  --rank-text: var(--text);
+  --rank-muted: var(--muted);
+  --rank-line: var(--border);
+}
+:root[data-theme="light"] .info-card,
+:root[data-theme="light"] .ranking-list-new {
+  scrollbar-color: var(--input-border) transparent;
+}
+:root[data-theme="light"] .ranking-card-new::before,
+:root[data-theme="light"] .profile-modal::before {
+  display: none;
+}
+:root[data-theme="light"] :is(.ranking-close, .info-close, .profile-close) {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--border);
+}
+:root[data-theme="light"] :is(.ranking-close, .info-close, .profile-close):hover {
+  background: var(--control-bg);
+  border-color: var(--input-border);
+}
+:root[data-theme="light"] :is(.info-title, .ranking-title-new, .profile-content h2) {
+  text-shadow: none;
+}
+:root[data-theme="light"] :is(.info-example, .ranking-header-new) {
+  color: var(--muted);
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+:root[data-theme="light"] :is(.info-about, .info-credit, .info-subtitle, .ranking-name-new) {
+  color: var(--text);
+}
+:root[data-theme="light"] .info-example p {
+  color: var(--muted);
+}
+:root[data-theme="light"] .user-avatar {
+  color: #fff;
+}
+:root[data-theme="light"] :is(.ranking-row-new, .ranking-row-new:hover) {
+  background: var(--surface);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .ranking-top {
+  color: #775413;
+}
+:root[data-theme="light"]
+  :is(.highlight-blue, .ranking-user-caption, .word-feedback, .wordlist-credit a) {
+  color: var(--link);
+}
+:root[data-theme="light"] :is(.ranking-row-self, .ranking-row-self:hover) {
+  background: #edf3f8;
+  border-color: #3974a5;
+  box-shadow: inset 3px 0 #3974a5;
+}
+:root[data-theme="light"] .profile-modal {
+  --pm-bg: var(--surface);
+  --pm-panel: var(--surface-soft);
+  --pm-line: var(--border);
+  --pm-muted: var(--muted);
+  --pm-red: var(--accent);
+  --pm-gold: #775413;
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .profile-tabs {
+  background: var(--surface-soft);
+}
+:root[data-theme="light"] .profile-tabs button {
+  color: var(--muted);
+}
+:root[data-theme="light"] .profile-tabs button:hover {
+  background: var(--control-bg);
+  color: var(--text);
+}
+:root[data-theme="light"] .profile-tabs button.active {
+  color: #fff;
+  background: var(--accent);
+  border-color: transparent;
+  box-shadow: none;
+}
+:root[data-theme="light"]
+  :is(
+    .profile-content h2,
+    .profile-metric-value,
+    .profile-modal .settings-label,
+    .profile-modal .evolution-section h3
+  ) {
+  color: var(--text);
+}
+:root[data-theme="light"] :is(.profile-metric-label, .profile-metric-value small) {
+  color: var(--muted);
+}
+:root[data-theme="light"]
+  :is(
+    .profile-metrics > div,
+    .profile-metrics > div:hover,
+    .profile-modal .settings-section,
+    .profile-modal .evolution-section,
+    .profile-modal .evolution-stats > div
+  ) {
+  color: var(--text);
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+:root[data-theme="light"] .profile-metrics > div:nth-child(3) {
+  background: #f4ead5;
+}
+:root[data-theme="light"]
+  :is(
+    .profile-badge,
+    .profile-metric-total-time .profile-metric-label,
+    .profile-metric-total-time .profile-metric-value
+  ) {
+  color: #775413;
+}
+:root[data-theme="light"] .profile-badge {
+  background: #f4ead5;
+  border-color: #d8c496;
+}
+:root[data-theme="light"] .profile-metric-icon {
+  stroke: var(--accent);
+  filter: none;
+}
+:root[data-theme="light"] .profile-metric-total-time .profile-metric-icon {
+  stroke: #775413;
+}
+:root[data-theme="light"]
+  :is(
+    .profile-modal .close-profile-btn,
+    .profile-modal .close-profile-btn:hover,
+    .profile-modal .settings-input-modern
+  ) {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--input-border);
+}
+:root[data-theme="light"] .profile-modal #nickname-error {
+  color: var(--error-text);
+}
+:root[data-theme="light"] :is(.runner-back-btn, .runner-close-select-btn) {
+  color: var(--text);
+  border-color: var(--input-border);
+}
+:root[data-theme="light"] :is(.runner-back-btn, .runner-close-select-btn):hover {
+  background: var(--surface-soft);
+}
+:root[data-theme="light"] :is(.runner-acertos-label, .runner-acertos-value) {
+  color: var(--positive-text);
+}
+:root[data-theme="light"] .info-divider {
+  border-top-color: var(--border);
+}
+
+@media (max-width: 760px) and (min-height: 501px), (max-width: 599px) {
+  .theme-toggle {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle {
+    transition: none;
+  }
+}

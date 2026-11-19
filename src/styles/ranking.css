@@ -2,7 +2,7 @@
   --rank-text: #fff8f3;
   --rank-muted: #dbc9c1;
   --rank-line: rgba(255, 238, 230, 0.15);
-  background-color: #4a3333;
+  background-color: var(--surface-warm);
   width: min(720px, calc(100vw - 40px));
   max-width: none;
   height: min(760px, 78vh);
@@ -71,7 +71,7 @@
 
 .ranking-title-new {
   margin: 5px 52px 26px;
-  color: #ff3b3b;
+  color: var(--accent);
   font-family: "Creepster", cursive;
   font-size: clamp(2.3rem, 6vw, 3.3rem);
   line-height: 0.95;
@@ -174,7 +174,7 @@
 }
 .ranking-user-caption {
   margin: 0 0 8px;
-  color: #c3e0ff;
+  color: var(--link);
   font-size: 0.8rem;
 }
 .ranking-user-summary .ranking-row-new {

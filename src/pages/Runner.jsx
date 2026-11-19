@@ -225,7 +225,7 @@ function Runner() {
   return (
     <div className="game-wrapper">
       <h1>MODO RUNNER</h1>
-      <p style={{ marginBottom: "20px", color: "#ccc" }}>
+      <p style={{ marginBottom: "20px", color: "var(--muted)" }}>
         Acerte o máximo de palavras antes do tempo acabar
       </p>
 

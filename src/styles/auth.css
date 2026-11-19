@@ -1,7 +1,7 @@
 .auth-card {
   position: relative;
-  background: #201414;
-  border: 1px solid #2a1a1a;
+  background: var(--auth-bg);
+  border: 1px solid var(--border);
   padding: 40px 30px 30px;
   border-radius: 20px;
   width: 380px;
@@ -22,14 +22,14 @@
   right: 18px;
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--subtle);
   font-size: 1.4rem;
   cursor: pointer;
   transition: 0.2s;
 }
 
 .close-btn:hover {
-  color: #ff3b3b;
+  color: var(--accent);
 }
 
 .auth-card .close-btn {
@@ -57,27 +57,27 @@
 .auth-card input {
   padding: 13px;
   border-radius: 8px;
-  border: 1px solid #2a2a3c;
-  background: #151523;
-  color: white;
+  border: 1px solid var(--input-border);
+  background: var(--surface-soft);
+  color: var(--text);
   font-size: 0.95rem;
   transition: 0.2s;
 }
 
 .auth-card input:focus {
-  border-color: #ff3b3b;
+  border-color: var(--accent);
   outline: none;
 }
 
 .auth-card input.error-input {
-  border-color: #ff3b3b;
+  border-color: var(--accent);
 }
 
 .auth-card button[type="submit"] {
   padding: 13px;
   border-radius: 8px;
   border: none;
-  background: #ff3b3b;
+  background: var(--accent);
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -107,39 +107,39 @@
 }
 
 .error {
-  color: #ff6b6b;
+  color: var(--error-text);
   font-size: 0.75rem;
 }
 
 .info-message {
-  color: #4caf50;
+  color: var(--positive-text);
   font-size: 0.75rem;
 }
 
 .forgot-password {
   text-align: center;
   cursor: pointer;
-  color: #bbb;
+  color: var(--muted);
   font-size: 0.85rem;
   transition: 0.2s;
   margin-top: 6px;
 }
 
 .forgot-password:hover {
-  color: #ff3b3b;
+  color: var(--accent);
 }
 
 .switch {
   text-align: center;
   cursor: pointer;
-  color: #ccc;
+  color: var(--muted);
   font-size: 0.85rem;
   transition: 0.2s;
   margin-top: 4px;
 }
 
 .switch:hover {
-  color: #ff3b3b;
+  color: var(--accent);
 }
 
 @media (max-width: 500px) {

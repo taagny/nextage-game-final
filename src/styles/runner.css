@@ -8,13 +8,13 @@
 .runner-timer {
   font-size: 2.2rem;
   font-weight: 900;
-  color: #ff3b3b;
+  color: var(--accent);
 }
 
 .runner-score {
   font-size: 2.2rem;
   font-weight: 900;
-  color: #538d4e;
+  color: var(--success);
 }
 
 .runner-options-vertical {
@@ -41,13 +41,13 @@
 .prep-title {
   font-size: 2rem;
   letter-spacing: 3px;
-  color: white;
+  color: var(--text);
 }
 
 .prep-number {
   font-family: "Creepster", cursive;
   font-size: 9rem;
-  color: #ff3b3b;
+  color: var(--accent);
   text-shadow: 0 0 20px rgba(255, 59, 59, 0.6);
 }
 
@@ -65,7 +65,7 @@
 
 .runner-result-time {
   font-size: 0.95rem;
-  color: #ccc;
+  color: var(--muted);
 }
 
 .runner-result-acertos {
@@ -88,13 +88,13 @@
 
 .runner-result-average {
   font-size: 0.85rem;
-  color: #aaa;
+  color: var(--subtle);
 }
 
 .runner-restart-btn {
   width: 280px;
   padding: 14px 0;
-  background: #ff3b3b;
+  background: var(--accent);
   border: none;
   border-radius: 12px;
   color: white;
@@ -128,7 +128,7 @@
 
 .runner-back-btn:hover {
   background: #ffffff;
-  color: #1f1f3a;
+  color: var(--surface);
 }
 
 @media (max-width: 600px) {
@@ -150,7 +150,7 @@
 
 .runner-close-select-btn:hover {
   background: #fffefe;
-  color: #1f1f3a;
+  color: var(--surface);
 }
 
 @media (max-width: 600px) {
