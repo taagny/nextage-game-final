@@ -50,6 +50,10 @@ Verificação da publicação em 18/11/2026: formatação aprovada, lint com zer
 
 ## Organização e dados
 
+O seletor de sol/lua no cabeçalho alterna entre os temas escuro e claro, inclusive sem conta. O tema escuro é o padrão; a preferência fica em `nextage:theme` no navegador e acompanha recargas e abas da mesma origem. Com armazenamento bloqueado, a escolha vale para a sessão atual. As cores de acerto, presença e ausência continuam distintas nos dois temas.
+
+Para auditar os dois temas em emuladores, execute separadamente `npm run audit:responsive -- theme-dark dark` e `npm run audit:responsive -- theme-light light`. A auditoria também verifica persistência do tema, alternância com armazenamento bloqueado e ativação por Enter sem enviar uma tentativa.
+
 A revisão de responsividade (documento local: `docs/RESPONSIVIDADE.md`) cobriu oito tamanhos entre 320 × 568 e 1440 × 900, com 136 verificações finais de páginas e modais. O cabeçalho, teclado e modais foram ajustados; o Clássico usa duas colunas em telas horizontais baixas. Capturas e medições podem ser reproduzidas com `npm run audit:responsive`.
 
 O Clássico agora retoma a mesma palavra e tentativas após recarregar, usando armazenamento local separado por projeto/conta. Resultados pendentes preservam o ID e podem ser reenviados sem duplicar a partida. Veja continuidade do Clássico (documento local: `docs/CONTINUIDADE_CLASSICO.md`) para ciclo, testes e limites: isso não impede manipulação deliberada do navegador nem sincroniza abas/dispositivos.
