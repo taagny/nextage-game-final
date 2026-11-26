@@ -60,7 +60,7 @@ function debuggerClient(url) {
 }
 
 test(
-  "Chrome retoma visitante/conta, preserva vitória/derrota e não duplica sequência após recarga",
+  "Chrome edita casas com clique/setas, retoma partidas e preserva resultados sem duplicação",
   { timeout: 180000 },
   async () => {
     const chrome = [
@@ -153,10 +153,78 @@ test(
       await client.send("Page.navigate", { url: "http://127.0.0.1:5173/" })
       await ready()
       const initial = await snapshot()
+
+      // A digitação deve seguir a casa destacada, mesmo com espaços à esquerda.
+      const selectCell = (column, row = 0) =>
+        evaluate(`document.querySelectorAll('.game-row')[${row}].children[${column}].click()`)
+      const assertRow = async (expected, column) => {
+        const game = (await snapshot()).game
+        assert.deepEqual(game.board[game.currentRow], expected)
+        assert.equal(game.currentCol, column)
+        assert.equal(
+          await evaluate(
+            "[...document.querySelectorAll('.game-tile')].findIndex(e=>e.classList.contains('cursor-active'))"
+          ),
+          game.currentRow * 5 + column
+        )
+      }
+      await selectCell(2)
+      await type("AB")
+      await assertRow(["", "", "A", "B", ""], 4)
+      await evaluate("[...document.querySelectorAll('.key')].find(e=>e.textContent==='Z').click()")
+      await type("Q")
+      await assertRow(["", "", "A", "B", "Z"], 4)
+      await key("ArrowLeft")
+      await key("ArrowLeft")
+      await type("CD")
+      await assertRow(["", "", "C", "D", "Z"], 4)
+      for (let i = 0; i < 6; i++) await key("ArrowLeft")
+      await type("XY")
+      await assertRow(["X", "Y", "C", "D", "Z"], 2)
+      for (let i = 0; i < 6; i++) await key("ArrowRight")
+      await key("Backspace")
+      await key("Backspace")
+      await assertRow(["X", "Y", "C", "", ""], 3)
+      await type("EF")
+      await assertRow(["X", "Y", "C", "E", "F"], 4)
+      await selectCell(1)
+      const selected = await snapshot()
+      await reload()
+      assert.deepEqual(await snapshot(), selected)
+      await type("A")
+      await assertRow(["X", "A", "C", "E", "F"], 2)
+      await selectCell(4, 1)
+      await assertRow(["X", "A", "C", "E", "F"], 2)
+      await selectCell(4)
+      for (let i = 0; i < 6; i++) await key("Backspace")
+      await assertRow(["", "", "", "", ""], 0)
+
+      // Eventos agrupados não podem usar uma posição antiga do cursor.
+      await evaluate(
+        "document.querySelectorAll('.game-tile')[1].click(); for(const key of ['A','B','ArrowRight','C']) window.dispatchEvent(new KeyboardEvent('keydown',{key}))"
+      )
+      await assertRow(["", "A", "B", "", "C"], 4)
+      const beforeShortcut = await snapshot()
+      await evaluate(
+        "for(const options of [{key:'a',ctrlKey:true},{key:'ArrowLeft',altKey:true},{key:'x',isComposing:true}]) window.dispatchEvent(new KeyboardEvent('keydown',options))"
+      )
+      assert.deepEqual(await snapshot(), beforeShortcut)
+      assert.equal(
+        await evaluate(
+          "window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',cancelable:true}))"
+        ),
+        false,
+        "Setas do tabuleiro devem impedir a rolagem padrão da página."
+      )
+      await selectCell(4)
+      for (let i = 0; i < 6; i++) await key("Backspace")
+
       const wrong = initial.secret === "CASAS" ? "TERMO" : "CASAS"
       await type(wrong)
       await key("Enter")
       await until(async () => (await snapshot()).game.currentRow === 1)
+      await selectCell(3, 0)
+      await assertRow(["", "", "", "", ""], 0)
       await type("AB")
       const before = await snapshot()
       await reload()
@@ -173,6 +241,9 @@ test(
       await key("Enter")
       await until(async () => (await snapshot()).game.isGameOver)
       const won = await snapshot()
+      await key("ArrowLeft")
+      await type("ABC")
+      assert.deepEqual(await snapshot(), won)
       await reload()
       assert.equal((await snapshot()).matchId, initial.matchId)
       assert.equal((await snapshot()).finishedAt, won.finishedAt)
@@ -198,6 +269,10 @@ test(
         "document.querySelector('.victory-close').click(); [...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='Login').click()"
       )
       await until(() => evaluate("!!document.querySelector('.auth-card .switch')"))
+      const beforeLoginInput = await snapshot()
+      await key("ArrowLeft")
+      await type("ABC")
+      assert.deepEqual(await snapshot(), beforeLoginInput)
       await evaluate("document.querySelector('.auth-card .switch').click()")
       await until(() => evaluate("document.querySelectorAll('.auth-card input').length === 4"))
       await evaluate(
@@ -350,6 +425,28 @@ test(
         "[...document.querySelectorAll('.runner-options-vertical button')].find(e=>e.textContent==='60s').click()"
       )
       await until(() => evaluate("!!document.querySelector('.runner-timer')"))
+      await selectCell(2)
+      await type("AB")
+      await key("ArrowLeft")
+      await type("C")
+      assert.deepEqual(
+        await evaluate(
+          "[...document.querySelectorAll('.game-row')[0].children].map(e=>e.textContent)"
+        ),
+        ["", "", "A", "C", ""]
+      )
+      assert.equal(
+        await evaluate(
+          "[...document.querySelectorAll('.game-tile')].findIndex(e=>e.classList.contains('cursor-active'))"
+        ),
+        4
+      )
+      await key("Backspace")
+      assert.equal(
+        await evaluate("document.querySelector('.game-row').textContent"),
+        "",
+        "Backspace do Runner continua limpando a tentativa inteira."
+      )
       for (let row = 0; row < 5; row++) {
         await type("CASAS")
         await key("Enter")
