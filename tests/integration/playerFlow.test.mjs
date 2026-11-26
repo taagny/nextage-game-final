@@ -13,6 +13,7 @@ import {
   getRecentMatches,
   saveRunnerRecord,
   registerLoss,
+  registerAbandon,
   setResearchConsent
 } from "../../src/services/playerService.js"
 import { getClassicRanking, getRunnerRanking } from "../../src/services/rankingService.js"
@@ -156,4 +157,33 @@ test("cadastro, aceite, erro de senha, novo login, vitória e rankings usam os s
   } finally {
     await deleteAdminApp(adminFixture)
   }
+})
+
+test("serviços mantêm recorde de sequência após derrotas, abandono, reenvio e novo login", async () => {
+  const email = "maior-sequencia@example.invalid"
+  const password = "senha-local-ficticia-123"
+  const { user } = await registerWithPassword(email, password)
+  const uid = user.uid
+  await ensurePlayerExists(uid, "Recordista")
+  await setTermsAccepted(uid)
+  assert.equal((await getPlayer(uid)).stats.bestStreak, 0)
+  const win = (id) => registerWin(uid, { word: "OPACA", attempts: 3, timeMs: 1000, matchId: id })
+  await win("recorde-1")
+  await win("recorde-2")
+  await win("recorde-2")
+  assert.equal((await getPlayer(uid)).stats.bestStreak, 2)
+  assert.equal((await getPlayer(uid)).stats.totalWins, 2)
+  await registerLoss(uid, { word: "CASAS", timeMs: 1000, matchId: "recorde-derrota" })
+  await win("recorde-3")
+  await registerAbandon(uid, { timeMs: 1000, matchId: "recorde-abandono" })
+  assert.equal((await getPlayer(uid)).stats.bestStreak, 2)
+  assert.equal((await getPublicProfile(uid)).sequenciaAtual, 0)
+  await logout()
+  await loginWithPassword(email, password)
+  await win("recorde-4")
+  await win("recorde-5")
+  await win("recorde-6")
+  assert.equal((await getPlayer(uid)).stats.bestStreak, 3)
+  assert.equal((await getPlayer(uid)).stats.totalWins, 6)
+  await logout()
 })

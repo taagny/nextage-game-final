@@ -1,6 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { initialPlayerStats, nextPlayerStats } from "../../src/utils/playerStats.js"
+import { getBestStreak, initialPlayerStats, nextPlayerStats } from "../../src/utils/playerStats.js"
 
 const fixedAt = "2026-11-08T00:00:00Z"
 
@@ -76,4 +76,70 @@ test("preserva a marca dos contadores e os totais anteriores, sem gravar profile
   assert.equal(stats.countersFixedAt, fixedAt)
   assert.deepEqual(stats.guessDistribution, { 1: 1, 2: 1, 3: 1, 4: 0, 5: 0, 6: 0 })
   assert.equal(Object.hasOwn(stats, "profile"), false)
+})
+
+test("maior sequência mantém o recorde após derrota, nova vitória e abandono", () => {
+  let stats = initialPlayerStats(fixedAt)
+  let streak = 0
+  for (const [won, abandoned] of [
+    [true, false],
+    [true, false],
+    [false, false],
+    [true, false],
+    [false, true]
+  ]) {
+    stats = nextPlayerStats(
+      stats,
+      { won, abandoned, attempts: won ? 3 : abandoned ? 0 : 6, timeMs: 1000 },
+      fixedAt,
+      streak
+    )
+    streak = won ? streak + 1 : 0
+  }
+  assert.equal(stats.bestStreak, 2)
+  assert.equal(stats.totalWins, 3)
+  assert.equal(stats.totalGames, 5)
+  for (let i = 0; i < 3; i++) {
+    stats = nextPlayerStats(
+      stats,
+      { won: true, abandoned: false, attempts: 3, timeMs: 1000 },
+      fixedAt,
+      streak
+    )
+    streak++
+  }
+  assert.equal(stats.bestStreak, 3)
+  assert.equal(stats.totalWins, 6)
+})
+
+test("conta antiga usa a sequência atual, sem confundir recorde com vitórias acumuladas", () => {
+  const old = { ...initialPlayerStats(fixedAt), totalGames: 100, totalWins: 100 }
+  delete old.bestStreak
+  assert.equal(getBestStreak(old, 7), 7)
+  assert.equal(getBestStreak(undefined), 0)
+  const lost = nextPlayerStats(
+    old,
+    { won: false, abandoned: false, attempts: 6, timeMs: 1000 },
+    fixedAt,
+    7
+  )
+  assert.equal(lost.bestStreak, 7)
+  assert.equal(lost.totalWins, 100)
+  assert.equal(getBestStreak(lost, 1), 7)
+  assert.equal(old.bestStreak, undefined)
+})
+
+test("recorde inclui vitória e abandono da sequência legada, mesmo acima dos totais novos", () => {
+  const old = initialPlayerStats(fixedAt)
+  assert.equal(
+    nextPlayerStats(old, { won: true, abandoned: false, attempts: 3, timeMs: 1000 }, fixedAt, 20)
+      .bestStreak,
+    21
+  )
+  assert.equal(
+    nextPlayerStats(old, { won: false, abandoned: true, attempts: 0, timeMs: 0 }, fixedAt, 20)
+      .bestStreak,
+    20
+  )
+  assert.equal(getBestStreak({ bestStreak: 5 }, 20), 20)
 })

@@ -2,6 +2,7 @@ export function initialPlayerStats(countersFixedAt) {
   return {
     totalGames: 0,
     totalWins: 0,
+    bestStreak: 0,
     totalLosses: 0,
     abandonedGames: 0,
     totalTimeMs: 0,
@@ -14,7 +15,11 @@ export function initialPlayerStats(countersFixedAt) {
   }
 }
 
-export function nextPlayerStats(previous, result, countersFixedAt) {
+export function getBestStreak(stats, currentStreak = 0) {
+  return Math.max(stats?.bestStreak ?? 0, currentStreak)
+}
+
+export function nextPlayerStats(previous, result, countersFixedAt, currentStreak = 0) {
   const stats = { ...initialPlayerStats(countersFixedAt), ...previous }
   const { won, abandoned, timeMs, attempts } = result
   const totalWins = stats.totalWins + Number(won)
@@ -30,6 +35,7 @@ export function nextPlayerStats(previous, result, countersFixedAt) {
   return {
     totalGames: stats.totalGames + 1,
     totalWins,
+    bestStreak: Math.max(getBestStreak(previous, currentStreak), won ? currentStreak + 1 : 0),
     totalLosses: stats.totalLosses + Number(!won && !abandoned),
     abandonedGames: stats.abandonedGames + Number(abandoned),
     totalTimeMs,

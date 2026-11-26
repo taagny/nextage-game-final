@@ -164,8 +164,13 @@ async function registerClassicResult(uid, result, matchId) {
       const previousWord = wordSnap?.exists() ? wordSnap.data() : null
       const wordHistory = wordRef ? nextWordDoc(previousWord, result, serverTimestamp()) : null
 
-      const stats = nextPlayerStats(privateSnap.data().stats, result, serverTimestamp())
       const profile = publicSnap.data()
+      const stats = nextPlayerStats(
+        privateSnap.data().stats,
+        result,
+        serverTimestamp(),
+        profile.sequenciaAtual
+      )
       const sequenciaAtual = result.won ? profile.sequenciaAtual + 1 : 0
       const sequenciasPerdidas = profile.sequenciasPerdidas + Number(!result.won)
       transaction.update(privateRef, { stats })
