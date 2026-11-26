@@ -10,6 +10,7 @@ import {
 } from "../services/playerService"
 import { getHardestWords } from "../services/wordService"
 import { getProfileLevel } from "../utils/profileLevel"
+import { getBestStreak } from "../utils/playerStats"
 import { validateNickname } from "../utils/nickname"
 import { NICKNAME_MIN, NICKNAME_MAX } from "../utils/constants"
 import {
@@ -71,7 +72,11 @@ function UserSettingsModal({ isOpen, onClose, user }) {
       ])
       if (!active) return
       setNicknameDraft(profile?.apelido || "")
-      setStats(player?.stats || null)
+      setStats(
+        player?.stats
+          ? { ...player.stats, bestStreak: getBestStreak(player.stats, profile?.sequenciaAtual) }
+          : null
+      )
       const matches = recent.filter((m) => m.mode === "classico" && !m.abandoned).reverse()
 
       setRecentMatches(matches)
@@ -272,8 +277,10 @@ function UserSettingsModal({ isOpen, onClose, user }) {
                       <path d="M8 21h8m-4-4v4m-5-17h10v5a5 5 0 0 1-10 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4" />
                     </svg>
                     <span className="profile-metric-copy">
-                      <span className="profile-metric-label">Vitórias</span>
-                      <strong className="profile-metric-value">{stats.totalWins}</strong>
+                      <span className="profile-metric-label">Maior sequência</span>
+                      <strong className="profile-metric-value">
+                        {stats.bestStreak.toLocaleString("pt-BR")}
+                      </strong>
                     </span>
                   </div>
                   <div className="profile-metric">

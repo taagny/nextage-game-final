@@ -342,11 +342,21 @@ test(
       await key("Enter")
       await until(async () => (await snapshot()).matchId !== owned.matchId)
       assert.equal((await snapshot()).game.streak, 1)
+      let expectedBestStreak = "1"
       const openSettings = async () => {
         await evaluate("document.querySelector('.user-btn').click()")
         await until(() => evaluate("!!document.querySelector('.user-dropdown button')"))
         await evaluate("document.querySelector('.user-dropdown button').click()")
         await until(() => evaluate("!!document.querySelector('.profile-tabs')"))
+        await until(() => evaluate("!!document.querySelector('.profile-metric-value')"))
+        assert.equal(
+          await evaluate("document.querySelector('.profile-metric-label').textContent"),
+          "Maior sequência"
+        )
+        assert.equal(
+          await evaluate("document.querySelector('.profile-metric-value').textContent"),
+          expectedBestStreak
+        )
         await evaluate(
           "[...document.querySelectorAll('.profile-tabs button')].find(e=>e.textContent.trim()==='Configurações').click()"
         )
@@ -415,6 +425,36 @@ test(
       await until(() => existsSync(csvPath))
       assert.ok(readFileSync(csvPath, "utf8").includes(owned.secret))
       await evaluate("document.querySelector('.profile-close').click()")
+
+      // Após duas vitórias, uma derrota e outra vitória, o recorde é 2, não 3.
+      const finishRound = async (won) => {
+        const round = await snapshot()
+        const guess = won ? round.secret : round.secret === "CASAS" ? "TERMO" : "CASAS"
+        for (let row = 0; row < (won ? 1 : 6); row++) {
+          await type(guess)
+          await key("Enter")
+        }
+        await until(async () => (await snapshot()).game.isGameOver && (await snapshot()).recorded)
+      }
+      const nextRound = async () => {
+        const previousId = (await snapshot()).matchId
+        await evaluate(
+          "[...document.querySelectorAll('button')].find(e=>e.textContent.includes('Novo Jogo')).click()"
+        )
+        await until(async () => (await snapshot()).matchId !== previousId)
+      }
+      await finishRound(true)
+      await nextRound()
+      await finishRound(false)
+      await nextRound()
+      await finishRound(true)
+      assert.equal((await snapshot()).game.streak, 1)
+      await evaluate("document.querySelector('.victory-close').click()")
+      expectedBestStreak = "2"
+      await openSettings()
+      await evaluate("document.querySelector('.profile-close').click()")
+      await key("Enter")
+      await until(async () => !(await snapshot()).game.isGameOver)
 
       // Regressão Runner: na sexta linha, entradas rejeitadas não encerram a corrida.
       await evaluate(
