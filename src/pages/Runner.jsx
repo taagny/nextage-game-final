@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useWordle } from "../hooks/useWordle"
+import { useBoardKeyboard } from "../hooks/useBoardKeyboard"
 import { useRunner } from "../hooks/useRunner"
 import { answers } from "../utils/answers"
 import RunnerRankingModal from "../components/RunnerRankingModal"
@@ -29,8 +30,18 @@ function Runner() {
     return answers[randomIndex]
   })
 
-  const { board, results, addLetter, submitGuess, resetBoard, currentRow, clearCurrentRow } =
-    useWordle(secret)
+  const {
+    board,
+    results,
+    addLetter,
+    submitGuess,
+    resetBoard,
+    currentRow,
+    currentCol,
+    selectCell,
+    moveCursor,
+    clearCurrentRow
+  } = useWordle(secret)
 
   const finished = selectedTime && (timeLeft <= 0 || lostByError)
 
@@ -57,42 +68,7 @@ function Runner() {
     return () => clearTimeout(timer)
   }, [prepTime, start])
 
-  const handleKey = useEffectEvent((e) => {
-    const key = e.key?.toUpperCase?.() || ""
-
-    if (!isRunning || finished || openRunnerRanking) return
-
-    if (key === "ENTER") {
-      const rowBefore = currentRow
-      const correct = submitGuess()
-
-      if (correct === true) {
-        incrementScore()
-
-        const randomIndex = Math.floor(Math.random() * answers.length)
-        setSecret(answers[randomIndex])
-        resetBoard()
-      } else if (correct === false && rowBefore === 5) {
-        setLostByError(true)
-        stop()
-      }
-
-      return
-    }
-
-    if (key === "BACKSPACE") {
-      clearCurrentRow()
-      return
-    }
-
-    if (/^[A-Z]$/.test(key)) return addLetter(key)
-  })
-
-  useEffect(() => {
-    const listener = (event) => handleKey(event)
-    window.addEventListener("keydown", listener)
-    return () => window.removeEventListener("keydown", listener)
-  }, [])
+  useBoardKeyboard(handleVirtualKey, isRunning && !finished && !openRunnerRanking)
 
   useEffect(() => {
     function handleOpenRanking() {
@@ -196,6 +172,9 @@ function Runner() {
   function handleVirtualKey(key) {
     if (!isRunning || finished || openRunnerRanking) return
 
+    if (key === "ARROWLEFT") return moveCursor(-1)
+    if (key === "ARROWRIGHT") return moveCursor(1)
+
     if (key === "ENTER") {
       const rowBefore = currentRow
       const correct = submitGuess()
@@ -280,7 +259,15 @@ function Runner() {
                   if (status === "absent") className += " tile-absent"
 
                   return (
-                    <div key={colIndex} className={className}>
+                    <div
+                      key={colIndex}
+                      className={`${className} ${
+                        rowIndex === currentRow && colIndex === currentCol ? "cursor-active" : ""
+                      }`}
+                      onClick={() => {
+                        if (isRunning && !openRunnerRanking) selectCell(rowIndex, colIndex)
+                      }}
+                    >
                       {cell}
                     </div>
                   )

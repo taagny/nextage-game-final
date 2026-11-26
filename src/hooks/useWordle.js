@@ -1,24 +1,18 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useReducer, useRef, useState } from "react"
 import { checkGuess } from "../utils/gameLogic"
+import { createWordleInput, wordleInputReducer } from "../utils/wordleInput.js"
 
 export function useWordle(secret, { initialState, onFinish } = {}) {
-  const [board, setBoard] = useState(
-    () =>
-      initialState?.board.map((row) => [...row]) ??
-      Array(6)
-        .fill(null)
-        .map(() => Array(5).fill(""))
+  const [{ board, currentRow, currentCol, isManualSelection }, dispatchInput] = useReducer(
+    wordleInputReducer,
+    initialState,
+    createWordleInput
   )
 
   const [results, setResults] = useState(
     () => initialState?.results.map((row) => row && [...row]) ?? Array(6).fill(null)
   )
 
-  const [currentRow, setCurrentRow] = useState(initialState?.currentRow ?? 0)
-  const [currentCol, setCurrentCol] = useState(initialState?.currentCol ?? 0)
-  const [isManualSelection, setIsManualSelection] = useState(
-    initialState?.isManualSelection ?? false
-  )
   const [isGameOver, setIsGameOver] = useState(initialState?.isGameOver ?? false)
   const [streak, setStreak] = useState(initialState?.streak ?? 0)
   const [invalidWord, setInvalidWord] = useState(false)
@@ -47,72 +41,27 @@ export function useWordle(secret, { initialState, onFinish } = {}) {
 
   function addLetter(letter) {
     if (isGameOver) return
-
-    setBoard((prev) => {
-      const newBoard = [...prev]
-      const row = [...newBoard[currentRow]]
-
-      let targetIndex
-
-      if (isManualSelection) {
-        targetIndex = currentCol
-      } else {
-        targetIndex = row.findIndex((cell) => cell === "")
-      }
-
-      if (targetIndex !== -1 && targetIndex < 5) {
-        row[targetIndex] = letter
-        newBoard[currentRow] = row
-        setCurrentCol(Math.min(targetIndex + 1, 4))
-      }
-
-      return newBoard
-    })
-
-    setIsManualSelection(false)
+    dispatchInput({ type: "letter", letter })
   }
 
   function deleteLetter() {
     if (isGameOver) return
+    dispatchInput({ type: "delete" })
+  }
 
-    setBoard((prev) => {
-      const newBoard = [...prev]
-      const row = [...newBoard[currentRow]]
+  function selectCell(row, column) {
+    if (isGameOver) return
+    dispatchInput({ type: "select", row, column })
+  }
 
-      let targetIndex
-
-      if (isManualSelection) {
-        targetIndex = currentCol
-      } else {
-        targetIndex = row
-          .map((val, index) => (val !== "" ? index : -1))
-          .filter((index) => index !== -1)
-          .pop()
-      }
-
-      if (targetIndex !== undefined && targetIndex >= 0) {
-        row[targetIndex] = ""
-        newBoard[currentRow] = row
-        setCurrentCol(targetIndex)
-      }
-
-      return newBoard
-    })
-
-    setIsManualSelection(false)
+  function moveCursor(direction) {
+    if (isGameOver) return
+    dispatchInput({ type: "move", direction })
   }
 
   function clearCurrentRow() {
     if (isGameOver) return
-
-    setBoard((prev) => {
-      const newBoard = [...prev]
-      newBoard[currentRow] = ["", "", "", "", ""]
-      return newBoard
-    })
-
-    setCurrentCol(0)
-    setIsManualSelection(false)
+    dispatchInput({ type: "clear" })
   }
 
   function submitGuess() {
@@ -153,22 +102,13 @@ export function useWordle(secret, { initialState, onFinish } = {}) {
       return false
     }
 
-    setCurrentRow((prev) => prev + 1)
-    setCurrentCol(0)
-    setIsManualSelection(false)
+    dispatchInput({ type: "next-row" })
     return false
   }
 
   function resetBoard() {
-    setBoard(
-      Array(6)
-        .fill(null)
-        .map(() => Array(5).fill(""))
-    )
+    dispatchInput({ type: "reset" })
     setResults(Array(6).fill(null))
-    setCurrentRow(0)
-    setCurrentCol(0)
-    setIsManualSelection(false)
     setIsGameOver(false)
   }
 
@@ -183,8 +123,8 @@ export function useWordle(secret, { initialState, onFinish } = {}) {
     streak,
     currentRow,
     currentCol,
-    setCurrentCol,
-    setIsManualSelection,
+    selectCell,
+    moveCursor,
     isManualSelection,
     resetBoard,
     setExternalStreak: setStreak,

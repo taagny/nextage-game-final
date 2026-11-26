@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react"
 import { useWordle } from "../hooks/useWordle"
+import { useBoardKeyboard } from "../hooks/useBoardKeyboard"
 import { classicElapsedTime, newClassicRound } from "../utils/classicSession.js"
 import {
   classicScope,
@@ -63,8 +64,8 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
     streak,
     currentRow,
     currentCol,
-    setCurrentCol,
-    setIsManualSelection,
+    selectCell,
+    moveCursor,
     isManualSelection,
     setExternalStreak,
     invalidWord
@@ -177,19 +178,7 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
     saveAttempt
   ])
 
-  useEffect(() => {
-    function handleKey(e) {
-      const key = e.key?.toUpperCase?.() || ""
-
-      if (isGameOver) return
-      if (key === "ENTER") return submitGuess()
-      if (key === "BACKSPACE") return deleteLetter()
-      if (/^[A-Z]$/.test(key)) return addLetter(key)
-    }
-
-    window.addEventListener("keydown", handleKey)
-    return () => window.removeEventListener("keydown", handleKey)
-  }, [addLetter, deleteLetter, submitGuess, isGameOver])
+  useBoardKeyboard(handleVirtualKey, !isGameOver)
 
   useEffect(() => {
     const hasTypedLetter = board?.some((row) => row?.some((cell) => cell !== ""))
@@ -219,6 +208,8 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
 
     if (isGameOver) return
 
+    if (key === "ARROWLEFT") return moveCursor(-1)
+    if (key === "ARROWRIGHT") return moveCursor(1)
     if (key === "BACKSPACE") return deleteLetter()
     if (/^[A-Z]$/.test(key)) return addLetter(key)
   }
@@ -348,14 +339,11 @@ function ClassicRound({ initialRound, ownerId, storageWarning, onNewGame }) {
                 <div
                   key={colIndex}
                   className={`${className} ${
-                    rowIndex === currentRow && colIndex === currentCol ? "cursor-active" : ""
+                    !isGameOver && rowIndex === currentRow && colIndex === currentCol
+                      ? "cursor-active"
+                      : ""
                   }`}
-                  onClick={() => {
-                    if (!isGameOver && rowIndex === currentRow) {
-                      setCurrentCol(colIndex)
-                      setIsManualSelection(true)
-                    }
-                  }}
+                  onClick={() => selectCell(rowIndex, colIndex)}
                 >
                   {cell}
                 </div>
