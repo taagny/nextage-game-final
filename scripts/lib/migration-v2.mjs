@@ -79,7 +79,7 @@ export function buildPrivateDocument(legacy, { now, createdAt }) {
   stats.guessDistribution = { ...defaults.guessDistribution, ...originalStats.guessDistribution }
   // Nunca recalcular os contadores legados: a semântica anterior fica documentada.
   stats.countersFixedAt = legacy.schemaVersion === 2 ? (originalStats.countersFixedAt ?? now) : now
-  for (const key of ["totalGames", "totalWins", "totalLosses", "abandonedGames"]) {
+  for (const key of ["totalGames", "totalWins", "totalLosses", "abandonedGames", "bestStreak"]) {
     integer(stats[key], 1000000000, key)
   }
   for (const key of ["totalTimeMs", "totalPlayTimeMs", "totalAttempts"]) {

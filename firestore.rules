@@ -7,7 +7,8 @@ service cloud.firestore {
     // runnerScores {10,30,60}, updatedAt. Nenhum nome/e-mail no documento público.
     // jogadores = schemaVersion, termsAccepted/At, termsVersion, createdAt, stats.
     // stats = contadores, totais de tempo/tentativas, médias, distribuição 1..6,
-    // countersFixedAt. createdAt e countersFixedAt são imutáveis.
+    // countersFixedAt, bestStreak opcional (int 0..1e9). Recorde não diminui;
+    // legado começa na sequência atual. createdAt e countersFixedAt são imutáveis.
     // partidas = mode, won, attempts, timeMs, abandoned, createdAt e word opcional
     // (obrigatória fora de abandonos). Histórico imutável, mas pode ser excluído.
     // palavras = contadores, média, primeira/melhor/última ocorrência e timestamp;
@@ -30,10 +31,6 @@ service cloud.firestore {
     }
     function time(value) {
       return value is int && value >= 0 && value <= 86400000;
-    }
-    function delta(before, after) {
-      let difference = after - before;
-      return difference >= 0 && difference <= 1;
     }
     function playerBefore(uid) {
       return get(/databases/$(database)/documents/jogadores/$(uid)).data;
@@ -88,9 +85,12 @@ service cloud.firestore {
       return data['1'] + data['2'] + data['3'] + data['4'] + data['5'] + data['6'];
     }
     function validStats(data) {
-      return closed(data, ['totalGames', 'totalWins', 'totalLosses', 'abandonedGames',
+      let required = ['totalGames', 'totalWins', 'totalLosses', 'abandonedGames',
           'totalTimeMs', 'totalPlayTimeMs', 'totalAttempts', 'avgTimePerWord',
-          'avgAttemptsPerWord', 'guessDistribution', 'countersFixedAt'])
+          'avgAttemptsPerWord', 'guessDistribution', 'countersFixedAt'];
+      return data is map && data.keys().hasAll(required)
+        && data.keys().hasOnly(required.concat(['bestStreak']))
+        && counter(data.get('bestStreak', 0))
         && counter(data.totalGames) && counter(data.totalWins)
         && counter(data.totalLosses) && counter(data.abandonedGames)
         && data.totalWins <= data.totalGames
@@ -105,6 +105,7 @@ service cloud.firestore {
     }
     function zeroStats(data) {
       return data.totalGames == 0 && data.totalWins == 0 && data.totalLosses == 0
+        && data.get('bestStreak', 0) == 0
         && data.abandonedGames == 0 && data.totalTimeMs == 0
         && data.totalPlayTimeMs == 0 && data.totalAttempts == 0
         && data.avgTimePerWord == 0 && data.avgAttemptsPerWord == 0
@@ -161,10 +162,8 @@ service cloud.firestore {
       let playTime = after.totalPlayTimeMs - before.totalPlayTimeMs;
       let attempts = after.totalAttempts - before.totalAttempts;
       return after.countersFixedAt == before.countersFixedAt
-        && delta(before.totalGames, after.totalGames)
-        && delta(before.totalWins, after.totalWins)
-        && delta(before.totalLosses, after.totalLosses)
-        && delta(before.abandonedGames, after.abandonedGames)
+        && games in [0, 1] && wins in [0, 1]
+        && losses in [0, 1] && abandoned in [0, 1]
         && games == wins + losses + abandoned
         && ((games == 0 && after == before)
           || (games == 1 && time(playTime)
@@ -179,8 +178,13 @@ service cloud.firestore {
     function profileAfterMatch(uid, before, after) {
       let oldProfile = get(/databases/$(database)/documents/perfisPublicos/$(uid)).data;
       let newProfile = getAfter(/databases/$(database)/documents/perfisPublicos/$(uid)).data;
+      let previousBest = before.get('bestStreak', 0);
+      let baseline = previousBest > oldProfile.sequenciaAtual ? previousBest : oldProfile.sequenciaAtual;
+      let expectedBest = baseline > newProfile.sequenciaAtual ? baseline : newProfile.sequenciaAtual;
       return (after.totalGames == before.totalGames)
         || (accepted(uid) && newProfile.updatedAt == request.time
+          && ((!('bestStreak' in before) && !('bestStreak' in after))
+            || after.get('bestStreak', -1) == expectedBest)
           && ((after.totalWins == before.totalWins + 1
               && newProfile.sequenciaAtual == oldProfile.sequenciaAtual + 1
               && newProfile.sequenciasPerdidas == oldProfile.sequenciasPerdidas)

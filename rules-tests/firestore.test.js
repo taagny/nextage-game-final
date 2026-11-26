@@ -97,9 +97,16 @@ async function record(
       options.trackWord && !abandoned ? doc(db, "jogadores/alice/palavras/CASAS") : null
     const wordSnap = wordRef ? await transaction.get(wordRef) : null
     const result = { won, abandoned, attempts, timeMs }
-    const stats = nextPlayerStats(privateSnap.data().stats, result, serverTimestamp())
     const profile = publicSnap.data()
-    transaction.update(privateRef, { stats: { ...stats, ...options.stats } })
+    const stats = nextPlayerStats(
+      privateSnap.data().stats,
+      result,
+      serverTimestamp(),
+      profile.sequenciaAtual
+    )
+    const recordedStats = { ...stats, ...options.stats }
+    if (options.omitBestStreak) delete recordedStats.bestStreak
+    transaction.update(privateRef, { stats: recordedStats })
     transaction.update(publicRef, {
       sequenciaAtual: won ? profile.sequenciaAtual + 1 : 0,
       sequenciasPerdidas: profile.sequenciasPerdidas + Number(!won),
@@ -224,6 +231,64 @@ test("derrota e abandono incrementam perdas e jogos, preservando vitórias", asy
   assert.equal(stats.abandonedGames, 1)
   assert.equal(stats.totalWins, 0)
   assert.equal((await getDoc(doc(db, "perfisPublicos/alice"))).data().sequenciasPerdidas, 2)
+})
+
+test("recorde cresce só ao superar a maior sequência e permanece após derrotas e abandonos", async () => {
+  const db = asOwner()
+  const outcomes = [true, true, false, true, false, true, true, true]
+  const expected = [1, 2, 2, 2, 2, 2, 2, 3]
+  for (let i = 0; i < outcomes.length; i++) {
+    await assertSucceeds(
+      record(
+        db,
+        { won: outcomes[i], abandoned: i === 4, attempts: outcomes[i] ? 3 : i === 4 ? 0 : 6 },
+        { id: `recorde-${i}` }
+      )
+    )
+    assert.equal((await getDoc(doc(db, "jogadores/alice"))).data().stats.bestStreak, expected[i])
+  }
+  const stats = (await getDoc(doc(db, "jogadores/alice"))).data().stats
+  assert.equal(stats.totalWins, 6)
+  assert.equal(stats.bestStreak, 3)
+})
+
+test("legado sem recorde aceita cliente antigo e captura sequência atual na primeira atualização nova", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    const player = playerData(past, true)
+    delete player.stats.bestStreak
+    await setDoc(doc(context.firestore(), "jogadores/alice"), player)
+    await updateDoc(doc(context.firestore(), "perfisPublicos/alice"), { sequenciaAtual: 40 })
+  })
+  const db = asOwner()
+  await assertSucceeds(record(db, {}, { id: "cliente-antigo", omitBestStreak: true }))
+  assert.equal((await getDoc(doc(db, "perfisPublicos/alice"))).data().sequenciaAtual, 41)
+  await assertSucceeds(record(db, { won: false, attempts: 6 }, { id: "primeira-nova" }))
+  assert.equal((await getDoc(doc(db, "jogadores/alice"))).data().stats.bestStreak, 41)
+})
+
+test("recorde não pode ser forjado, reduzido, removido nem atualizado isoladamente", async () => {
+  const db = asOwner()
+  await assertSucceeds(record(db, {}, { id: "primeira" }))
+  await assertFails(updateDoc(doc(db, "jogadores/alice"), { "stats.bestStreak": 99 }))
+  await assertFails(updateDoc(doc(asOther(), "jogadores/alice"), { "stats.bestStreak": 99 }))
+  for (const bestStreak of [0, 1, 50, -1, 1.5, "2", 1000000001]) {
+    await assertFails(record(db, {}, { id: "invalida", stats: { bestStreak } }))
+  }
+  await assertFails(record(db, {}, { id: "sem-recorde", omitBestStreak: true }))
+  await assertFails(
+    record(db, { won: false, attempts: 6 }, { id: "reduzida", stats: { bestStreak: 0 } })
+  )
+  assert.equal((await getDoc(doc(db, "jogadores/alice"))).data().stats.bestStreak, 1)
+  await assertSucceeds(record(db, {}, { id: "segunda" }))
+})
+
+test("cadastro recusa recorde positivo e aceita o formato legado sem recorde", async () => {
+  const db = asOther()
+  const player = playerData(serverTimestamp())
+  player.stats.bestStreak = 1
+  await assertFails(setDoc(doc(db, "jogadores/bob"), player))
+  delete player.stats.bestStreak
+  await assertSucceeds(setDoc(doc(db, "jogadores/bob"), player))
 })
 
 test("atualização isolada dos contadores e saltos nas estatísticas são negados", async () => {

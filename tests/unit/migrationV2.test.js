@@ -87,6 +87,16 @@ test("cleanup recusa campos desconhecidos, datas ausentes e totais inconsistente
     () => buildPrivateDocument({ stats: { totalTimeMs: -1 } }, { now, createdAt }),
     /inválido/
   )
+  for (const bestStreak of [-1, 1.5, "10", 1000000001]) {
+    assert.throws(
+      () => buildPrivateDocument({ stats: { bestStreak } }, { now, createdAt }),
+      /inválido/
+    )
+  }
+  assert.equal(
+    buildPrivateDocument({ stats: { bestStreak: 10 } }, { now, createdAt }).stats.bestStreak,
+    10
+  )
 })
 
 test("cleanup preserva autorização ou revogação explícita e não cria participação para contas antigas", () => {
