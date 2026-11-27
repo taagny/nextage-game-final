@@ -1,7 +1,8 @@
 import { after, test } from "node:test"
 import assert from "node:assert/strict"
 import { deleteApp } from "firebase/app"
-import { getAuth } from "firebase/auth"
+import { deleteUser, getAuth, GoogleAuthProvider, signInWithCredential } from "firebase/auth"
+import { deleteDoc, doc, getFirestore } from "firebase/firestore"
 import { app } from "./firebase.mjs"
 import { registerWithPassword, loginWithPassword, logout } from "../../src/services/authService.js"
 import {
@@ -186,4 +187,46 @@ test("serviços mantêm recorde de sequência após derrotas, abandono, reenvio 
   assert.equal((await getPlayer(uid)).stats.bestStreak, 3)
   assert.equal((await getPlayer(uid)).stats.totalWins, 6)
   await logout()
+})
+
+test("Google simulado no emulador mantém identidade e perfil em duas entradas, sem OAuth real", async () => {
+  assert.match(process.env.FIREBASE_AUTH_EMULATOR_HOST, /^127\.0\.0\.1:\d+$/)
+  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url")
+  const payload = Buffer.from(
+    JSON.stringify({
+      iss: "https://accounts.google.com",
+      aud: "demo-nextage-v2",
+      sub: "google-nextage-ficticio",
+      email: "google-fixture@example.invalid",
+      email_verified: true,
+      name: "Google Ficticio"
+    })
+  ).toString("base64url")
+  const credential = GoogleAuthProvider.credential(`${header}.${payload}.`)
+  const auth = getAuth(app)
+  const db = getFirestore(app)
+  let uid
+  try {
+    const first = await signInWithCredential(auth, credential)
+    uid = first.user.uid
+    assert.equal(first.user.providerData[0].providerId, "google.com")
+    await ensurePlayerExists(uid, first.user.displayName)
+    await setTermsAccepted(uid)
+    assert.equal((await getPublicProfile(uid)).apelido, "Google")
+    await logout()
+    const second = await signInWithCredential(auth, credential)
+    assert.equal(second.user.uid, uid)
+    assert.equal((await getPlayer(uid)).termsAccepted, true)
+    assert.equal((await getPublicProfile(uid)).apelido, "Google")
+    console.log(
+      "Google simulado: duas entradas com google.com, mesma identidade e perfil preservado; popup e OAuth externos não exercitados."
+    )
+  } finally {
+    if (uid && auth.currentUser?.uid === uid) {
+      await deleteDoc(doc(db, "jogadores", uid))
+      await deleteDoc(doc(db, "perfisPublicos", uid))
+      await deleteUser(auth.currentUser)
+    }
+    await logout()
+  }
 })
